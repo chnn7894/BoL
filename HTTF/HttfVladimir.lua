@@ -342,7 +342,7 @@ function VladimirMenu()
     Menu.LastHit:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     Menu.LastHit:addParam("EQ", "Use EQ", SCRIPT_PARAM_ONOFF, false)
       Menu.LastHit:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
-      Menu.LastHit:addParam("E2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
+      Menu.LastHit:addParam("E2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
         
   Menu:addSubMenu("Jungle Steal Settings", "JSteal")
   
