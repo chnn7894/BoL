@@ -1,4 +1,4 @@
-Version = "1.03"
+Version = "1.10"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -208,7 +208,7 @@ function Variables()
   QWETS = TargetSelector(TARGET_LESS_CAST, E.range, DAMAGE_MAGIC, false)
   RTS = TargetSelector(TARGET_LESS_CAST, MaxRrange, DAMAGE_MAGIC, false)
   
-  EnemyMinions = minionManager(MINION_ENEMY, E.range, player, MINION_SORT_HEALTH_ASC)
+  EnemyMinions = minionManager(MINION_ENEMY, E.range, player, MINION_SORT_MAXHEALTH_DEC)
   JungleMobs = minionManager(MINION_JUNGLE, E.range, player, MINION_SORT_MAXHEALTH_DEC)
   
   if VIP_USER then
@@ -499,7 +499,7 @@ function OnTick()
   
     if Target ~= nil then
     
-      if ValidTarget(Target, W.radius + 50) and GetDistance(Target) > 250 then
+      if ValidTarget(Target, W.radius + 50) and GetDistance(Target) > 250 and GetDistance(Target, mousePos) <= 400 then
         MoveToEnemy(Target)
       elseif ValidTarget(Target, R.range) then
         MoveToMouse()
@@ -607,8 +607,8 @@ function OrbTarget()
   
   QWETS:update()
   RTS:update()
-	
-	if QWETS.target then
+  
+  if QWETS.target then
     return QWETS.target
   end
   
@@ -761,9 +761,13 @@ function Farm()
     if E.ready and FarmE then
     
       if FarmE2 <= HealthPercent and FarmEmin <= MinionCount(minion, E.range) then
-      
-        if ValidTarget(minion, E.range) then
-          CastE()
+        
+        if EMinionDmg + AAMinionDmg <= minion.health or EMinionDmg >= minion.health then
+          
+          if ValidTarget(minion, E.range) then
+            CastE()
+          end
+          
         end
         
       end
@@ -772,7 +776,7 @@ function Farm()
     
     if Q.ready and FarmQ then
     
-      if QMinionDmg + EMinionDmg <= minion.health or QMinionDmg >= minion.health then
+      if QMinionDmg + AAMinionDmg <= minion.health or QMinionDmg >= minion.health then
       
         if ValidTarget(minion, Q.range) then
           CastQ(minion)
