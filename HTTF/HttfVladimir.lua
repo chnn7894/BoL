@@ -1,4 +1,4 @@
-Version = "1.0"
+Version = "1.01"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -81,8 +81,8 @@ function OnLoad()
     
   end
   
-  VladimirMenu()
   Variables()
+  VladimirMenu()
   DelayAction(Orbwalk, 1)
   
 end
