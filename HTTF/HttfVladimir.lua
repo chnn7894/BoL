@@ -1,4 +1,4 @@
-Version = "1.02"
+Version = "1.03"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -205,7 +205,8 @@ function Variables()
   end
   
   VP = VPrediction()
-  TS = TargetSelector(TARGET_LESS_CAST, MaxRrange, DAMAGE_MAGIC, false)
+  QWETS = TargetSelector(TARGET_LESS_CAST, E.range, DAMAGE_MAGIC, false)
+  RTS = TargetSelector(TARGET_LESS_CAST, MaxRrange, DAMAGE_MAGIC, false)
   
   EnemyMinions = minionManager(MINION_ENEMY, E.range, player, MINION_SORT_HEALTH_ASC)
   JungleMobs = minionManager(MINION_JUNGLE, E.range, player, MINION_SORT_MAXHEALTH_DEC)
@@ -604,10 +605,15 @@ function OrbTarget()
     return T
   end
   
-  TS:update()
+  QWETS:update()
+  RTS:update()
+	
+	if QWETS.target then
+    return QWETS.target
+  end
   
-  if TS.target then
-    return TS.target
+  if RTS.target then
+    return RTS.target
   end
   
 end
