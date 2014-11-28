@@ -1,4 +1,4 @@
-Version = "1.01"
+Version = "1.02"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -116,13 +116,13 @@ function Variables()
   MyminBBox = 56.92
   TrueRange = myHero.range + MyminBBox
   
-  --MaxRrange = R.range + R.radius
+  MaxRrange = R.range + R.radius
   
   QrangeSqr = Q.range*Q.range
   ErangeSqr = E.range*E.range
   RradiusSqr = R.radius*R.radius
   RrangeSqr = R.range*R.range
-  --MaxRrangeSqr = (R.range+R.radius)*(R.range+R.radius)
+  MaxRrangeSqr = (R.range+R.radius)*(R.range+R.radius)
   IrangeSqr = I.range*I.range
   
   AutoQEWQ = {1, 3, 2, 1, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2}
@@ -205,7 +205,7 @@ function Variables()
   end
   
   VP = VPrediction()
-  TS = TargetSelector(TARGET_LESS_CAST, R.range--[[MaxRrange]], DAMAGE_MAGIC, false)
+  TS = TargetSelector(TARGET_LESS_CAST, MaxRrange, DAMAGE_MAGIC, false)
   
   EnemyMinions = minionManager(MINION_ENEMY, E.range, player, MINION_SORT_HEALTH_ASC)
   JungleMobs = minionManager(MINION_JUNGLE, E.range, player, MINION_SORT_MAXHEALTH_DEC)
@@ -600,7 +600,7 @@ function OrbTarget()
     T = SOWVP:GetTarget()
   end
   
-  if T and T.tpye == Player.type and ValidTarget(T, R.range--[[MaxRrange]]) then
+  if T and T.tpye == Player.type and ValidTarget(T, MaxRrange) then
     return T
   end
   
@@ -626,7 +626,7 @@ end
 
 function Combo()
   
-  if GetDistanceSqr(Target) > RrangeSqr--[[MaxRrangeSqr]] then
+  if GetDistanceSqr(Target) > MaxRrangeSqr then
     return
   end
   
@@ -648,7 +648,7 @@ function Combo()
   
   if R.ready and ComboAutoR then
   
-    if ValidTarget(Target, R.range--[[MaxRrange]]) then
+    if ValidTarget(Target, MaxRrange) then
       CastR2(Target, Combo)
     end
         
