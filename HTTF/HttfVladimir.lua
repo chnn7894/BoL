@@ -1,4 +1,4 @@
-Version = "1.12"
+Version = "1.13"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -17,14 +17,14 @@ function ScriptMsg(msg)
 end
 
 ----------------------------------------------------------------------------------------------------
-  
+
 Host = "raw.github.com"
 
 ServerPath = "/BolHTTF/BoL/master/Server.status".."?rand="..math.random(1,10000)
 ServerData = GetWebResult(Host, ServerPath)
 
 ScriptMsg("Server check...")
-  
+
 assert(load(ServerData))()
 
 print("<font color=\"#00fa9a\"><b>HTTF Vladimir:</b> </font><font color=\"#FFFFFF\">Server status: </font><font color=\"#ff0000\"><b>"..Server.."</b></font>")
@@ -43,12 +43,12 @@ VersionData = GetWebResult(Host, VersionPath)
 Versiondata = tonumber(VersionData)
 
 if AutoUpdate then
-  
+
   if VersionData then
     ServerVersion = type(Versiondata) == "number" and Versiondata or nil
     
     if ServerVersion then
-      
+    
       if tonumber(Version) < ServerVersion then
         ScriptMsg("New version available: v"..VersionData)
         ScriptMsg("Updating, please don't press F9.")
@@ -68,9 +68,9 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function OnLoad()
-  
-  Donator = false
 
+  Donator = false
+  
   if VIP_USER then
   
     if Prodiction.IsDonator() then
@@ -91,7 +91,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function Variables()
-  
+
   Target = nil
   Player = GetMyHero()
   EnemyHeroes = GetEnemyHeroes()
@@ -220,36 +220,36 @@ end
 
 function BlockR(unit)
 
-    if Menu.Misc.BlockR then
+  if Menu.Misc.BlockR then
+  
+    if Packet(unit):get('spellId') == _R then
     
-        if Packet(unit):get('spellId') == _R then
-        
-            if HitRCount() == 0 then
-                unit:Block()
-            end
-            
-        end
-        
+      if HitRCount() == 0 then
+        unit:Block()
+      end
+      
     end
     
+  end
+  
 end
 
 function HitRCount()
 
-    local enemies = {}
+  local enemies = {}
+  
+  for _, enemy in ipairs(EnemyHeroes) do
+  
+    local Position = VP:GetPredictedPos(enemy, R.delay, R.speed, myHero, false)
     
-    for _, enemy in ipairs(EnemyHeroes) do
-    
-        local Position = VP:GetPredictedPos(enemy, R.delay, R.speed, myHero, false)
-        
-        if ValidTarget(enemy) and _GetDistanceSqr(Position, mousePos) < RradiusSqr then
-          table.insert(enemies, enemy)
-        end
-        
+    if ValidTarget(enemy) and _GetDistanceSqr(Position, mousePos) < RradiusSqr then
+      table.insert(enemies, enemy)
     end
     
-    return #enemies, enemies
-
+  end
+  
+  return #enemies, enemies
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -261,7 +261,7 @@ function VladimirMenu()
   Menu:addSubMenu("Predict Settings", "Predict")
   
     Menu.Predict:addParam("PdOpt", "Predict Settings : (Require reload)", SCRIPT_PARAM_LIST, 2, { "Prodiction (Only Donator)", "VPrediction"})
-  
+    
   Menu:addSubMenu("Combo Settings", "Combo")
   
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
@@ -317,7 +317,7 @@ function VladimirMenu()
         Menu.Clear.JFarm:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
         Menu.Clear.JFarm:addParam("E2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
         Menu.Clear.JFarm:addParam("Emin", "Use E Min Count", SCRIPT_PARAM_SLICE, 1, 1, 4, 0)
-      
+        
   Menu:addSubMenu("Harass Settings", "Harass")
   
     Menu.Harass:addParam("On", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
@@ -333,7 +333,7 @@ function VladimirMenu()
       else
       Menu.Harass:addParam("Emin", "Use E Min Count", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
       end
-        
+      
   Menu:addSubMenu("LastHit Settings", "LastHit")
   
     Menu.LastHit:addParam("On", "LastHit Key 1", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
@@ -344,7 +344,7 @@ function VladimirMenu()
     Menu.LastHit:addParam("EQ", "Use EQ", SCRIPT_PARAM_ONOFF, false)
       Menu.LastHit:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
       Menu.LastHit:addParam("E2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
-        
+      
   Menu:addSubMenu("Jungle Steal Settings", "JSteal")
   
     Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
@@ -355,7 +355,7 @@ function VladimirMenu()
     Menu.JSteal:addParam("EQ", "Use EQ", SCRIPT_PARAM_ONOFF, false)
       Menu.JSteal:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
       Menu.JSteal:addParam("E2", "Default value = 5", SCRIPT_PARAM_SLICE, 5, 0, 100, 0)
-    
+      
   Menu:addSubMenu("KillSteal Settings", "KillSteal")
   
     Menu.KillSteal:addParam("On", "KillSteal", SCRIPT_PARAM_ONOFF, true)
@@ -373,7 +373,7 @@ function VladimirMenu()
     Menu.KillSteal:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, false)
       Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("I", "Use Ignite", SCRIPT_PARAM_ONOFF, true)
-      
+    
   Menu:addSubMenu("Flee Settings", "Flee")
   
     Menu.Flee:addParam("On", "Flee (Only Use KillSteal & Auto R)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
@@ -445,7 +445,7 @@ function VladimirMenu()
       Menu.Flee:permaShow("On")
       
     end
-      
+    
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -488,7 +488,6 @@ end
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 
-
 function OnTick()
 
   if myHero.dead then
@@ -504,13 +503,13 @@ function OnTick()
     if Target ~= nil then
     
       if GetDistance(Target, mousePos) <= 450 then
-        MoveToEnemy(Target)
+        MoveToPos(2*Target.x - mousePos.x, 2*Target.z - mousePos.z)
       else
         MoveToMouse()
       end
       
     else
-      MoveToMouse()    
+      MoveToMouse()
     end
     
   end
@@ -667,11 +666,11 @@ function Combo()
     if ValidTarget(Target, MaxRrange) then
       CastR2(Target, Combo)
     end
-        
+    
   end
   
   if R.ready and ComboR then
-    
+  
     if ValidTarget(Target, R.range) then
     
       if not Q.ready and not E.ready and RTargetDmg*ComboR2 >= Target.health*100 then
@@ -685,12 +684,12 @@ function Combo()
       if Q.ready and DontR and QTargetDmg >= Target.health then
         return
       end
-    
+      
       if R.ready and ComboRearly and (QTargetDmg+ETargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
         CastR(Target)
         return
       end
-    
+      
       if Q.ready and ComboQ and E.ready and ComboE and (QTargetDmg+ETargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
         CastE()
         CastQ(Target)
@@ -758,12 +757,12 @@ function Farm()
     if minion == nil or GetDistanceSqr(minion) > QrangeSqr then
       return
     end
-  
+    
     local FarmQ = Menu.Clear.Farm.Q
     local FarmE = Menu.Clear.Farm.E
     local FarmE2 = Menu.Clear.Farm.E2
     local FarmEmin = Menu.Clear.Farm.Emin
-  
+    
     local AAMinionDmg = getDmg("AD", minion, myHero)
     local QMinionDmg = getDmg("Q", minion, myHero)
     local EMinionDmg = getDmg("E", minion, myHero) + E.stack*getDmg("E", minion, myHero, 2)
@@ -771,9 +770,9 @@ function Farm()
     if E.ready and FarmE then
     
       if FarmE2 <= HealthPercent and FarmEmin <= MinionCount(minion, E.range) then
-        
+      
         if EMinionDmg + AAMinionDmg <= minion.health or EMinionDmg >= minion.health then
-          
+        
           if ValidTarget(minion, E.range) then
             CastE()
           end
@@ -949,7 +948,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function Harass()
-  
+
   if GetDistanceSqr(Target) > ErangeSqr then
     return
   end
@@ -1110,7 +1109,7 @@ function KillSteal()
   if Q.ready and KillStealQ then
   
     if QTargetDmg >= Target.health then
-        
+    
       if ValidTarget(Target, Q.range) then
         CastQ(Target)
       end
@@ -1154,7 +1153,7 @@ end
 function Skin()
 
   local SkinOpt = Menu.Misc.SkinOpt 
-
+  
   if SkinOpt ~= LastSkin then
     GenModelPacket("Vladimir", SkinOpt)
     LastSkin = Menu.Misc.SkinOpt
@@ -1252,7 +1251,7 @@ function Auto()
   if E.ready and not Menu.Flee.On then
   
     if not Menu.Combo.On and not Menu.Harass.On and Menu.Auto.StackE then
-
+    
       if Menu.Auto.SE2 <= HealthPercent then
         StackE()
       end
@@ -1282,7 +1281,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function StackE()
-  
+
   if os.clock() - LastE > 9.9 then
     CastE()
   end
@@ -1311,7 +1310,7 @@ function CastW()
   else
     CastSpell(_W)
   end
-
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1351,7 +1350,7 @@ function CastE1(enemy, State)
       if MainTargetHitChance >= 2 then
         CastE()
       end
-    
+      
     end
     
   end
@@ -1361,11 +1360,11 @@ end
 function CastE2(enemy, State)
 
   if Menu.Predict.PdOpt == 1 then
-    
+  
     if Donator then
-      
+    
       if State == Combo then
-        
+      
         local Boolean, Pos, Info = Prodiction.GetMinCountCircularAOEPrediction(Menu.Combo.Emin, E.range, E.speed, E.delay, E.radius)
         
         if Boolean and Pos and Info.hitchance >= Menu.Combo.Ehit then
@@ -1389,13 +1388,11 @@ function CastE2(enemy, State)
         end
         
       end
-    
+      
     else
-    
       print("Prodiction Cast E using min count is only for donator.")
-    
     end
-
+    
   elseif Menu.Predict.PdOpt == 2 then
   
     local AoECastPosition, MainTargetHitChance, NT = VP:GetCircularAOECastPosition(enemy, E.delay, E.radius, E.range, E.speed, myHero, false)
@@ -1403,7 +1400,7 @@ function CastE2(enemy, State)
     if State == Combo then
     
       if NT >= Menu.Combo.Emin then
-        
+      
         if MainTargetHitChance >= 2 then
           CastE()        
         end
@@ -1413,7 +1410,7 @@ function CastE2(enemy, State)
     elseif State == Harass then
     
       if NT >= Menu.Harass.Emin then
-        
+      
         if MainTargetHitChance >= 2 then
           CastE()        
         end
@@ -1421,9 +1418,9 @@ function CastE2(enemy, State)
       end
       
     elseif State == Auto then
-  
+    
       if NT >= Menu.Auto.Emin then
-        
+      
         if MainTargetHitChance >= 2 then
           CastE()        
         end
@@ -1439,7 +1436,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function CastR(enemy)
-  
+
   if VIP_USER and Menu.Misc.UsePacket then
     Packet('S_CAST', {spellId = _R, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z}):send(true)
   else
@@ -1453,9 +1450,9 @@ function CastR2(enemy, State)
   if Menu.Predict.PdOpt == 1 then
   
     if Donator then
-      
+    
       if State == Combo then
-        
+      
         local Boolean, Pos, Info = Prodiction.GetMinCountCircularAOEPrediction(Menu.Combo.Rmin, R.range, R.speed, R.delay, R.radius)
         
         if Boolean and Pos and Info.hitchance >= Menu.Combo.Rhit then
@@ -1471,11 +1468,11 @@ function CastR2(enemy, State)
         end
         
       end
-    
+      
     else
       print("Prodiction Cast E using min count is only for donator.")
     end
-  
+    
   elseif Menu.Predict.PdOpt == 2 then
   
     local AoECastPosition, MainTargetHitChance, NT = VP:GetCircularAOECastPosition(enemy, R.delay, R.radius, R.range, R.speed, myHero, false)
@@ -1483,7 +1480,7 @@ function CastR2(enemy, State)
     if State == Combo then
     
       if NT >= Menu.Combo.Rmin then
-        
+      
         if MainTargetHitChance >= 2 then
           CastR(AoECastPosition)
         end
@@ -1493,7 +1490,7 @@ function CastR2(enemy, State)
     elseif State == Auto then
     
       if NT >= Menu.Auto.Rmin then
-        
+      
         if MainTargetHitChance >= 2 then
           CastR(AoECastPosition)
         end
@@ -1519,7 +1516,7 @@ function CastI(enemy)
   else
     CastSpell(Ignite, enemy)
   end
-
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1548,21 +1545,21 @@ function OnDraw()
     if Menu.Draw.R then
       DrawCircle(Player.x, Player.y, Player.z, R.range, ARGB(0xFF,0xFF,0,0))
     end
-  
+    
   end
-
+  
 end
 
 ----------------------------------------------------------------------------------------------------
 
-function MoveToEnemy(enemy)
-  
-  if VIP_USER and Menu.Misc.UsePacket then
-    Packet("S_MOVE", {enemy.x, enemy.z}):send()
-  else
-    myHero:MoveTo(enemy.x, enemy.z)
-  end
+function MoveToPos(x, z)
 
+  if VIP_USER and Menu.Misc.UsePacket then
+    Packet("S_MOVE", {x, z}):send()
+  else
+    myHero:MoveTo(x, z)
+  end
+  
 end
 
 function MoveToMouse()
@@ -1576,7 +1573,7 @@ function MoveToMouse()
   else
     myHero:MoveTo(MousePos.x, MousePos.z)
   end
-
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1594,7 +1591,7 @@ function OnProcessSpell(owner,spell)
   end
   
 end
- 
+
 function OnGainBuff(unit, buff)
 
   if unit.isMe then
@@ -1602,7 +1599,7 @@ function OnGainBuff(unit, buff)
     if buff.name == "recall" then
       Recall = true
     end
-
+    
     if buff.name == "vladimirsanguinepool" then
       Pool = true
     end
@@ -1618,7 +1615,7 @@ function OnLoseBuff(unit, buff)
     if buff.name == "recall" then
       Recall = false
     end
-
+    
     if buff.name == "vladimirsanguinepool" then
       Pool = false
     end
@@ -1629,7 +1626,11 @@ end
 
 function OnSendPacket(p)
 
-  if Target ~= nil and Menu.Combo.On and E.ready and Menu.Combo.E2 <= HealthPercent then
+  if Target == nil then
+    return
+  end
+  
+  if Menu.Combo.On and E.ready and Menu.Combo.E2 <= HealthPercent then
     BlockAA(p)
   end
   
