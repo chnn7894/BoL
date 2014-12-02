@@ -1,4 +1,4 @@
-Version = "1.11"
+Version = "1.12"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -289,7 +289,7 @@ function VladimirMenu()
       Menu.Combo:addParam("DontR", "Do not use R if Killable with Q", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("AutoR", "Auto R on Combo", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Rmin", "Auto R Min Count", SCRIPT_PARAM_SLICE, 3, 1, 5, 0)
+      Menu.Combo:addParam("Rmin", "Auto R Min Count", SCRIPT_PARAM_SLICE, 3, 2, 5, 0)
       if Donator and Menu.Predict.PdOpt == 1 then
       Menu.Combo:addParam("Rhit", "Auto R Hitchance (Prodiction)", SCRIPT_PARAM_SLICE, 2, 1, 3, 0)
       end
@@ -416,7 +416,7 @@ function VladimirMenu()
       Menu.Auto:addParam("SE2", "Default value = 40", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
       Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoR", "Auto R", SCRIPT_PARAM_ONOFF, true)
-      Menu.Auto:addParam("Rmin", "Auto R Min Count", SCRIPT_PARAM_SLICE, 4, 1, 5, 0)
+      Menu.Auto:addParam("Rmin", "Auto R Min Count", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
       if Donator and Menu.Predict.PdOpt == 1 then
       Menu.Auto:addParam("Rhit", "Auto R Hitchance (Prodiction)", SCRIPT_PARAM_SLICE, 2, 1, 3, 0)
       end
@@ -503,12 +503,14 @@ function OnTick()
   
     if Target ~= nil then
     
-      if ValidTarget(Target, W.radius + 50) and GetDistance(Target) > 250 and GetDistance(Target, mousePos) <= 400 then
+      if GetDistance(Target, mousePos) <= 450 then
         MoveToEnemy(Target)
-      elseif ValidTarget(Target, R.range) then
+      else
         MoveToMouse()
       end
-    
+      
+    else
+      MoveToMouse()    
     end
     
   end
@@ -1064,68 +1066,66 @@ end
 
 function KillSteal()
 
-  for i, KSTarget in pairs(EnemyHeroes) do
+  if GetDistanceSqr(Target) > RrangeSqr then
+    return
+  end
   
-    if KSTarget == nil or GetDistanceSqr(KSTarget) > RrangeSqr then
-      return
-    end
+  local KillStealQ = Menu.KillSteal.Q
+  local KillStealW = Menu.KillSteal.W
+  local KillStealE = Menu.KillSteal.E
+  local KillStealE2 = Menu.KillSteal.E2
+  local KillStealR = Menu.KillSteal.R
+  local KillStealI = Menu.KillSteal.I
+  
+  local QTargetDmg = getDmg("Q", Target, myHero)
+  local WTargetDmg = getDmg("W", Target, myHero)
+  local ETargetDmg = (getDmg("E", Target, myHero) + E.stack*getDmg("E", Target, myHero, 2))
+  local RTargetDmg = getDmg("R", Target, myHero)
+  local ITargetDmg = getDmg("IGNITE", Target, myHero)
+  
+  if I.ready and KillStealI then
+  
+    if ITargetDmg >= Target.health then
     
-    local RLevel = player:GetSpellData(_R).level
-    
-    local KillStealQ = Menu.KillSteal.Q
-    local KillStealW = Menu.KillSteal.W
-    local KillStealE = Menu.KillSteal.E
-    local KillStealE2 = Menu.KillSteal.E2
-    local KillStealR = Menu.KillSteal.R
-    local KillStealI = Menu.KillSteal.I
-    
-    local QTargetDmg = getDmg("Q", KSTarget, myHero)
-    local WTargetDmg = getDmg("W", KSTarget, myHero)
-    local ETargetDmg = (getDmg("E", KSTarget, myHero) + E.stack*getDmg("E", KSTarget, myHero, 2))
-    local RTargetDmg = getDmg("R", KSTarget, myHero)
-    local ITargetDmg = getDmg("IGNITE", KSTarget, myHero)
-    
-    if I.ready and KillStealI then
-    
-      if ITargetDmg >= KSTarget.health then
-      
-        if ValidTarget(KSTarget, I.range) then
-          CastI(KSTarget)
-        end
-        
+      if ValidTarget(Target, I.range) then
+        CastI(Target)
       end
       
     end
     
-    if E.ready and KillStealE then
+  end
+  
+  if E.ready and KillStealE then
+  
+    if KillStealE2 <= HealthPercent and ETargetDmg >= Target.health then
     
-      if KillStealE2 <= HealthPercent and ETargetDmg >= KSTarget.health then
-      
-        if ValidTarget(KSTarget, E.range) then
-          CastE1(KSTarget, KillSteal)
-        end
-        
+      if ValidTarget(Target, E.range) then
+        CastE1(Target, KillSteal)
       end
       
     end
     
-    if Q.ready and KillStealQ then
-    
-      if QTargetDmg >= KSTarget.health then
-      
-        if ValidTarget(KSTarget, Q.range) then
-          CastQ(KSTarget)
-        end
+  end
+  
+  if Q.ready and KillStealQ then
+  
+    if QTargetDmg >= Target.health then
         
+      if ValidTarget(Target, Q.range) then
+        CastQ(Target)
       end
       
     end
     
-    if W.ready and KillStealW then
+  end
+  
+  if W.ready and KillStealW then
+  
+    if (not Q.ready or not KillStealQ) and (not E.ready or not KillStealE) then
     
-      if (not Q.ready or not KillStealQ) and (not E.ready or not KillStealE) then
+      if WTargetDmg >= Target.health then
       
-        if ValidTarget(KSTarget, W.radius) then
+        if ValidTarget(Target, W.radius) then
           CastW()
         end
         
@@ -1133,20 +1133,20 @@ function KillSteal()
       
     end
     
-    if R.ready and KillStealR then
+  end
+  
+  if R.ready and KillStealR then
+  
+    if RTargetDmg >= Target.health then
     
-      if RTargetDmg >= KSTarget.health then
-      
-        if ValidTarget(KSTarget, R.range) then
-          CastR(KSTarget)
-        end
-        
+      if ValidTarget(Target, R.range) then
+        CastR(Target)
       end
       
     end
     
   end
-
+  
 end
 
 ----------------------------------------------------------------------------------------------------
