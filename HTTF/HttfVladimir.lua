@@ -1,4 +1,4 @@
-Version = "1.10"
+Version = "1.11"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -104,13 +104,14 @@ function Variables()
   
   DebugClock = os.clock()
   LastE = os.clock()
+  LastSkin = 0
   RebornLoaded, RevampedLoaded, MMALoaded, SOWLoaded = false, false, false, false
   Recall = false
   
   Q = {delay = 0.5, range = 600, speed = 1400, ready, Off = 0}
   W = {delay = 0.5, radius = 350, speed = 1600, ready, Off = 0}
   E = {delay = 0.5, radius = 0, range = 620, speed = 1100, ready, Off = 0, stack = 0}
-  R = {delay = 0,--[[delay = 0.2222,]] radius = 375, range = 625, speed = math.huge, ready, Off = 0}
+  R = {delay = 0, radius = 325, range = 625, speed = math.huge, ready, Off = 0}
   I = {range = 600, ready}
   
   MyminBBox = 56.92
@@ -384,6 +385,9 @@ function VladimirMenu()
     if VIP_USER then
     Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, false)
       Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Misc:addParam("Skin", "Use Skin hack", SCRIPT_PARAM_ONOFF, false)
+    Menu.Misc:addParam("SkinOpt", "Skin list : ", SCRIPT_PARAM_LIST, 7, { "Count Vladimir", "Marquis Vladimir", "Nosferatu Vladimir", "Vandal Vladimir", "Blood Lord Vladimir", "Soulstealer Vladmir", "Classic"})  
+      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     end
     Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, true)
     Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W (QEWQ)", "R>Q>E>W (QWEQ)"})
@@ -409,7 +413,7 @@ function VladimirMenu()
       Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("StackE", "Stack E (When not Combo, Harass)", SCRIPT_PARAM_ONKEYTOGGLE, false, GetKey('T'))
       Menu.Auto:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
-      Menu.Auto:addParam("SE2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
+      Menu.Auto:addParam("SE2", "Default value = 40", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
       Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoR", "Auto R", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Rmin", "Auto R Min Count", SCRIPT_PARAM_SLICE, 4, 1, 5, 0)
@@ -533,6 +537,10 @@ function OnTick()
     LastHit()
   end
   
+  if VIP_USER and Menu.Misc.Skin then
+    Skin()
+  end
+  
   if Menu.Misc.AutoLevel then
     AutoLevel()
   end
@@ -550,7 +558,7 @@ function OnTick()
   end
   
   if Menu.Combo.On then
-    Combo()    
+    Combo()
   end
   
   if Menu.Harass.On then
@@ -697,14 +705,6 @@ function Combo()
     
   end
   
-  if Q.ready and ComboQ then
-  
-    if ValidTarget(Target, Q.range) then
-      CastQ(Target)
-    end
-    
-  end
-  
   if E.ready and ComboE then
   
     if ComboE2 <= HealthPercent then
@@ -713,6 +713,14 @@ function Combo()
         CastE2(Target, Combo)
       end
       
+    end
+    
+  end
+  
+  if Q.ready and ComboQ then
+  
+    if ValidTarget(Target, Q.range) then
+      CastQ(Target)
     end
     
   end
@@ -948,14 +956,6 @@ function Harass()
   local HarassE = Menu.Harass.E
   local HarassE2 = Menu.Harass.E2
   
-  if Q.ready and HarassQ then
-  
-    if ValidTarget(Target, Q.range) then
-      CastQ(Target)
-    end
-    
-  end
-  
   if E.ready and HarassE then
   
     if HarassE2 <= HealthPercent then
@@ -964,6 +964,14 @@ function Harass()
         CastE2(Target, Harass)
       end
     
+    end
+    
+  end
+  
+  if Q.ready and HarassQ then
+  
+    if ValidTarget(Target, Q.range) then
+      CastQ(Target)
     end
     
   end
@@ -1077,6 +1085,18 @@ function KillSteal()
     local RTargetDmg = getDmg("R", KSTarget, myHero)
     local ITargetDmg = getDmg("IGNITE", KSTarget, myHero)
     
+    if I.ready and KillStealI then
+    
+      if ITargetDmg >= KSTarget.health then
+      
+        if ValidTarget(KSTarget, I.range) then
+          CastI(KSTarget)
+        end
+        
+      end
+      
+    end
+    
     if E.ready and KillStealE then
     
       if KillStealE2 <= HealthPercent and ETargetDmg >= KSTarget.health then
@@ -1125,20 +1145,50 @@ function KillSteal()
       
     end
     
-    if I.ready and KillStealI then
-    
-      if ITargetDmg >= KSTarget.health then
-      
-        if ValidTarget(KSTarget, I.range) then
-          CastI(KSTarget)
-        end
-        
-      end
-      
-    end
-    
   end
 
+end
+
+----------------------------------------------------------------------------------------------------
+
+function Skin()
+
+  local SkinOpt = Menu.Misc.SkinOpt 
+
+  if SkinOpt ~= LastSkin then
+    GenModelPacket("Vladimir", SkinOpt)
+    LastSkin = Menu.Misc.SkinOpt
+  end
+  
+end
+
+function GenModelPacket(Champion, SkinId)
+
+  p = CLoLPacket(0x97)
+  p:EncodeF(myHero.networkID)
+  p.pos = 1
+  t1 = p:Decode1()
+  t2 = p:Decode1()
+  t3 = p:Decode1()
+  t4 = p:Decode1()
+  p:Encode1(t1)
+  p:Encode1(t2)
+  p:Encode1(t3)
+  p:Encode1(bit32.band(t4,0xB))
+  p:Encode1(1)
+  p:Encode4(SkinId)
+  
+  for i = 1, #Champion do
+    p:Encode1(string.byte(Champion:sub(i,i)))
+  end
+  
+  for i = #Champion + 1, 64 do
+    p:Encode1(0)
+  end
+  
+  p:Hide()
+  RecvPacket(p)
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1549,11 +1599,11 @@ function OnGainBuff(unit, buff)
 
   if unit.isMe then
   
-    if buff.name:lower():find("recall") then
+    if buff.name == "recall" then
       Recall = true
     end
 
-    if buff.name:lower():find("vladimirsanguinepool") then
+    if buff.name == "vladimirsanguinepool" then
       Pool = true
     end
     
@@ -1565,11 +1615,11 @@ function OnLoseBuff(unit, buff)
 
   if unit.isMe then
   
-    if buff.name:lower():find("recall") then
+    if buff.name == "recall" then
       Recall = false
     end
 
-    if buff.name:lower():find("vladimirsanguinepool") then
+    if buff.name == "vladimirsanguinepool" then
       Pool = false
     end
     
