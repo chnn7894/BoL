@@ -269,8 +269,8 @@ function VladimirMenu()
     Menu.Combo:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Info", "Use W if W damage * x% > loss health", SCRIPT_PARAM_INFO, "")
-      Menu.Combo:addParam("W2", "Default value = 150", SCRIPT_PARAM_SLICE, 150, 100, 200, 0)
+      Menu.Combo:addParam("Info", "Use W if W damage > loss health * x%", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("W2", "Default value = 100", SCRIPT_PARAM_SLICE, 100, 0, 200, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       if Donator and Menu.Predict.PdOpt == 1 then
@@ -730,7 +730,7 @@ function Combo()
   
     if (not Q.ready or not ComboQ) and (not E.ready or not ComboE) then 
     
-      if WTargetDmg*ComboW2 >= myHero.health*20 then
+      if WTargetDmg*1000 >= myHero.health*2*ComboW2 then
       
         if ValidTarget(Target, W.radius) then
           CastW()
