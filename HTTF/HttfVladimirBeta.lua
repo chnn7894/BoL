@@ -1,4 +1,4 @@
-Version = "1.13"
+Version = "1.14"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -103,6 +103,7 @@ function Variables()
     Ignite = SUMMONER_2
   end
   
+  BlockComboR = false
   DebugClock = os.clock()
   LastE = os.clock()
   LastSkin = 0
@@ -592,11 +593,11 @@ function Check()
   
   ZSlot = GetInventorySlotItem(3157)
   Z.ready = (ZSlot ~= nil and myHero:CanUseSpell(ZSlot) == READY)
-	
+  
   EnemyMinions:update()
   JungleMobs:update()
   
-  if os.clock() - LastE > 10.1 then
+  if E.stack ~= 0 and os.clock() - LastE > 10.1 then
     E.stack = 0
   end
   
@@ -1155,9 +1156,14 @@ end
 
 function Auto()
 
+  local AutoAutoE = Menu.Auto.AutoE
+  local AutoE2 = Menu.Auto.E2
   local AutoAutoZ = Menu.Auto.AutoZ
+  local AutoAutoR = Menu.Auto.AutoR
   local AutoZ = Menu.Auto.Z
   local AutoZmin = Menu.Auto.Zmin
+  
+  local FleeOn = Menu.Flee.On
   
   if Z.ready and AutoAutoZ then
   
@@ -1167,9 +1173,9 @@ function Auto()
     
   end
   
-  if E.ready and Menu.Auto.AutoE and not Menu.Flee.On and Recall == false then
+  if E.ready and AutoAutoE and not FleeOn and Recall == false then
   
-    if Menu.Auto.E2 <= HealthPercent then
+    if AutoE2 <= HealthPercent then
     
       if ValidTarget(Target, E.range) then
         CastE2(Target, Auto)
@@ -1179,7 +1185,7 @@ function Auto()
     
   end
   
-  if R.ready and Menu.Auto.AutoR and Recall == false then
+  if R.ready and AutoAutoR and Recall == false then
     CastR2(Target, Auto)
   end
   
@@ -1215,7 +1221,7 @@ end
 
 function AutoStackE()
 
-  if E.ready and not (Menu.Combo.On or Menu.Harass.On or Menu.Flee.On or Recall == true) then
+  if E.ready and not (Menu.Combo.On or Menu.Harass.On or Menu.Flee.On) then
   
     if Menu.Auto.SE2 <= HealthPercent then
       StackE()
@@ -1227,7 +1233,7 @@ end
 
 function StackE()
 
-  if os.clock() - LastE > 9.8 then
+  if os.clock() - LastE > 9.9 and Recall == false then
     CastE()
   end
   
@@ -1535,7 +1541,7 @@ function CastR2(enemy, State)
   
     if Donator then
     
-      if State == Combo then
+      if State == Combo and not BlockComboR then
       
         local Boolean, Pos, Info = Prodiction.GetMinCountCircularAOEPrediction(Menu.Combo.Rmin, R.range, R.speed, R.delay, R.radius)
         
@@ -1547,9 +1553,15 @@ function CastR2(enemy, State)
       
         local Boolean, Pos, Info = Prodiction.GetMinCountCircularAOEPrediction(Menu.Auto.Rmin, R.range, R.speed, R.delay, R.radius)
         
+        if Boolean then
+          BlockComboR = true
+        end
+        
         if Boolean and Pos and Info.hitchance >= Menu.Auto.Rhit then
           CastR(Pos)
         end
+        
+        BlockComboR = false
         
       end
       
@@ -1561,7 +1573,7 @@ function CastR2(enemy, State)
   
     local AoECastPosition, MainTargetHitChance, NT = VP:GetCircularAOECastPosition(enemy, R.delay, R.radius, R.range, R.speed, myHero, false)
     
-    if State == Combo then
+    if State == Combo and not BlockComboR then
     
       if NT >= Menu.Combo.Rmin then
       
@@ -1575,9 +1587,13 @@ function CastR2(enemy, State)
     
       if NT >= Menu.Auto.Rmin then
       
+        BlockComboR = true
+        
         if MainTargetHitChance >= 2 then
           CastR(AoECastPosition)
         end
+        
+        BlockComboR = false
         
       end
       
