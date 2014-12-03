@@ -66,6 +66,7 @@ if AutoUpdate then
 end
 
 ----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
 function OnLoad()
 
@@ -377,28 +378,6 @@ function VladimirMenu()
       Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("I", "Use Ignite", SCRIPT_PARAM_ONOFF, true)
     
-  Menu:addSubMenu("Flee Settings", "Flee")
-  
-    Menu.Flee:addParam("On", "Flee (Only Use KillSteal & Auto R)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
-      Menu.Flee:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Flee:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-    
-  Menu:addSubMenu("Misc Settings", "Misc")
-  
-    if VIP_USER then
-    Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, false)
-      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Misc:addParam("Skin", "Use Skin hack", SCRIPT_PARAM_ONOFF, false)
-    Menu.Misc:addParam("SkinOpt", "Skin list : ", SCRIPT_PARAM_LIST, 7, { "Count Vladimir", "Marquis Vladimir", "Nosferatu Vladimir", "Vandal Vladimir", "Blood Lord Vladimir", "Soulstealer Vladmir", "Classic"})  
-      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    end
-    Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, true)
-    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W (QEWQ)", "R>Q>E>W (QWEQ)"})
-      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    if VIP_USER then
-    Menu.Misc:addParam("BlockR", "Block R if hitcount = 0", SCRIPT_PARAM_ONOFF, true)
-    end
-    
   Menu:addSubMenu("AutoCast Settings", "Auto")
   
     Menu.Auto:addParam("On", "AutoCast", SCRIPT_PARAM_ONOFF, true)
@@ -430,6 +409,28 @@ function VladimirMenu()
       Menu.Auto:addParam("Info", "Auto Zhonya if Current Health < Max health * x%", SCRIPT_PARAM_INFO, "")
       Menu.Auto:addParam("Z", "Default value = 15", SCRIPT_PARAM_SLICE, 15, 0, 100, 0)
       Menu.Auto:addParam("Zmin", "Auto Zhonya Min Count", SCRIPT_PARAM_SLICE, 0, 0, 5, 0)
+    
+  Menu:addSubMenu("Flee Settings", "Flee")
+  
+    Menu.Flee:addParam("On", "Flee (Only Use KillSteal & Auto R)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
+      Menu.Flee:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Flee:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
+    
+  Menu:addSubMenu("Misc Settings", "Misc")
+  
+    if VIP_USER then
+    Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, false)
+      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Misc:addParam("Skin", "Use Skin hack", SCRIPT_PARAM_ONOFF, false)
+    Menu.Misc:addParam("SkinOpt", "Skin list : ", SCRIPT_PARAM_LIST, 7, { "Count Vladimir", "Marquis Vladimir", "Nosferatu Vladimir", "Vandal Vladimir", "Blood Lord Vladimir", "Soulstealer Vladmir", "Classic"})  
+      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    end
+    Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, true)
+    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W (QEWQ)", "R>Q>E>W (QWEQ)"})
+      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    if VIP_USER then
+    Menu.Misc:addParam("BlockR", "Block R if hitcount = 0", SCRIPT_PARAM_ONOFF, true)
+    end
       
   Menu:addSubMenu("Draw Settings", "Draw")
   
@@ -508,30 +509,6 @@ function OnTick()
   Target = OrbTarget()
   --Debug()
   
-  if Pool and Menu.Combo.On then
-  
-    if Target ~= nil then
-    
-      if GetDistance(Target, mousePos) <= 450 then
-        MoveToPos(2*Target.x - mousePos.x, 2*Target.z - mousePos.z)
-      else
-        MoveToMouse()
-      end
-      
-    else
-      MoveToMouse()
-    end
-    
-  end
-  
-  if Menu.Flee.On then
-    Flee()
-  end
-  
-  if Menu.Auto.StackE and Recall == false and not Menu.Flee.On then
-    StackE()
-  end
-  
   if Menu.Clear.Farm.On then
     Farm()
   end
@@ -546,6 +523,30 @@ function OnTick()
   
   if Menu.LastHit.On or Menu.LastHit.On2 then
     LastHit()
+  end
+  
+  if Menu.Auto.On and Menu.Auto.StackE then
+    AutoStackE()
+  end
+  
+  if Menu.Flee.On then
+    Flee()
+  end
+  
+  if Pool and Menu.Combo.On then
+  
+    if Target ~= nil then
+    
+      if GetDistance(Target, mousePos) <= 450 then
+        MoveToPos(2*Target.x - mousePos.x, 2*Target.z - mousePos.z)
+      else
+        MoveToMouse()
+      end
+      
+    else
+      MoveToMouse()
+    end
+    
   end
   
   if VIP_USER and Menu.Misc.Skin then
@@ -564,7 +565,7 @@ function OnTick()
     KillSteal()
   end
   
-  if Menu.Auto.On and Recall == false then
+  if Menu.Auto.On then
     Auto()
   end
   
@@ -603,6 +604,8 @@ function Check()
   
 end
 
+----------------------------------------------------------------------------------------------------
+
 function OrbTarget()
 
   local T
@@ -639,6 +642,8 @@ function OrbTarget()
   end
   
 end
+
+----------------------------------------------------------------------------------------------------
 
 function Debug()
 
@@ -811,7 +816,6 @@ function Farm()
   end
   
 end
-----------------------------------------------------------------------------------------------------
 
 function MinionCount(Point, Range)
 
@@ -871,8 +875,6 @@ function JFarm()
   end
   
 end
-
-----------------------------------------------------------------------------------------------------
 
 function JungleMobCount(Point, Range)
 
@@ -1064,18 +1066,6 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
-function Flee()
-
-  MoveToMouse()
-  
-  if W.ready and Menu.Flee.W then
-    CastW()
-  end
-  
-end
-
-----------------------------------------------------------------------------------------------------
-
 function KillSteal()
 
   if GetDistanceSqr(Target) > RrangeSqr then
@@ -1157,6 +1147,100 @@ function KillSteal()
       
     end
     
+  end
+  
+end
+
+----------------------------------------------------------------------------------------------------
+
+function Auto()
+
+  local AutoAutoZ = Menu.Auto.AutoZ
+  local AutoZ = Menu.Auto.Z
+  local AutoZmin = Menu.Auto.Zmin
+  
+  if Z.ready and AutoAutoZ then
+  
+    if AutoZ > HealthPercent and AutoZmin <= EnemyCount(Z.range) then
+      CastZ()
+    end
+    
+  end
+  
+  if E.ready and Menu.Auto.AutoE and not Menu.Flee.On and Recall == false then
+  
+    if Menu.Auto.E2 <= HealthPercent then
+    
+      if ValidTarget(Target, E.range) then
+        CastE2(Target, Auto)
+      end
+      
+    end
+    
+  end
+  
+  if R.ready and Menu.Auto.AutoR and Recall == false then
+    CastR2(Target, Auto)
+  end
+  
+end
+
+function EnemyCount(Range)
+
+  local enemies = {}
+  
+  for _, enemy in ipairs(EnemyHeroes) do
+    
+    if ValidTarget(enemy, Range) then
+      table.insert(enemies, enemy)
+    end
+    
+  end
+  
+  return #enemies, enemies
+  
+end
+
+function CastZ()
+
+  if VIP_USER and Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = ZSlot}):send()
+  else
+    CastSpell(ZSlot)
+  end
+  
+end
+
+----------------------------------------------------------------------------------------------------
+
+function AutoStackE()
+
+  if E.ready and not (Menu.Combo.On or Menu.Harass.On or Menu.Flee.On or Recall == true) then
+  
+    if Menu.Auto.SE2 <= HealthPercent then
+      StackE()
+    end
+    
+  end
+  
+end
+
+function StackE()
+
+  if os.clock() - LastE > 9.8 then
+    CastE()
+  end
+  
+end
+
+----------------------------------------------------------------------------------------------------
+
+function Flee()
+
+  MoveToMouse()
+  
+  if W.ready and Menu.Flee.W then
+    CastW()
   end
   
 end
@@ -1258,87 +1342,32 @@ function AutoLevel()
 end
 
 ----------------------------------------------------------------------------------------------------
-
-function Auto()
-
-  local AutoAutoZ = Menu.Auto.AutoZ
-  local AutoZ = Menu.Auto.Z
-  local AutoZmin = Menu.Auto.Zmin
-  
-  if Z.ready and AutoAutoZ then
-  
-    if AutoZ > HealthPercent and AutoZmin <= EnemyCount(Z.range) then
-      CastZ()
-    end
-    
-  end
-  
-  if E.ready and not Menu.Flee.On then
-  
-    if not Menu.Combo.On and not Menu.Harass.On and Menu.Auto.StackE then
-    
-      if Menu.Auto.SE2 <= HealthPercent then
-        StackE()
-      end
-      
-    end
-    
-    if Menu.Auto.AutoE then
-    
-      if Menu.Auto.E2 <= HealthPercent then
-      
-        if ValidTarget(Target, E.range) then
-          CastE2(Target, Auto)
-        end
-        
-      end
-      
-    end
-    
-  end
-  
-  if R.ready and Menu.Auto.AutoR then
-    CastR2(Target, Auto)
-  end
-  
-end
-
 ----------------------------------------------------------------------------------------------------
 
-function EnemyCount(Range)
+function OnDraw()
 
-  local enemies = {}
+  if Menu.Draw.On then
   
-  for _, enemy in ipairs(EnemyHeroes) do
-    
-    if ValidTarget(enemy, Range) then
-      table.insert(enemies, enemy)
+    if Menu.Draw.AA then
+      DrawCircle(Player.x, Player.y, Player.z, TrueRange, ARGB(0xFF,0,0xFF,0))
     end
     
-  end
-  
-  return #enemies, enemies
-  
-end
-
-----------------------------------------------------------------------------------------------------
-
-function CastZ()
-
-  if VIP_USER and Menu.Misc.UsePacket then
-    Packet("S_CAST", {spellId = ZSlot}):send()
-  else
-    CastSpell(ZSlot)
-  end
-  
-end
-
-----------------------------------------------------------------------------------------------------
-
-function StackE()
-
-  if os.clock() - LastE > 9.9 then
-    CastE()
+    if Menu.Draw.Q then
+      DrawCircle(Player.x, Player.y, Player.z, Q.range, ARGB(0xFF,0xFF,0xFF,0xFF))
+    end
+    
+    if Menu.Draw.W then
+      DrawCircle(Player.x, Player.y, Player.z, W.radius, ARGB(0xFF,0xFF,0xFF,0xFF))
+    end
+    
+    if Menu.Draw.E then
+      DrawCircle(Player.x, Player.y, Player.z, E.range - 10, ARGB(0xFF,0xFF,0xFF,0xFF))
+    end
+    
+    if Menu.Draw.R then
+      DrawCircle(Player.x, Player.y, Player.z, R.range, ARGB(0xFF,0xFF,0,0))
+    end
+    
   end
   
 end
@@ -1577,36 +1606,6 @@ end
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 
-function OnDraw()
-
-  if Menu.Draw.On then
-  
-    if Menu.Draw.AA then
-      DrawCircle(Player.x, Player.y, Player.z, TrueRange, ARGB(0xFF,0,0xFF,0))
-    end
-    
-    if Menu.Draw.Q then
-      DrawCircle(Player.x, Player.y, Player.z, Q.range, ARGB(0xFF,0xFF,0xFF,0xFF))
-    end
-    
-    if Menu.Draw.W then
-      DrawCircle(Player.x, Player.y, Player.z, W.radius, ARGB(0xFF,0xFF,0xFF,0xFF))
-    end
-    
-    if Menu.Draw.E then
-      DrawCircle(Player.x, Player.y, Player.z, E.range - 10, ARGB(0xFF,0xFF,0xFF,0xFF))
-    end
-    
-    if Menu.Draw.R then
-      DrawCircle(Player.x, Player.y, Player.z, R.range, ARGB(0xFF,0xFF,0,0))
-    end
-    
-  end
-  
-end
-
-----------------------------------------------------------------------------------------------------
-
 function MoveToPos(x, z)
 
   if VIP_USER and Menu.Misc.UsePacket then
@@ -1679,14 +1678,20 @@ function OnLoseBuff(unit, buff)
   
 end
 
+----------------------------------------------------------------------------------------------------
+
 function OnSendPacket(p)
 
   if Target == nil then
     return
   end
   
-  if Menu.Combo.On and E.ready and Menu.Combo.E2 <= HealthPercent then
-    BlockAA(p)
+  if E.ready and Menu.Combo.On then
+  
+    if Menu.Combo.E2 <= HealthPercent then
+      BlockAA(p)
+    end
+    
   end
   
 end
@@ -1699,6 +1704,7 @@ function BlockAA(p)
   p.pos = 1
   info.networkID = p:DecodeF()
   info.type = p:Decode1()
+  
   if info.header == Packet.headers.S_MOVE and info.type == 3 then
     p:Block()
   end
