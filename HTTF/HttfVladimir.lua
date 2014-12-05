@@ -1,4 +1,4 @@
-Version = "1.14"
+Version = "1.20"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -259,7 +259,7 @@ end
 
 function VladimirMenu()
 
-  Menu = scriptConfig("HTTF Vladimir", "")
+  Menu = scriptConfig("HTTF Vladimir", "HTTF Vladimir")
   
   Menu:addSubMenu("Predict Settings", "Predict")
   
@@ -392,7 +392,6 @@ function VladimirMenu()
       else
       Menu.Auto:addParam("Emin", "Auto E Min Count", SCRIPT_PARAM_SLICE, 3, 1, 5, 0)
       end
-      
       Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("StackE", "Stack E (When not Combo, Harass)", SCRIPT_PARAM_ONKEYTOGGLE, false, GetKey('T'))
       Menu.Auto:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
@@ -534,20 +533,8 @@ function OnTick()
     Flee()
   end
   
-  if Pool and Menu.Combo.On then
-  
-    if Target ~= nil then
-    
-      if GetDistance(Target, mousePos) <= 450 then
-        MoveToPos(2*Target.x - mousePos.x, 2*Target.z - mousePos.z)
-      else
-        MoveToMouse()
-      end
-      
-    else
-      MoveToMouse()
-    end
-    
+  if Pool and Menu.Combo.On then --Will block orb packet later
+    MoveToMouse()
   end
   
   if VIP_USER and Menu.Misc.Skin then
@@ -665,10 +652,10 @@ function Combo()
   end
   
   local ComboQ = Menu.Combo.Q
-  local ComboE = Menu.Combo.E
-  local ComboE2 = Menu.Combo.E2
   local ComboW = Menu.Combo.W
   local ComboW2 = Menu.Combo.W2
+  local ComboE = Menu.Combo.E
+  local ComboE2 = Menu.Combo.E2
   local ComboR = Menu.Combo.R
   local ComboR2 = Menu.Combo.R2
   local ComboRearly = Menu.Combo.Rearly
@@ -689,22 +676,15 @@ function Combo()
   end
   
   if R.ready and ComboR then
-  
-    if ValidTarget(Target, R.range) then
-    
-      if not Q.ready and not E.ready and RTargetDmg*ComboR2 >= Target.health*100 then
-        CastR(Target)
-      end
-      
-    end
     
     if ValidTarget(Target, Q.range) then
     
-      if Q.ready and DontR and QTargetDmg >= Target.health then
+      if Q.ready and ComboQ and DontR and QTargetDmg >= Target.health then
+        CastQ(Target)
         return
       end
       
-      if R.ready and ComboRearly and (QTargetDmg+ETargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
+      if ComboRearly and (QTargetDmg+ETargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
         CastR(Target)
         return
       end
@@ -713,15 +693,22 @@ function Combo()
         CastE()
         CastQ(Target)
         CastR(Target)
-      elseif Q.ready and ComboQ and (not E.ready or not ComboE) and (QTargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
+      elseif Q.ready and ComboQ and not (E.ready and ComboE) and (QTargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
         CastQ(Target)
         CastR(Target)
-      elseif (not Q.ready or not ComboQ) and E.ready and ComboE and (ETargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
+      elseif not (Q.ready and ComboQ) and E.ready and ComboE and (ETargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
         CastE()
         CastR(Target)
+        return
       end
       
     end
+  
+    if ValidTarget(Target, R.range) then
+    
+      if RTargetDmg*ComboR2 >= Target.health*100 then
+        CastR(Target)
+      end
     
   end
   
@@ -912,7 +899,6 @@ function JSteal()
     local JStealEQ = Menu.JSteal.EQ
     local JStealE2 = Menu.JSteal.E2
     
-    local AAjunglemobDmg = getDmg("AD", junglemob, myHero)
     local QjunglemobDmg = getDmg("Q", junglemob, myHero)
     local EjunglemobDmg = getDmg("E", junglemob, myHero) + E.stack*getDmg("E", junglemob, myHero, 2)
     
@@ -1014,7 +1000,6 @@ function LastHit()
     local LastHitEQ = Menu.LastHit.EQ
     local LastHitE2 = Menu.LastHit.E2
     
-    local AAminionDmg = getDmg("AD", minion, myHero)
     local QminionDmg = getDmg("Q", minion, myHero)
     local EminionDmg = getDmg("E", minion, myHero) + E.stack*getDmg("E", minion, myHero, 2)
     
@@ -1648,9 +1633,9 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
-function OnProcessSpell(owner,spell)
+function OnProcessSpell(unit,spell)
 
-  if owner.isMe and spell.name == "VladimirTidesofBlood" then
+  if unit.isMe and spell.name == "VladimirTidesofBlood" then
   
     LastE = os.clock()
     
@@ -1668,6 +1653,7 @@ function OnGainBuff(unit, buff)
   
     if buff.name == "recall" then
       Recall = true
+      LastE = os.clock()
     end
     
     if buff.name == "vladimirsanguinepool" then
