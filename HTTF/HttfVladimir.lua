@@ -709,6 +709,8 @@ function Combo()
       if RTargetDmg*ComboR2 >= Target.health*100 then
         CastR(Target)
       end
+      
+    end
     
   end
   
