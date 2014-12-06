@@ -93,7 +93,7 @@ function Variables()
   
   Q = {range = 400, ready}
   W = {range = 1200, ready}
-  E = {range = 0, mspeed = 0, ready, state = true}
+  E = {range = 1500, mspeed = 0, ready, state = true}
   R = {range = 700, ready}
   I = {range = 600, ready}
   
@@ -210,7 +210,7 @@ function WarwickMenu()
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Info", "Use W if Current Mana > Max mana * x%", SCRIPT_PARAM_INFO, "")
-      Menu.Combo:addParam("W2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
+      Menu.Combo:addParam("W2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
 		  Menu.Combo:addParam("Info", "Max Time to reach the Target if Use E", SCRIPT_PARAM_INFO, "")
@@ -491,7 +491,11 @@ function Check()
     E.mspeed = 0.4
 	end
   
-  EMoveSpeed = myHero.ms*(1+E.mspeed)
+  if ETarget ~= nil and E.state == true and ValidTarget(ETarget, E.range) then
+    EMoveSpeed = myHero.ms
+  else
+    EMoveSpeed = myHero.ms+(345*E.mspeed)
+  end
   
   EnemyMinions:update()
   JungleMobs:update()
@@ -580,7 +584,7 @@ function Debug()
     Estate = "false"
   end
   
-  if os.clock() - DebugClock > 2 then
+  if os.clock() - DebugClock > 5 then
     print("Debugging... E.state: "..Estate.." EMoveSpeed: "..EMoveSpeed.." E Range: "..E.range)
     DebugClock = os.clock()
   end
@@ -612,7 +616,7 @@ function Combo()
   
   local QTargetDmg = getDmg("Q", Target, myHero)
   local RTargetDmg = getDmg("R", Target, myHero)*5
-  print("QTargetDmg: "..QTargetDmg.." RTargetDmg: "..RTargetDmg)
+  
   if R.ready and ComboR then
   
     if ValidTarget(Target, Q.range) then
@@ -626,7 +630,7 @@ function Combo()
         CastQ(Target)
         CastR(Target)
       elseif not (Q.ready and ComboQ) and RTargetDmg >= Target.health then
-        CastR(Target) print("578")
+        CastR(Target)
         return
       end
       
@@ -789,7 +793,7 @@ function Harass()
     CastQ(Target)
   end
   
-  if W.ready and HarassW and HarassW2 <= ManaPercent and ValidTarget(Target, TrueRange) then print("672")
+  if W.ready and HarassW and HarassW2 <= ManaPercent and ValidTarget(Target, TrueRange) then
     CastW()
   end
   
@@ -864,7 +868,7 @@ function KillSteal()
   end
   
   if R.ready and KillStealR and RTargetDmg >= Target.health and ValidTarget(Target, R.range) then
-    CastR(Target) print("734")
+    CastR(Target)
   end
   
 end
@@ -1199,22 +1203,12 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function OnProcessSpell(object, spell)
-
-  if object and spell.name == "BloodScent" then
-  
-    if E.state == true then
-		  E.state = false
-		elseif E.state == false then
-		  E.state = true
-		end
-  
-	end
   
   --[[if object == nil or object.name ~= myHero.name then
     return
   end
   
-  print(spell.name)]]
+  print("OnProcessSpell: "..spell.name)]]
   
 end
 
@@ -1228,6 +1222,20 @@ function OnGainBuff(unit, buff)
     
   end
   
+  if unit.isMe then
+  
+    if buff.name == "bloodscent_internal" then
+      E.state = true
+    end
+    
+  end
+  
+  --[[if unit == nil or unit.name ~= myHero.name then
+    return
+  end
+  
+  print("OnGainBuff: "..buff.name)]]
+  
 end
  
 function OnLoseBuff(unit, buff)
@@ -1239,5 +1247,19 @@ function OnLoseBuff(unit, buff)
     end
     
   end
+  
+  if unit.isMe then
+  
+    if buff.name == "bloodscent_internal" then
+      E.state = false
+    end
+    
+  end
+  
+  --[[if unit == nil or unit.name ~= myHero.name then
+    return
+  end
+  
+  print("OnLoseBuff: "..buff.name)]]
   
 end
