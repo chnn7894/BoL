@@ -404,7 +404,7 @@ function OnTick()
   Check()
   Target = OrbTarget()
   ETarget = SpellETarget()
-  Debug()
+  --Debug()
   
   if Menu.Clear.Farm.On then
     Farm()
@@ -632,7 +632,7 @@ function Combo()
         CastQ(Target)
         CastR(Target)
       elseif not (Q.ready and ComboQ) and RTargetDmg >= Target.health then
-        CastR(Target) print("578")
+        CastR(Target)
         return
       end
       
@@ -795,7 +795,7 @@ function Harass()
     CastQ(Target)
   end
   
-  if W.ready and HarassW and HarassW2 <= ManaPercent and ValidTarget(Target, TrueRange) then print("672")
+  if W.ready and HarassW and HarassW2 <= ManaPercent and ValidTarget(Target, TrueRange) then
     CastW()
   end
   
@@ -837,7 +837,6 @@ function LastHit()
     local QminionDmg = getDmg("Q", minion, myHero)
     
     if Q.ready and LastHitQ and LastHitQ2 <= ManaPercent and QminionDmg >= minion.health and ValidTarget(minion, Q.range) then
-      print(QminionDmg .. " " .. minion.health)
       CastQ(minion)
     end
     
@@ -870,7 +869,7 @@ function KillSteal()
   end
   
   if R.ready and KillStealR and RTargetDmg >= Target.health and ValidTarget(Target, R.range) then
-    CastR(Target) print("734")
+    CastR(Target)
   end
   
 end
