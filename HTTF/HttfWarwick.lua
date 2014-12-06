@@ -1,4 +1,4 @@
-Version = "1.10"
+Version = "1.20"
 AutoUpdate = true
 
 if myHero.charName ~= "Warwick" then
@@ -6,6 +6,7 @@ if myHero.charName ~= "Warwick" then
 end
 
 require 'SourceLib'
+require 'VPrediction'
 
 function ScriptMsg(msg)
   print("<font color=\"#00fa9a\"><b>HTTF Warwick:</b></font> <font color=\"#FFFFFF\">"..msg.."</font>")
@@ -88,7 +89,7 @@ function Variables()
   
   DebugClock = os.clock()
   LastSkin = 0
-  RebornLoaded, RevampedLoaded, MMALoaded, SxOrbLoaded, SOWLoaded = false, false, false, false, false
+  RebornLoaded, RevampedLoaded, MMALoaded, SOWLoaded, SxOrbLoaded = false, false, false, false, false
   Recall = false
   
   Q = {range = 400, ready}
@@ -186,6 +187,7 @@ function Variables()
     }
   end
   
+  VP = VPrediction()
   TS = TargetSelector(TARGET_LESS_CAST, R.range, DAMAGE_PHYSICAL, false)
   ETS = TargetSelector(TARGET_LESS_CAST, 4700, DAMAGE_PHYSICAL, false)
   
@@ -366,14 +368,6 @@ function Orbwalk()
     MMALoaded = true
     ScriptMsg("Found MMA.")
     
-  elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
-    require 'SxOrbWalk'
-    SxOrb = SxOrbWalk()
-    HttfSxOrb = scriptConfig("HTTF Warwick - SxOrbalk", "Httf SxOrb")
-    SxOrb:LoadToMenu(HttfSxOrb)
-    SxOrbLoaded = true
-    ScriptMsg("SxOrb Loaded ")
-    
   elseif FileExist(LIB_PATH .. "SOW.lua") then
     require 'SOW'
     SOWVP = SOW(VP)
@@ -383,6 +377,14 @@ function Orbwalk()
       SOWVP:LoadToMenu(Menu.Orbwalk)
     SOWLoaded = true
     ScriptMsg("SOW Loaded.")
+    
+  elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
+    require 'SxOrbWalk'
+    SxOrb = SxOrbWalk()
+    HttfSxOrb = scriptConfig("HTTF Warwick - SxOrbalk", "Httf SxOrb")
+    SxOrb:LoadToMenu(HttfSxOrb)
+    SxOrbLoaded = true
+    ScriptMsg("SxOrb Loaded ")
     
   else
     ScriptMsg("Orbwalk not founded. Using AllClass TS.")
@@ -544,12 +546,12 @@ function OrbTarget()
     T = _G.MMA_Target
   end
   
-  if SxOrbLoaded then
-    T = SxOrb:GetTarget()
-  end
-  
   if SOWLoaded then
     T = SOWVP:GetTarget()
+  end
+  
+  if SxOrbLoaded then
+    T = SxOrb:GetTarget()
   end
   
   if T and T.tpye == Player.type and ValidTarget(T, R.range) then
