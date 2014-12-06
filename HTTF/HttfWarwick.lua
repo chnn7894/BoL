@@ -213,7 +213,7 @@ function WarwickMenu()
       Menu.Combo:addParam("W2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-		  Menu.Combo:addParam("Info", "Max Time to reach the Target if Use E", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("Info", "Max Time to reach the Target if Use E", SCRIPT_PARAM_INFO, "")
       Menu.Combo:addParam("E2", "Default value = 5", SCRIPT_PARAM_SLICE, 5, 1, 10, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
@@ -259,7 +259,7 @@ function WarwickMenu()
       Menu.Harass:addParam("W2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-		  Menu.Harass:addParam("Info", "Max Time to reach the Target if Use E", SCRIPT_PARAM_INFO, "")
+      Menu.Harass:addParam("Info", "Max Time to reach the Target if Use E", SCRIPT_PARAM_INFO, "")
       Menu.Harass:addParam("E2", "Default value = 5", SCRIPT_PARAM_SLICE, 5, 1, 10, 0)
       
   Menu:addSubMenu("LastHit Settings", "LastHit")
@@ -370,7 +370,7 @@ function Orbwalk()
     require 'SxOrbWalk'
     SxOrb = SxOrbWalk()
     HttfSxOrb = scriptConfig("HTTF Warwick - SxOrbalk", "Httf SxOrb")
-		SxOrb:LoadToMenu(HttfSxOrb)
+    SxOrb:LoadToMenu(HttfSxOrb)
     SxOrbLoaded = true
     ScriptMsg("SxOrb Loaded ")
     
@@ -401,8 +401,8 @@ function OnTick()
   
   Check()
   Target = OrbTarget()
-	ETarget = SpellETarget()
-  Debug()
+  ETarget = SpellETarget()
+  --Debug()
   
   if Menu.Clear.Farm.On then
     Farm()
@@ -481,15 +481,15 @@ function Check()
   
   if GetSpellData(_E).level == 1 then
     E.mspeed = 0.2
-	elseif GetSpellData(_E).level == 2 then
+  elseif GetSpellData(_E).level == 2 then
     E.mspeed = 0.25
-	elseif GetSpellData(_E).level == 3 then
+  elseif GetSpellData(_E).level == 3 then
     E.mspeed = 0.3
-	elseif GetSpellData(_E).level == 4 then
+  elseif GetSpellData(_E).level == 4 then
     E.mspeed = 0.35
-	elseif GetSpellData(_E).level == 5 then
+  elseif GetSpellData(_E).level == 5 then
     E.mspeed = 0.4
-	end
+  end
   
   if ETarget ~= nil and E.state == true and ValidTarget(ETarget, E.range) then
     EMoveSpeed = myHero.ms
@@ -580,7 +580,7 @@ function Debug()
 
   if E.state == true then
     Estate = "true"
-	elseif E.state == false then
+  elseif E.state == false then
     Estate = "false"
   end
   
@@ -668,7 +668,7 @@ function ComboCastE()
   end
   
   local ComboE2 = Menu.Combo.E2
-	
+  
   local TimeToReach = GetDistance(Target, myHero)/(EMoveSpeed-Target.ms)
   
   if TimeToReach <= ComboE2 then
@@ -806,8 +806,8 @@ function HarassCastE()
   end
   
   local HarassE2 = Menu.Harass.E2
-	
-	local TimeToReach = GetDistance(Target, myHero)/(EMoveSpeed-Target.ms)
+  
+  local TimeToReach = GetDistance(Target, myHero)/(EMoveSpeed-Target.ms)
   
   if TimeToReach <= HarassE2 then
     CastE()
@@ -835,7 +835,6 @@ function LastHit()
     local QminionDmg = getDmg("Q", minion, myHero)
     
     if Q.ready and LastHitQ and LastHitQ2 <= ManaPercent and QminionDmg >= minion.health and ValidTarget(minion, Q.range) then
-      print(QminionDmg .. " " .. minion.health)
       CastQ(minion)
     end
     
@@ -904,8 +903,8 @@ function Flee()
 
   MoveToMouse()
   
-	local FleeE = Menu.Flee.E
-	
+  local FleeE = Menu.Flee.E
+  
   if E.ready and FleeE and E.state == false then
     CastE()
   end
