@@ -6,6 +6,7 @@ if myHero.charName ~= "Warwick" then
 end
 
 require 'SourceLib'
+require 'VPrediction'
 
 function ScriptMsg(msg)
   print("<font color=\"#00fa9a\"><b>HTTF Warwick:</b></font> <font color=\"#FFFFFF\">"..msg.."</font>")
@@ -88,7 +89,7 @@ function Variables()
   
   DebugClock = os.clock()
   LastSkin = 0
-  RebornLoaded, RevampedLoaded, MMALoaded, SxOrbLoaded, SOWLoaded = false, false, false, false, false
+  RebornLoaded, RevampedLoaded, MMALoaded, SOWLoaded, SxOrbLoaded = false, false, false, false, false
   Recall = false
   
   Q = {range = 400, ready}
@@ -186,6 +187,7 @@ function Variables()
     }
   end
   
+  VP = VPrediction()
   TS = TargetSelector(TARGET_LESS_CAST, R.range, DAMAGE_PHYSICAL, false)
   ETS = TargetSelector(TARGET_LESS_CAST, 4700, DAMAGE_PHYSICAL, false)
   
@@ -366,14 +368,6 @@ function Orbwalk()
     MMALoaded = true
     ScriptMsg("Found MMA.")
     
-  elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
-    require 'SxOrbWalk'
-    SxOrb = SxOrbWalk()
-    HttfSxOrb = scriptConfig("HTTF Warwick - SxOrbalk", "Httf SxOrb")
-    SxOrb:LoadToMenu(HttfSxOrb)
-    SxOrbLoaded = true
-    ScriptMsg("SxOrb Loaded ")
-    
   elseif FileExist(LIB_PATH .. "SOW.lua") then
     require 'SOW'
     SOWVP = SOW(VP)
@@ -383,6 +377,14 @@ function Orbwalk()
       SOWVP:LoadToMenu(Menu.Orbwalk)
     SOWLoaded = true
     ScriptMsg("SOW Loaded.")
+    
+  elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
+    require 'SxOrbWalk'
+    SxOrb = SxOrbWalk()
+    HttfSxOrb = scriptConfig("HTTF Warwick - SxOrbalk", "Httf SxOrb")
+    SxOrb:LoadToMenu(HttfSxOrb)
+    SxOrbLoaded = true
+    ScriptMsg("SxOrb Loaded ")
     
   else
     ScriptMsg("Orbwalk not founded. Using AllClass TS.")
@@ -402,7 +404,7 @@ function OnTick()
   Check()
   Target = OrbTarget()
   ETarget = SpellETarget()
-  --Debug()
+  Debug()
   
   if Menu.Clear.Farm.On then
     Farm()
@@ -544,12 +546,12 @@ function OrbTarget()
     T = _G.MMA_Target
   end
   
-  if SxOrbLoaded then
-    T = SxOrb:GetTarget()
-  end
-  
   if SOWLoaded then
     T = SOWVP:GetTarget()
+  end
+  
+  if SxOrbLoaded then
+    T = SxOrb:GetTarget()
   end
   
   if T and T.tpye == Player.type and ValidTarget(T, R.range) then
@@ -630,7 +632,7 @@ function Combo()
         CastQ(Target)
         CastR(Target)
       elseif not (Q.ready and ComboQ) and RTargetDmg >= Target.health then
-        CastR(Target)
+        CastR(Target) print("578")
         return
       end
       
@@ -793,7 +795,7 @@ function Harass()
     CastQ(Target)
   end
   
-  if W.ready and HarassW and HarassW2 <= ManaPercent and ValidTarget(Target, TrueRange) then
+  if W.ready and HarassW and HarassW2 <= ManaPercent and ValidTarget(Target, TrueRange) then print("672")
     CastW()
   end
   
@@ -835,6 +837,7 @@ function LastHit()
     local QminionDmg = getDmg("Q", minion, myHero)
     
     if Q.ready and LastHitQ and LastHitQ2 <= ManaPercent and QminionDmg >= minion.health and ValidTarget(minion, Q.range) then
+      print(QminionDmg .. " " .. minion.health)
       CastQ(minion)
     end
     
@@ -867,7 +870,7 @@ function KillSteal()
   end
   
   if R.ready and KillStealR and RTargetDmg >= Target.health and ValidTarget(Target, R.range) then
-    CastR(Target)
+    CastR(Target) print("734")
   end
   
 end
