@@ -1,5 +1,5 @@
-Version = "1.0"
-AutoUpdate = false
+Version = "1.1"
+AutoUpdate = true
 
 if myHero.charName ~= "Warwick" then
   return
@@ -93,7 +93,7 @@ function Variables()
   
   Q = {range = 400, ready}
   W = {range = 1200, ready}
-  E = {range = 0, ready, state = false}
+  E = {range = 0, mspeed = 0, ready, state = true}
   R = {range = 700, ready}
   I = {range = 600, ready}
   
@@ -104,10 +104,11 @@ function Variables()
   RrangeSqr = R.range*R.range
   IrangeSqr = I.range*I.range
   
+  AutoWQWE = {2, 1, 2, 3, 2, 4, 2, 1, 2, 1, 4, 1, 1, 3, 3, 4, 3, 3} --W Q E
+  AutoWQQE = {2, 1, 1, 3, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3} --Q W E
+  AutoWQQE2 = {2, 1, 1, 3, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2} --Q E W
   AutoWQEQ = {2, 1, 3, 1, 1, 4, 1, 2, 1, 3, 4, 2, 3, 2, 3, 4, 2, 3} --Q WEWE
-  AutoWQWE = {2, 1, 2, 3, 1, 4, 1, 1, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3} --Q W E
-  AutoWQQE = {2, 1, 1, 3, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2} --Q E W
-  AutoQWQE = {1, 2, 1, 3, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2} --Q E W
+  AutoQEQW = {1, 3, 1, 2, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2} --Q E W
   
   S5SR = false
   TT = false
@@ -186,6 +187,7 @@ function Variables()
   end
   
   TS = TargetSelector(TARGET_LESS_CAST, R.range, DAMAGE_PHYSICAL, false)
+  ETS = TargetSelector(TARGET_LESS_CAST, 4700, DAMAGE_PHYSICAL, false)
   
   EnemyMinions = minionManager(MINION_ENEMY, Q.range, player, MINION_SORT_MAXHEALTH_DEC)
   JungleMobs = minionManager(MINION_JUNGLE, Q.range, player, MINION_SORT_MAXHEALTH_DEC)
@@ -211,9 +213,11 @@ function WarwickMenu()
       Menu.Combo:addParam("W2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+		  Menu.Combo:addParam("Info", "Max Time to reach the Target if Use E", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("E2", "Default value = 5", SCRIPT_PARAM_SLICE, 5, 1, 10, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Rearly", "Use R early", SCRIPT_PARAM_ONOFF, false)
+      Menu.Combo:addParam("Rearly", "Use R early", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("DontR", "Do not use R if Killable with Q", SCRIPT_PARAM_ONOFF, true)
       
   Menu:addSubMenu("Clear Settings", "Clear")  
@@ -253,6 +257,10 @@ function WarwickMenu()
     Menu.Harass:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Harass:addParam("Info", "Use W if Current Mana > Max mana * x%", SCRIPT_PARAM_INFO, "")
       Menu.Harass:addParam("W2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
+      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+		  Menu.Harass:addParam("Info", "Max Time to reach the Target if Use E", SCRIPT_PARAM_INFO, "")
+      Menu.Harass:addParam("E2", "Default value = 5", SCRIPT_PARAM_SLICE, 5, 1, 10, 0)
       
   Menu:addSubMenu("LastHit Settings", "LastHit")
   
@@ -287,7 +295,7 @@ function WarwickMenu()
       Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoQ", "Auto Q", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Info", "Auto Q if Current Mana > Max mana * x%", SCRIPT_PARAM_INFO, "")
-      Menu.Auto:addParam("Q2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
+      Menu.Auto:addParam("Q2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
       Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoR", "Auto R", SCRIPT_PARAM_ONOFF, false)
       Menu.Auto:addParam("Info", "Auto R if Enemy Health percent < x%", SCRIPT_PARAM_INFO, "")
@@ -296,8 +304,8 @@ function WarwickMenu()
   Menu:addSubMenu("Flee Settings", "Flee")
   
     Menu.Flee:addParam("On", "Flee (Only Use KillSteal)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
-      --Menu.Flee:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    --Menu.Flee:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+      Menu.Flee:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Flee:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     
   Menu:addSubMenu("Misc Settings", "Misc")
   
@@ -308,9 +316,9 @@ function WarwickMenu()
     Menu.Misc:addParam("SkinOpt", "Skin list : ", SCRIPT_PARAM_LIST, 8, { "1", "2", "3", "4", "5", "6", "7", "Classic"})  
       Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     end
-    Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, true)
-    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W (WQEQ)", "R>Q>E>W (WQWE)", "R>Q>E>W (WQQE)", "R>Q>E>W (QWQE)"})
-      
+    Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, false)
+    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, { "R>W>Q>E (WQWE), Jungle", "R>Q>W>E (WQQE), Jungle", "R>Q>E>W (WQQE), Jungle", "R>Q>W=E (WQEQ), Jungle", "R>Q>E>W (QEQW), Top"})
+   
   Menu:addSubMenu("Draw Settings", "Draw")
   
     Menu.Draw:addParam("On", "Draw", SCRIPT_PARAM_ONOFF, true)
@@ -361,7 +369,8 @@ function Orbwalk()
   elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
     require 'SxOrbWalk'
     SxOrb = SxOrbWalk()
-    SxOrb:LoadToMenu(Menu)
+    HttfSxOrb = scriptConfig("HTTF Warwick - SxOrbalk", "Httf SxOrb")
+		SxOrb:LoadToMenu(HttfSxOrb)
     SxOrbLoaded = true
     ScriptMsg("SxOrb Loaded ")
     
@@ -386,22 +395,14 @@ end
 
 function OnTick()
 
-  --[[if not (Menu.Combo.On or Menu. Harass.On) then
-  
-    if E.ready and E.state == true then
-      CastE()
-      E.state = false
-    end
-  
-  end
-  ]]
   if myHero.dead then
     return
   end
   
   Check()
   Target = OrbTarget()
-  --Debug()
+	ETarget = SpellETarget()
+  Debug()
   
   if Menu.Clear.Farm.On then
     Farm()
@@ -421,6 +422,20 @@ function OnTick()
   
   if Menu.Flee.On then
     Flee()
+  end
+  
+  if not (Menu.Combo.On and Menu.Combo.E) and not (Menu.Harass.On and Menu.Harass.E) and not (Menu.Flee.On and Menu.Flee.E) then
+  
+    if E.ready and E.state == true and Recall == false then
+    
+      if ETarget == nil then
+        CastE()
+      elseif (Target ~= nil and TargetHealthPercent > 50) or not ValidTarget(ETarget, E.range) then
+        CastE()
+      end
+      
+    end
+    
   end
   
   if VIP_USER and Menu.Misc.Skin then
@@ -464,10 +479,28 @@ function Check()
   R.ready = (myHero:CanUseSpell(_R) == READY)
   I.ready = (Ignite ~= nil and myHero:CanUseSpell(Ignite) == READY)
   
+  if GetSpellData(_E).level == 1 then
+    E.mspeed = 0.2
+	elseif GetSpellData(_E).level == 2 then
+    E.mspeed = 0.25
+	elseif GetSpellData(_E).level == 3 then
+    E.mspeed = 0.3
+	elseif GetSpellData(_E).level == 4 then
+    E.mspeed = 0.35
+	elseif GetSpellData(_E).level == 5 then
+    E.mspeed = 0.4
+	end
+  
+  EMoveSpeed = myHero.ms*(1+E.mspeed)
+  
   EnemyMinions:update()
   JungleMobs:update()
   
   ManaPercent = (myHero.mana/myHero.maxMana)*100
+  
+  if Target ~= nil then
+    TargetHealthPercent = (Target.health/Target.maxHealth)*100
+  end
   
   local QL, WL, EL, RL = player:GetSpellData(_Q).level, player:GetSpellData(_W).level, player:GetSpellData(_E).level, player:GetSpellData(_R).level
     
@@ -527,12 +560,28 @@ function OrbTarget()
   
 end
 
+function SpellETarget()
+
+  ETS:update()
+  
+  if ETS.target then
+    return ETS.target
+  end
+
+end
+
 ----------------------------------------------------------------------------------------------------
 
 function Debug()
 
-  if os.clock() - DebugClock > 10 then
-    print("Debugging...")
+  if E.state == true then
+    Estate = "true"
+	elseif E.state == false then
+    Estate = "false"
+  end
+  
+  if os.clock() - DebugClock > 2 then
+    print("Debugging... E.state: "..Estate.." EMoveSpeed: "..EMoveSpeed.." E Range: "..E.range)
     DebugClock = os.clock()
   end
   
@@ -542,6 +591,12 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function Combo()
+
+  local ComboE = Menu.Combo.E
+  
+  if E.ready and ComboE and E.state == false and TargetHealthPercent <= 50 and ValidTarget(Target, R.range) then
+    ComboCastE()
+  end
   
   if GetDistanceSqr(Target) > RrangeSqr then
     return
@@ -551,14 +606,13 @@ function Combo()
   local ComboQ2 = Menu.Combo.Q2
   local ComboW = Menu.Combo.W
   local ComboW2 = Menu.Combo.W2
-  local ComboE = Menu.Combo.E
   local ComboR = Menu.Combo.R
   local ComboRearly = Menu.Combo.Rearly
   local DontR = Menu.Combo.DontR
   
   local QTargetDmg = getDmg("Q", Target, myHero)
-  local RTargetDmg = getDmg("R", Target, myHero)
-  
+  local RTargetDmg = getDmg("R", Target, myHero)*5
+  print("QTargetDmg: "..QTargetDmg.." RTargetDmg: "..RTargetDmg)
   if R.ready and ComboR then
   
     if ValidTarget(Target, Q.range) then
@@ -568,15 +622,10 @@ function Combo()
         return
       end
       
-      if ComboRearly and ComboQ2 <= ManaPercent and (QTargetDmg+RTargetDmg) >= Target.health then
-        CastR(Target) print("570") 
-        return
-      end
-      
       if Q.ready and ComboQ and ComboQ2 <= ManaPercent and (QTargetDmg+RTargetDmg) >= Target.health then
         CastQ(Target)
-        CastR(Target) print("576")
-      elseif not (Q.ready or ComboQ) and RTargetDmg >= Target.health then
+        CastR(Target)
+      elseif not (Q.ready and ComboQ) and RTargetDmg >= Target.health then
         CastR(Target) print("578")
         return
       end
@@ -584,8 +633,8 @@ function Combo()
     end
     
     if ValidTarget(Target, R.range) then
-    
-      if Q.ready and ComboQ and ComboQ2 <= ManaPercent and (QTargetDmg+RTargetDmg) >= Target.health then
+      
+      if Q.ready and ComboQ and ComboRearly and ComboQ2 <= ManaPercent and (QTargetDmg+RTargetDmg) >= Target.health then
         CastR(Target)
         return
       end
@@ -604,6 +653,22 @@ function Combo()
   
   if W.ready and ComboW and ComboW2 <= ManaPercent and ValidTarget(Target, TrueRange) then
     CastW()
+  end
+  
+end
+
+function ComboCastE()
+  
+  if EMoveSpeed  <= Target.ms then
+    return
+  end
+  
+  local ComboE2 = Menu.Combo.E2
+	
+  local TimeToReach = GetDistance(Target, myHero)/(EMoveSpeed-Target.ms)
+  
+  if TimeToReach <= ComboE2 then
+    CastE()
   end
   
 end
@@ -705,6 +770,12 @@ end
 
 function Harass()
 
+  local HarassE = Menu.Harass.E
+  
+  if E.ready and HarassE and E.state == false and TargetHealthPercent <= 50 and ValidTarget(Target, R.range) then
+    HarassCastE()
+  end
+  
   if GetDistanceSqr(Target) > QrangeSqr then
     return
   end
@@ -720,6 +791,22 @@ function Harass()
   
   if W.ready and HarassW and HarassW2 <= ManaPercent and ValidTarget(Target, TrueRange) then print("672")
     CastW()
+  end
+  
+end
+
+function HarassCastE()
+
+  if EMoveSpeed <= Target.ms then
+    return
+  end
+  
+  local HarassE2 = Menu.Harass.E2
+	
+	local TimeToReach = GetDistance(Target, myHero)/(EMoveSpeed-Target.ms)
+  
+  if TimeToReach <= HarassE2 then
+    CastE()
   end
   
 end
@@ -744,6 +831,7 @@ function LastHit()
     local QminionDmg = getDmg("Q", minion, myHero)
     
     if Q.ready and LastHitQ and LastHitQ2 <= ManaPercent and QminionDmg >= minion.health and ValidTarget(minion, Q.range) then
+      print(QminionDmg .. " " .. minion.health)
       CastQ(minion)
     end
     
@@ -764,7 +852,7 @@ function KillSteal()
   local KillStealI = Menu.KillSteal.I
   
   local QTargetDmg = getDmg("Q", Target, myHero)
-  local RTargetDmg = getDmg("R", Target, myHero)
+  local RTargetDmg = getDmg("R", Target, myHero)*5
   local ITargetDmg = getDmg("IGNITE", Target, myHero)
   
   if I.ready and KillStealI and ITargetDmg >= Target.health and ValidTarget(Target, I.range) then
@@ -792,8 +880,6 @@ function Auto()
   
   local FleeOn = Menu.Flee.On
   
-  TargetHealthPercent = (Target.health/Target.maxHealth)*100
-  
   if FleeOn or Recall == true then
     return
   end
@@ -814,8 +900,10 @@ function Flee()
 
   MoveToMouse()
   
-  if E.state and Menu.Flee.E then
-    --CastE()
+	local FleeE = Menu.Flee.E
+	
+  if E.ready and FleeE and E.state == false then
+    CastE()
   end
   
 end
@@ -876,7 +964,7 @@ function AutoLevel()
       local level = { 0, 0, 0, 0 }
       
       for i = 1, player.level, 1 do
-        level[AutoWQEQ[i]] = level[AutoWQEQ[i]] + 1
+        level[AutoWQWE[i]] = level[AutoWQWE[i]] + 1
       end
       
       for i, v in ipairs({ QL, WL, EL, RL }) do
@@ -899,7 +987,7 @@ function AutoLevel()
       local level = { 0, 0, 0, 0 }
       
       for i = 1, player.level, 1 do
-        level[AutoWQWE[i]] = level[AutoWQWE[i]] + 1
+        level[AutoWQQE[i]] = level[AutoWQQE[i]] + 1
       end
       
       for i, v in ipairs({ QL, WL, EL, RL }) do
@@ -922,7 +1010,7 @@ function AutoLevel()
       local level = { 0, 0, 0, 0 }
       
       for i = 1, player.level, 1 do
-        level[AutoWQQE[i]] = level[AutoWQQE[i]] + 1
+        level[AutoWQQE2[i]] = level[AutoWQQE2[i]] + 1
       end
       
       for i, v in ipairs({ QL, WL, EL, RL }) do
@@ -945,7 +1033,30 @@ function AutoLevel()
       local level = { 0, 0, 0, 0 }
       
       for i = 1, player.level, 1 do
-        level[AutoQWQE[i]] = level[AutoQWQE[i]] + 1
+        level[AutoWQEQ[i]] = level[AutoWQEQ[i]] + 1
+      end
+      
+      for i, v in ipairs({ QL, WL, EL, RL }) do
+      
+        if v < level[i] then
+        LevelSpell(spell[i])
+        end
+        
+      end
+      
+    end
+    
+  elseif Menu.Misc.ALOpt == 5 then
+  
+    local QL, WL, EL, RL = player:GetSpellData(_Q).level, player:GetSpellData(_W).level, player:GetSpellData(_E).level, player:GetSpellData(_R).level
+    
+    if QL + WL + EL + RL < player.level then
+    
+      local spell = { SPELL_1, SPELL_2, SPELL_3, SPELL_4, }
+      local level = { 0, 0, 0, 0 }
+      
+      for i = 1, player.level, 1 do
+        level[AutoQEQW[i]] = level[AutoQEQW[i]] + 1
       end
       
       for i, v in ipairs({ QL, WL, EL, RL }) do
@@ -1028,12 +1139,6 @@ function CastE()
     CastSpell(_E)
   end
   
-  if E.state == true then
-    E.state = fasle
-  elseif E.state == false then
-    E.state = true
-  end
-  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1092,6 +1197,26 @@ function MoveToMouse()
 end
 
 ----------------------------------------------------------------------------------------------------
+
+function OnProcessSpell(object, spell)
+
+  if object and spell.name == "BloodScent" then
+  
+    if E.state == true then
+		  E.state = false
+		elseif E.state == false then
+		  E.state = true
+		end
+  
+	end
+  
+  --[[if object == nil or object.name ~= myHero.name then
+    return
+  end
+  
+  print(spell.name)]]
+  
+end
 
 function OnGainBuff(unit, buff)
 
