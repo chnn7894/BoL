@@ -381,7 +381,7 @@ function Orbwalk()
   elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
     require 'SxOrbWalk'
     SxOrb = SxOrbWalk()
-    HttfSxOrb = scriptConfig("HTTF Warwick - SxOrbalk", "Httf SxOrb")
+    HttfSxOrb = scriptConfig("HTTF Warwick - SxOrbWalk", "Httf SxOrb")
     SxOrb:LoadToMenu(HttfSxOrb)
     SxOrbLoaded = true
     ScriptMsg("SxOrb Loaded ")
