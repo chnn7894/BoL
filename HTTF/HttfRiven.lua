@@ -1,4 +1,4 @@
-Version = "1.1"
+Version = "1.11"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -1123,7 +1123,7 @@ function Orbwalk(State)
         
         local AAMinionDmg = GetDmg("AD", minion)
         
-        if (--[[2*AAMinionDmg <= minion.health or ]]AAMinionDmg >= minion.health) and ValidTarget(minion, TrueminionRange) then
+        if --[[(2*AAMinionDmg <= minion.health or AAMinionDmg >= minion.health) and ]]ValidTarget(minion, TrueminionRange) then
           CanTurn = false
           CanMove = false
           CanQ = false
