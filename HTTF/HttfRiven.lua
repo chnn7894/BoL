@@ -1,4 +1,4 @@
-Version = "1.12"
+Version = "1.121"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -459,6 +459,18 @@ function Check()
   
   if not CanAA and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA > math.max(WindUpTime, AnimationTime) then
     CanAA = true
+  end
+  
+  --[[if not CanQ and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-FirstQ > spell.cd then
+    CanW = true
+  end]]
+  
+  if not CanW and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastW > 4.2 then
+    CanW = true
+  end
+  
+  if not CanE and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastE > 3.6 then
+    CanE = true
   end
   
   if BeingAA and os.clock()-LastAA > WindUpTime then
