@@ -1,4 +1,4 @@
-Version = "1.121"
+Version = "1.13"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -118,14 +118,14 @@ function Variables()
   Q = {radius = 275, range = 225, level = 0, ready, state = 0}
   W = {radius = 260, level = 0, ready}
   E = {range = 250, level = 0, ready}
-  R = {delay = 0, angle = 45, range = 900, speed = 1200, level = 0, ready, state = true--[[false]]}
+  R = {delay = 0, angle = 45, range = 900, speed = 1200, level = 0, ready, state = false}
   I = {range = 600, ready}
   S = {range = 760, ready}
   
   Items =
   {
-  ["Tiamat"] = {id=3077, range = 150, slot = nil, ready},
-  ["Hydra"] = {id=3074, range = 150, slot = nil, ready},
+  ["Tiamat"] = {id=3077, range = 150, maxrange = 400, slot = nil, ready},
+  ["Hydra"] = {id=3074, range = 150, maxrange = 400, slot = nil, ready},
   ["Stalker"] = {id=3706, range = 760, slot = nil, ready},
   ["StalkerW"] = {id=3707, slot = nil},
   ["StalkerM"] = {id=3708, slot = nil},
@@ -133,7 +133,7 @@ function Variables()
   ["StalkerD"] = {id=3710, slot = nil}
   }
   
-  MyminBBox = 39.44--GetDistance(myHero.minBBox, myHero) --check()
+  MyminBBox = 39.44
   TrueRange = 125.5+MyminBBox
   TrueminionRange = TrueRange
   TruejunglemobRange = TrueRange
@@ -144,9 +144,9 @@ function Variables()
   S5SR = false
   TT = false
   
-  if GetGame().map.index == 15 then -- S5 Summoner's Rift, summonerRift
+  if GetGame().map.index == 15 then
     S5SR = true
-  elseif GetGame().map.index == 4 then -- A, B 
+  elseif GetGame().map.index == 4 then
     TT = true
   end
   
@@ -246,12 +246,13 @@ function RivenMenu()
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("FR", "Use First R (FR)", SCRIPT_PARAM_LIST, 2, { "None", "Easy to Kill", "Normal to Kill", "Hard to Kill"})
-      Menu.Combo:addParam("SR", "Use Second R (SR)", SCRIPT_PARAM_LIST, 2, { "None", "Kill Steal", "Max Damage"})
+      Menu.Combo:addParam("SR", "Use Second R (SR)", SCRIPT_PARAM_LIST, 3, { "None", "Killable", "Max Damage or Killable"})
       Menu.Combo:addParam("Rearly", "Use Second R early", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("DontR", "Do not use FR, SR if Killable with Q or W", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("AutoR", "Auto Second R on Combo", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Rmin", "Auto Second R Min Count", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
+      Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
       
   Menu:addSubMenu("Clear Settings", "Clear")  
   
@@ -263,7 +264,10 @@ function RivenMenu()
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, false)
+      Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+        Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Clear.Farm:addParam("TH", "Use Tiamat or Ravenous Hydra", SCRIPT_PARAM_ONOFF, true)
+        Menu.Clear.Farm:addParam("THmin", "Use Item Min Count", SCRIPT_PARAM_SLICE, 3, 1, 6, 0)
         
     Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
     
@@ -274,6 +278,9 @@ function RivenMenu()
       Menu.Clear.JFarm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+        Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Clear.JFarm:addParam("TH", "Use Tiamat or Ravenous Hydra", SCRIPT_PARAM_ONOFF, true)
+        Menu.Clear.JFarm:addParam("THmin", "Use Item Min Count", SCRIPT_PARAM_SLICE, 1, 1, 4, 0)
         
   Menu:addSubMenu("Harass Settings", "Harass")
   
@@ -284,6 +291,8 @@ function RivenMenu()
     Menu.Harass:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Harass:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
       
   Menu:addSubMenu("LastHit Settings", "LastHit")
   
@@ -359,7 +368,7 @@ function RivenMenu()
   
     Menu.Draw:addParam("On", "Draw", SCRIPT_PARAM_ONOFF, true)
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, false)
+    Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("Q", "Draw Q range", SCRIPT_PARAM_ONOFF, false)
     Menu.Draw:addParam("W", "Draw W range", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("E", "Draw E range", SCRIPT_PARAM_ONOFF, false)
@@ -396,7 +405,6 @@ function OnTick()
   Check()
   Target = SpellTarget()
   RTarget = SpellRTarget()
-  --Debug()
   
   if Menu.KillSteal.On then
     KillSteal()
@@ -449,7 +457,7 @@ end
 
 function Check()
   
-  if CanTurn and os.clock()-LastQ > 0.35 then
+  if CanTurn and os.clock()-LastQ > 0.2 then --0.35
     CanTurn = false
   end
   
@@ -495,6 +503,10 @@ function Check()
   if BeingE and os.clock()-LastE > 0.5 then
     BeingE = false
     CanMove = true
+  end
+  
+  if R.state and os.clock()-LastR > 15 then
+    R.state = false
   end
   
   for _, item in pairs(Items) do
@@ -573,8 +585,9 @@ function Combo()
   local ComboFR = Menu.Combo.FR
   local ComboSR = Menu.Combo.SR
   local ComboRearly = Menu.Combo.Rearly
-  local DontR = Menu.Combo.DontR
+  local ComboDontR = Menu.Combo.DontR
   local ComboAutoR = Menu.Combo.AutoR
+  local ComboItem = Menu.Combo.Item
   
   local QTargetDmg = GetDmg("Q", RTarget)
   local WTargetDmg = GetDmg("W", RTarget)
@@ -593,7 +606,7 @@ function Combo()
         return
       end
       
-      if DontR then
+      if ComboDontR then
       
         if Q.ready and ComboQ and W.ready and ComboW and QTargetDmg+WTargetDmg >= RTarget.health then
           CastQ(RTarget)
@@ -607,7 +620,7 @@ function Combo()
           return
         end
         
-      elseif not DontR then
+      elseif not ComboDontR then
       
         if Q.ready and ComboQ and W.ready and ComboW and QTargetDmg+WTargetDmg+RTargetDmg >= RTarget.health then
           CastQ(RTarget)
@@ -632,7 +645,7 @@ function Combo()
     
       if ComboSR == 2 and RTargetDmg >= RTarget.health then
         CastR(RTarget)
-      elseif ComboSR == 3 and 25 >= RTargetHealthPercent then
+      elseif ComboSR == 3 and (RTargetDmg >= RTarget.health or 25 >= RTargetHealthPercent) then
         CastR(RTarget)
       end
       
@@ -664,11 +677,11 @@ function Combo()
     CastW()
   end
   
-  if Items["Tiamat"].ready and not BeingAA and ValidTarget(Target, Items["Tiamat"].range) then
+  if Items["Tiamat"].ready and ComboItem and not BeingAA and ValidTarget(Target, Items["Tiamat"].range) then
     CastT()
   end
   
-  if Items["Hydra"].ready and not BeingAA and ValidTarget(Target, Items["Hydra"].range) then
+  if Items["Hydra"].ready and ComboItem and not BeingAA and ValidTarget(Target, Items["Hydra"].range) then
     CastH()
   end
   
@@ -696,6 +709,8 @@ function Farm()
     local FarmQ = Menu.Clear.Farm.Q
     local FarmW = Menu.Clear.Farm.W
     local FarmE = Menu.Clear.Farm.E
+    local FarmTH = Menu.Clear.Farm.TH
+    local FarmTHmin = Menu.Clear.Farm.THmin
     
     local AAMinionDmg = GetDmg("AD", minion)
     local QMinionDmg = GetDmg("Q", minion)
@@ -717,6 +732,12 @@ function Farm()
     
     if W.ready and FarmW and CanW and (WMinionDmg+AAMinionDmg <= minion.health or WMinionDmg >= minion.health) and os.clock()-LastE > 0.25 and ValidTarget(minion, W.radius) then
       CastW()
+    end
+    
+    if Items["Tiamat"].ready and FarmTH and not BeingAA and FarmTHmin <= EnemyCount(minion, Items["Tiamat"].maxrange) then
+      CastT()
+    elseif Items["Hydra"].ready and FarmTH and not BeingAA and FarmTHmin <= EnemyCount(minion, Items["Hydra"].maxrange) then
+      CastH()
     end
     
   end
@@ -745,6 +766,8 @@ function JFarm()
     local JFarmQ = Menu.Clear.JFarm.Q
     local JFarmW = Menu.Clear.JFarm.W
     local JFarmE = Menu.Clear.JFarm.E
+    local JFarmTH = Menu.Clear.JFarm.TH
+    local JFarmTHmin = Menu.Clear.JFarm.THmin
     
     if E.ready and JFarmE and CanE == true then
     
@@ -771,13 +794,48 @@ function JFarm()
       CastW()
     end
     
-    if Items["Tiamat"].ready and not BeingAA and ValidTarget(junglemob, Items["Tiamat"].range) then
+    if Items["Tiamat"].ready and JFarmTH and not BeingAA and JFarmTHmin <= EnemyCount(junglemob, Items["Tiamat"].range) then
       CastT()
     end
     
-    if Items["Hydra"].ready and not BeingAA and ValidTarget(junglemob, Items["Hydra"].range) then
+    if Items["Hydra"].ready and JFarmTH and not BeingAA and JFarmTHmin <= EnemyCount(junglemob, Items["Hydra"].range) then
       CastH()
+      
     end
+    
+  end
+  
+end
+
+----------------------------------------------------------------------------------------------------
+
+function EnemyCount(enemy, range)
+
+  local count = 0
+  
+  if enemy == "minion" then
+    
+    for i, minion in pairs(EnemyMinions.objects) do
+    
+      if minion ~= nil and GetDistance(enemy, minion) <= range then
+        count = count + 1
+      end
+      
+    end
+    
+    return count
+    
+  elseif enemy == "junglemob" then
+    
+    for i, junglemob in pairs(JungleMobs.objects) do
+    
+      if junglemob ~= nil and GetDistance(enemy, junglemob) <= range then
+        count = count + 1
+      end
+      
+    end
+    
+    return count
     
   end
   
@@ -854,6 +912,7 @@ function Harass()
   local HarassQ = Menu.Harass.Q
   local HarassW = Menu.Harass.W
   local HarassE = Menu.Harass.E
+  local HarassItem = Menu.Harass.Item
   
   if E.ready and HarassE and CanE == true then
   
@@ -873,6 +932,14 @@ function Harass()
   
   if W.ready and HarassW and CanW and os.clock()-LastE > 0.25 and ValidTarget(Target, W.radius) then
     CastW()
+  end
+  
+  if Items["Tiamat"].ready and HarassItem and not BeingAA and ValidTarget(Target, Items["Tiamat"].range) then
+    CastT()
+  end
+  
+  if Items["Hydra"].ready and HarassItem and not BeingAA and ValidTarget(Target, Items["Hydra"].range) then
+    CastH()
   end
   
 end
@@ -996,7 +1063,7 @@ function Auto()
     return
   end
   
-  if W.ready and AutoAutoW and not (ComboOn or HarassOn or JStealOn) and AutoWmin <= EnemyCount(W.radius) and ValidTarget(Target, W.radius) then
+  if W.ready and AutoAutoW and not (ComboOn or HarassOn or JStealOn) and AutoWmin <= EnemyCount(W.radius) then
     CastW()
   end
   
@@ -1006,13 +1073,13 @@ function Auto()
   
 end
 
-function EnemyCount(Range)
+function EnemyCount(range)
 
   local enemies = {}
   
   for _, enemy in ipairs(EnemyHeroes) do
   
-    if ValidTarget(enemy, Range) then
+    if ValidTarget(enemy, range) then
       table.insert(enemies, enemy)
     end
     
@@ -1135,7 +1202,14 @@ function Orbwalk(State)
         
         local AAMinionDmg = GetDmg("AD", minion)
         
-        if --[[(2*AAMinionDmg <= minion.health or AAMinionDmg >= minion.health) and ]]ValidTarget(minion, TrueminionRange) then
+        if (2*AAMinionDmg <= minion.health or AAMinionDmg >= minion.health) and ValidTarget(minion, TrueminionRange) then
+          CanTurn = false
+          CanMove = false
+          CanQ = false
+          CanW = false
+          CanE = false
+          CastAA(minion)
+        elseif ValidTarget(minion, TrueminionRange) then
           CanTurn = false
           CanMove = false
           CanQ = false
@@ -1297,7 +1371,7 @@ function OnDraw()
       DrawCircle(Player.x, Player.y, Player.z, TrueRange, ARGB(0xFF,0,0xFF,0))
     end
     
-    if Menu.Draw.Q and Q.ready then
+    if Menu.Draw.Q then
       DrawCircle(Player.x, Player.y, Player.z, Q.range, ARGB(0xFF,0xFF,0xFF,0xFF))
     end
     
@@ -1524,6 +1598,15 @@ function OnProcessSpell(object, spell)
       LastE = os.clock()
     end
     
+    if spell.name:find("RivenFengShuiEngine") then
+      R.state = true
+      LastR = os.clock()
+    end
+    
+    if spell.name:find("rivenizunablade") then
+      R.state = false
+    end
+    
   end
   
   --[[if object == nil or object.name ~= myHero.name then
@@ -1543,7 +1626,7 @@ function OnGainBuff(unit, buff)
     end
     
     if buff.name == "RivenFengShuiEngine" then
-      R.state = true
+      --R.state = true
     end
     
     if buff.name == "RivenTriCleave" then
