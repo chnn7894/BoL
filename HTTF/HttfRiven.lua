@@ -1,4 +1,4 @@
-Version = "1.133"
+Version = "1.134"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -280,7 +280,7 @@ function RivenMenu()
       Menu.Clear.JFarm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("TH", "Use Tiamat or Ravenous Hydra", SCRIPT_PARAM_ONOFF, true)
-        Menu.Clear.JFarm:addParam("THmin", "Use Item Min Count", SCRIPT_PARAM_SLICE, 1, 1, 4, 0)
+        Menu.Clear.JFarm:addParam("THmin", "Use Item Min Count", SCRIPT_PARAM_SLICE, 2, 1, 4, 0)
         
   Menu:addSubMenu("Harass Settings", "Harass")
   
@@ -457,7 +457,7 @@ end
 
 function Check()
   
-  if CanTurn and os.clock()-LastQ > 0.2 then --0.35
+  if CanTurn and os.clock()-LastQ > 0.05 then --0.35
     CanTurn = false
   end
   
@@ -1079,7 +1079,7 @@ function AutoEnemyCount(range)
 
   local enemies = {}
   
-  for i, enemy in ipairs(EnemyHeroes) do
+  for _, enemy in ipairs(EnemyHeroes) do
   
     if ValidTarget(enemy, range) then
       table.insert(enemies, enemy)
@@ -1578,7 +1578,7 @@ function OnProcessSpell(object, spell)
       CanAA = false
       LastAA = os.clock()
       AnimationTime = spell.animationTime
-      WindUpTime = spell.windUpTime+0.04
+      WindUpTime = spell.windUpTime+0.05
     end
     
     if spell.name:find("RivenTriCleave") then
