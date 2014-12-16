@@ -1,4 +1,4 @@
-Version = "1.13"
+Version = "1.131"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -1063,7 +1063,7 @@ function Auto()
     return
   end
   
-  if W.ready and AutoAutoW and not (ComboOn or HarassOn or JStealOn) and AutoWmin <= EnemyCount(W.radius) then
+  if W.ready and AutoAutoW and not (ComboOn or HarassOn or JStealOn) and AutoWmin <= AutoEnemyCount(W.radius) then
     CastW()
   end
   
@@ -1073,11 +1073,11 @@ function Auto()
   
 end
 
-function EnemyCount(range)
+function AutoEnemyCount(range)
 
   local enemies = {}
   
-  for _, enemy in ipairs(EnemyHeroes) do
+  for i, enemy in ipairs(EnemyHeroes) do
   
     if ValidTarget(enemy, range) then
       table.insert(enemies, enemy)
