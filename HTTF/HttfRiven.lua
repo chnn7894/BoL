@@ -1,4 +1,4 @@
-Version = "1.131"
+Version = "1.132"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -734,13 +734,31 @@ function Farm()
       CastW()
     end
     
-    if Items["Tiamat"].ready and FarmTH and not BeingAA and FarmTHmin <= EnemyCount(minion, Items["Tiamat"].maxrange) then
+    if Items["Tiamat"].ready and FarmTH and not BeingAA and FarmTHmin <= MinionCount(minion, Items["Tiamat"].maxrange) then
       CastT()
-    elseif Items["Hydra"].ready and FarmTH and not BeingAA and FarmTHmin <= EnemyCount(minion, Items["Hydra"].maxrange) then
+    elseif Items["Hydra"].ready and FarmTH and not BeingAA and FarmTHmin <= MinionCount(minion, Items["Hydra"].maxrange) then
       CastH()
     end
     
   end
+  
+end
+
+----------------------------------------------------------------------------------------------------
+
+function MinionCount(enemy, range)
+
+  local count = 0
+  
+  for i, minion in pairs(EnemyMinions.objects) do
+  
+    if minion ~= nil and GetDistance(enemy, minion) <= range then
+      count = count + 1
+    end
+    
+  end
+  
+  return count
   
 end
 
@@ -794,11 +812,11 @@ function JFarm()
       CastW()
     end
     
-    if Items["Tiamat"].ready and JFarmTH and not BeingAA and JFarmTHmin <= EnemyCount(junglemob, Items["Tiamat"].range) then
+    if Items["Tiamat"].ready and JFarmTH and not BeingAA and JFarmTHmin <= JungleMobCount(junglemob, Items["Tiamat"].range) then
       CastT()
     end
     
-    if Items["Hydra"].ready and JFarmTH and not BeingAA and JFarmTHmin <= EnemyCount(junglemob, Items["Hydra"].range) then
+    if Items["Hydra"].ready and JFarmTH and not BeingAA and JFarmTHmin <= JungleMobCount(junglemob, Items["Hydra"].range) then
       CastH()
       
     end
@@ -809,35 +827,19 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
-function EnemyCount(enemy, range)
+function JungleMobCount(enemy, range)
 
   local count = 0
   
-  if enemy == "minion" then
-    
-    for i, minion in pairs(EnemyMinions.objects) do
-    
-      if minion ~= nil and GetDistance(enemy, minion) <= range then
-        count = count + 1
-      end
-      
+  for i, junglemob in pairs(JungleMobs.objects) do
+  
+    if junglemob ~= nil and GetDistance(enemy, junglemob) <= range then
+      count = count + 1
     end
-    
-    return count
-    
-  elseif enemy == "junglemob" then
-    
-    for i, junglemob in pairs(JungleMobs.objects) do
-    
-      if junglemob ~= nil and GetDistance(enemy, junglemob) <= range then
-        count = count + 1
-      end
-      
-    end
-    
-    return count
     
   end
+  
+  return count
   
 end
 
