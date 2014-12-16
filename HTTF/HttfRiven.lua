@@ -1,4 +1,4 @@
-Version = "1.132"
+Version = "1.133"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -1366,6 +1366,10 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function OnDraw()
+
+  if myHero.dead then
+    return
+  end
 
   if Menu.Draw.On then
   
