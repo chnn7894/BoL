@@ -1,4 +1,4 @@
-Version = "1.11"
+Version = "1.12"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -652,11 +652,11 @@ function Combo()
     CastW()
   end
   
-  if Items["Tiamat"].ready and not (CanAA or BeingAA) and ValidTarget(Target, Items["Tiamat"].range) then
+  if Items["Tiamat"].ready and not BeingAA and ValidTarget(Target, Items["Tiamat"].range) then
     CastT()
   end
   
-  if Items["Hydra"].ready and not (CanAA or BeingAA) and ValidTarget(Target, Items["Hydra"].range) then
+  if Items["Hydra"].ready and not BeingAA and ValidTarget(Target, Items["Hydra"].range) then
     CastH()
   end
   
@@ -759,11 +759,11 @@ function JFarm()
       CastW()
     end
     
-    if Items["Tiamat"].ready and not (CanAA or BeingAA) and ValidTarget(junglemob, Items["Tiamat"].range) then
+    if Items["Tiamat"].ready and not BeingAA and ValidTarget(junglemob, Items["Tiamat"].range) then
       CastT()
     end
     
-    if Items["Hydra"].ready and not (CanAA or BeingAA) and ValidTarget(junglemob, Items["Hydra"].range) then
+    if Items["Hydra"].ready and not BeingAA and ValidTarget(junglemob, Items["Hydra"].range) then
       CastH()
     end
     
@@ -1486,7 +1486,7 @@ function OnProcessSpell(object, spell)
       CanAA = false
       LastAA = os.clock()
       AnimationTime = spell.animationTime
-      WindUpTime = spell.windUpTime+0.05
+      WindUpTime = spell.windUpTime+0.04
     end
     
     if spell.name:find("RivenTriCleave") then
