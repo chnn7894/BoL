@@ -1,5 +1,5 @@
-Version = "1.0"
-AutoUpdate = false
+Version = "1.1"
+AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
   return
@@ -68,7 +68,6 @@ function OnLoad()
   
   Variables()
   RivenMenu()
-  --DelayAction(ScriptOrbwalk, 1)
   
 end
 
@@ -140,11 +139,7 @@ function Variables()
   TruejunglemobRange = TrueRange
   TrueTargetRange = TrueRange
   
-  AutoWQWE = {2, 1, 2, 3, 2, 4, 2, 1, 2, 1, 4, 1, 1, 3, 3, 4, 3, 3} --W Q E
-  AutoWQQE = {2, 1, 1, 3, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3} --Q W E
-  AutoWQQE2 = {2, 1, 1, 3, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2} --Q E W
-  AutoWQEQ = {2, 1, 3, 1, 1, 4, 1, 2, 1, 3, 4, 2, 3, 2, 3, 4, 2, 3} --Q WEWE
-  AutoQEQW = {1, 3, 1, 2, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2} --Q E W
+  AutoQEQW = {1, 3, 1, 2, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2}
   
   S5SR = false
   TT = false
@@ -223,7 +218,7 @@ function Variables()
   end
   
   VP = VPrediction()
-  TS = TargetSelector(TARGET_LESS_CAST, Q.range+E.range+TrueRange, DAMAGE_PHYSICAL, false)
+  TS = TargetSelector(TARGET_NEAR_MOUSE, Q.range+E.range+TrueRange, DAMAGE_PHYSICAL, false)
   RTS = TargetSelector(TARGET_LESS_CAST, R.range, DAMAGE_PHYSICAL, false)
   
   EnemyMinions = minionManager(MINION_ENEMY, Q.range+E.range+TrueRange, player, MINION_SORT_MAXHEALTH_DEC)
@@ -268,7 +263,7 @@ function RivenMenu()
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+      Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, false)
         
     Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
     
@@ -303,10 +298,15 @@ function RivenMenu()
     Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
       Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("Q", "Use Q1, Q2", SCRIPT_PARAM_ONOFF, true)
+      Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-    Menu.JSteal:addParam("QW", "Use W", SCRIPT_PARAM_ONOFF, true)
+      Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.JSteal:addParam("QW", "Use QW", SCRIPT_PARAM_ONOFF, true)
+    if Smite ~= nil then
+      Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("S", "Use Smite", SCRIPT_PARAM_ONOFF, true)
-      
+    end
+    
   Menu:addSubMenu("KillSteal Settings", "KillSteal")
   
     Menu.KillSteal:addParam("On", "KillSteal", SCRIPT_PARAM_ONOFF, true)
@@ -316,10 +316,14 @@ function RivenMenu()
     Menu.KillSteal:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("R", "Use Second R", SCRIPT_PARAM_ONOFF, false)
+    if Ignite ~= nil then
       Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("I", "Use Ignite", SCRIPT_PARAM_ONOFF, true)
+    end
+    if Smite ~= nil then
       Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("S", "Use Stalker's Blade", SCRIPT_PARAM_ONOFF, true)
+    end
     
   Menu:addSubMenu("AutoCast Settings", "Auto")
   
@@ -330,8 +334,10 @@ function RivenMenu()
       Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoR", "Auto Second R", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Rmin", "Auto Second R Min Count", SCRIPT_PARAM_SLICE, 5, 1, 5, 0)
+    if Smite ~= nil then
       Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoS", "Auto Smite", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
+    end
     
   Menu:addSubMenu("Flee Settings", "Flee")
   
@@ -340,20 +346,20 @@ function RivenMenu()
   Menu:addSubMenu("Misc Settings", "Misc")
   
     if VIP_USER then
-    Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, true)
+    Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, false)
       Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Misc:addParam("Skin", "Use Skin hack", SCRIPT_PARAM_ONOFF, false)
     Menu.Misc:addParam("SkinOpt", "Skin list : ", SCRIPT_PARAM_LIST, 6, { "1", "2", "3", "4", "5", "Classic"})  
       Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     end
     Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, false)
-    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, { "R>W>Q>E (WQWE), Jungle", "R>Q>W>E (WQQE), Jungle", "R>Q>E>W (WQQE), Jungle", "R>Q>W=E (WQEQ), Jungle", "R>Q>E>W (QEQW), Top"})
+    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, {"R>Q>E>W (QEQW)"})
    
   Menu:addSubMenu("Draw Settings", "Draw")
   
     Menu.Draw:addParam("On", "Draw", SCRIPT_PARAM_ONOFF, true)
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, true)
+    Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, false)
     Menu.Draw:addParam("Q", "Draw Q range", SCRIPT_PARAM_ONOFF, false)
     Menu.Draw:addParam("W", "Draw W range", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("E", "Draw E range", SCRIPT_PARAM_ONOFF, false)
@@ -376,43 +382,6 @@ function RivenMenu()
     
   Menu:addTS(TS)
     
-end
-
-----------------------------------------------------------------------------------------------------
-
-function ScriptOrbwalk()
-
-  if _G.AutoCarry then
-  
-    if _G.AutoCarry.Helper then
-      RebornLoaded = true
-      ScriptMsg("Found SAC: Reborn.")
-    else
-      RevampedLoaded = true
-      ScriptMsg("Found SAC: Revamped.")
-    end
-    
-  elseif _G.Reborn_Loaded then
-    DelayAction(ScriptOrbwalk, 1) 
-    
-  elseif _G.MMA_Loaded then
-    MMALoaded = true
-    ScriptMsg("Found MMA.")
-    
-  elseif FileExist(LIB_PATH .. "SOW.lua") then
-    require 'SOW'
-    SOWVP = SOW(VP)
-    Menu:addSubMenu("Orbwalk Settings (SOW)", "Orbwalk")
-      Menu.Orbwalk:addParam("Info", "SOW settings", SCRIPT_PARAM_INFO, "")
-      Menu.Orbwalk:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-      SOWVP:LoadToMenu(Menu.Orbwalk)
-    SOWLoaded = true
-    ScriptMsg("SOW Loaded.")
-    
-  else
-    ScriptMsg("Orbwalk not founded. Using AllClass TS.")
-  end
-  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -540,6 +509,7 @@ function Check()
     local AddRange = GetDistance(Target.minBBox, Target)
     
     TrueTargetRange = TrueRange+AddRange
+    
   end
   
   if RTarget ~= nil then
@@ -554,22 +524,6 @@ end
 
 function SpellTarget()
 
-  local T
-  
-  if RebornLoaded then
-    T = _G.AutoCarry.Crosshair.Attack_Crosshair.target
-  elseif RevampedLoaded then
-    T = _G.AutoCarry.Orbwalker.target
-  elseif MMALoaded then
-    T = _G.MMA_Target
-  elseif SOWLoaded then
-    T = SOWVP:GetTarget()
-  end
-  
-  if T and T.tpye == Player.type and ValidTarget(T, Q.range+E.range+TrueRange) then
-    return T
-  end
-  
   TS:update()
   
   if TS.target then
@@ -580,72 +534,10 @@ end
 
 function SpellRTarget()
 
-  local T
-  
-  if RebornLoaded then
-    T = _G.AutoCarry.Crosshair.Attack_Crosshair.target
-  elseif RevampedLoaded then
-    T = _G.AutoCarry.Orbwalker.target
-  elseif MMALoaded then
-    T = _G.MMA_Target
-  elseif SOWLoaded then
-    T = SOWVP:GetTarget()
-  end
-  
-  if T and T.tpye == Player.type and ValidTarget(T, R.range) then
-    return T
-  end
-  
   RTS:update()
   
   if RTS.target then
     return RTS.target
-  end
-  
-end
-
-----------------------------------------------------------------------------------------------------
-
-function Debug()
-
-  local ADDmg, PADDmg, QDmg, WDmg, RDmg, IgniteDmg = 0, 0, 0, 0, 0, 0
-  
-  for i, minion in pairs(EnemyMinions.objects) do
-  
-    if minion ~= nil then
-      ADDmg = GetDmg("AD", minion)
-      PADDmg = GetDmg("PAD", minion)
-      QDmg = GetDmg("Q", minion)
-      WDmg = GetDmg("W", minion)
-      RDmg = GetDmg("R", minion)
-    end
-  
-  end
-  
-  for i, junglemob in pairs(JungleMobs.objects) do
-  
-    if junglemob ~= nil then
-      ADDmg = GetDmg("AD", junglemob)
-      PADDmg = GetDmg("PAD", junglemob)
-      QDmg = GetDmg("Q", junglemob)
-      WDmg = GetDmg("W", junglemob)
-      RDmg = GetDmg("R", junglemob)
-    end
-  
-  end
-  
-  if Target ~= nil then
-    ADDmg = GetDmg("AD", Target)
-    PADDmg = GetDmg("PAD", Target)
-    QDmg = GetDmg("Q", Target)
-    WDmg = GetDmg("W", Target)
-    RDmg = GetDmg("R", Target)
-    IgniteDmg = GetDmg("IGNITE", Target)
-  end
-  
-  if os.clock()-DebugClock > 5 then
-    print("Q.state: "..Q.state.."\nAD: "..ADDmg.." PAD: "..PADDmg.."\nQ: "..QDmg.." W: "..WDmg.." R: "..RDmg.." IGNITE: "..IgniteDmg.."\nAttackTime: "..AttackTime.." AnimationTime: "..AnimationTime)
-    DebugClock = os.clock()
   end
   
 end
@@ -681,14 +573,14 @@ function Combo()
   end
   
   if R.ready and R.state == true and ComboR and ComboSR ~= 1 then
-    
+  
     if ValidTarget(RTarget, Q.radius) then
     
       if ComboRearly and QTargetDmg+WTargetDmg+RTargetDmg >= RTarget.health and ValidTarget(RTarget, W.radius) then
         CastR(RTarget)
         return
       end
-    
+      
       if DontR then
       
         if Q.ready and ComboQ and W.ready and ComboW and QTargetDmg+WTargetDmg >= RTarget.health then
@@ -702,7 +594,7 @@ function Combo()
           CastW()
           return
         end
-      
+        
       elseif not DontR then
       
         if Q.ready and ComboQ and W.ready and ComboW and QTargetDmg+WTargetDmg+RTargetDmg >= RTarget.health then
@@ -719,7 +611,7 @@ function Combo()
           CastW()
           return
         end
-      
+        
       end
       
     end
@@ -824,7 +716,7 @@ end
 function JFarm()
 
   Orbwalk(JFarm)
-
+  
   if not (Q.ready or W.ready or E.ready) then
     return
   end
@@ -884,7 +776,7 @@ end
 function JSteal()
 
   Orbwalk(JSteal)
-
+  
   if not (Q.ready or W.ready or S.ready) then
     return
   end
@@ -978,7 +870,7 @@ end
 function LastHit()
 
   Orbwalk(LastHit)
-
+  
   if not (Q.ready or W.ready) then
     return
   end
@@ -1010,7 +902,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function KillSteal()
-  
+
   if RTarget == nil or not (Q.ready or W.ready or R.ready or I.ready or S.ready) then
     return
   end
@@ -1060,7 +952,7 @@ end
 function Auto()
 
   for i, junglemob in pairs(JungleMobs.objects) do
-    
+  
     if junglemob == nil or not S.ready then
       return
     end
@@ -1072,13 +964,13 @@ function Auto()
     if S.ready and AutoAutoS and SjunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
       CastS(junglemob)
     end
-  
+    
   end
   
   if RTarget == nil or not (W.ready or R.ready) then
     return
   end
-
+  
   local AutoAutoW = Menu.Auto.AutoW
   local AutoWmin = Menu.Auto.Wmin
   local AutoAutoR = Menu.Auto.AutoR
@@ -1107,7 +999,7 @@ function EnemyCount(Range)
   local enemies = {}
   
   for _, enemy in ipairs(EnemyHeroes) do
-    
+  
     if ValidTarget(enemy, Range) then
       table.insert(enemies, enemy)
     end
@@ -1181,41 +1073,20 @@ end
 function AutoLevel()
 
   if Menu.Misc.ALOpt == 1 then
-    
+  
     if Q.level+W.level+E.level+R.level < player.level then
     
       local spell = { SPELL_1, SPELL_2, SPELL_3, SPELL_4, }
       local level = { 0, 0, 0, 0 }
       
       for i = 1, player.level, 1 do
-        level[AutoWQWE[i]] = level[AutoWQWE[i]]+1
+        level[AutoQEQW[i]] = level[AutoQEQW[i]]+1
       end
       
       for i, v in ipairs({ Q.level, W.level, E.level, R.level }) do
       
         if v < level[i] then
           LevelSpell(spell[i])
-        end
-        
-      end
-      
-    end
-    
-  elseif Menu.Misc.ALOpt == 2 then
-     
-    if Q.level+W.level+E.level+R.level < player.level then
-    
-      local spell = { SPELL_1, SPELL_2, SPELL_3, SPELL_4, }
-      local level = { 0, 0, 0, 0 }
-      
-      for i = 1, player.level, 1 do
-        level[AutoWQQE[i]] = level[AutoWQQE[i]]+1
-      end
-      
-      for i, v in ipairs({ Q.level, W.level, E.level, R.level }) do
-      
-        if v < level[i] then
-        LevelSpell(spell[i])
         end
         
       end
@@ -1230,12 +1101,8 @@ end
 
 function Orbwalk(State)
 
-  --[[if SACLoaded then
-    return
-  end]]
-  
   if CanAA and CanMove then
-  --how about change below line to BeingAA and move CastAA to Combo()
+  
     if Target ~= nil and State == Combo and ValidTarget(Target, TrueTargetRange) then
       CanTurn = false
       CanMove = false
@@ -1256,7 +1123,7 @@ function Orbwalk(State)
         
         local AAMinionDmg = GetDmg("AD", minion)
         
-        if (2*AAMinionDmg <= minion.health or AAMinionDmg >= minion.health) and ValidTarget(minion, TrueminionRange) then
+        if (--[[2*AAMinionDmg <= minion.health or ]]AAMinionDmg >= minion.health) and ValidTarget(minion, TrueminionRange) then
           CanTurn = false
           CanMove = false
           CanQ = false
@@ -1264,14 +1131,13 @@ function Orbwalk(State)
           CanE = false
           CastAA(minion)
         end
-        --will add PAD by P stack
         
       end
       
     elseif State == JFarm then
     
       for i, junglemob in pairs(JungleMobs.objects) do
-    
+      
       if junglemob == nil then
         return
       end
@@ -1279,7 +1145,7 @@ function Orbwalk(State)
       local AddRange = GetDistance(junglemob.minBBox, junglemob)
       local TruejunglemobRange = TrueRange+AddRange
       
-      if GetDistance(junglemob, myHero) <= TruejunglemobRange then--ValidTarget(junglemob, TrueRange) then
+      if ValidTarget(junglemob, TruejunglemobRange) then
         CanTurn = false
         CanMove = false
         CanQ = false
@@ -1339,7 +1205,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function GetDmg(spell, enemy)
-  
+
   local Level = myHero.level
   local TotalDmg = myHero.totalDamage
   local AddDmg = myHero.addDamage
@@ -1363,7 +1229,7 @@ function GetDmg(spell, enemy)
       local TrueDmg = 370+20*Level
       
       return TrueDmg
-    
+      
     elseif Level <= 9 then
     
       local TrueDmg = 330+30*Level
@@ -1383,7 +1249,7 @@ function GetDmg(spell, enemy)
       return TrueDmg
       
     end
-  
+    
   elseif spell == "STALKER" then
   
     local TrueDmg = 20+8*Level
@@ -1405,7 +1271,7 @@ function GetDmg(spell, enemy)
   local TrueDmg = PureDmg*(1-ArmorPercent)
   
   return TrueDmg
-
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1419,19 +1285,19 @@ function OnDraw()
       DrawCircle(Player.x, Player.y, Player.z, TrueRange, ARGB(0xFF,0,0xFF,0))
     end
     
-    if Menu.Draw.Q then
+    if Menu.Draw.Q and Q.ready then
       DrawCircle(Player.x, Player.y, Player.z, Q.range, ARGB(0xFF,0xFF,0xFF,0xFF))
     end
     
-    if Menu.Draw.W then
+    if Menu.Draw.W and W.ready then
       DrawCircle(Player.x, Player.y, Player.z, W.radius, ARGB(0xFF,0xFF,0xFF,0xFF))
     end
     
-    if Menu.Draw.E then
+    if Menu.Draw.E and E.ready then
       DrawCircle(Player.x, Player.y, Player.z, E.range, ARGB(0xFF,0xFF,0xFF,0xFF))
     end
     
-    if Menu.Draw.R then
+    if Menu.Draw.R and R.ready then
       DrawCircle(Player.x, Player.y, Player.z, R.range, ARGB(0xFF,0xFF,0,0))
     end
     
@@ -1446,20 +1312,8 @@ end
 ----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 
-function CastR(enemy)
-
-  if VIP_USER and Menu.Misc.UsePacket then
-    Packet('S_CAST', {spellId = _R, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z}):send()
-  else
-    CastSpell(_R, enemy.x, enemy.z)
-  end
-  
-  R.state = false
-  
-end
-
 function CastAA(enemy)
-  
+
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_MOVE", {sourceNetworkId = myHero.networkID, type = 7, x = enemy.x, y = enemy.z}):send()
   else
@@ -1472,22 +1326,12 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
---[[function CastQ(enemy)
+function CastQ(enemy)
 
   if VIP_USER and Menu.Misc.UsePacket then
-    Packet("S_CAST", {spellId = _Q, targetNetworkId = enemy.networkID}):send()
+    Packet("S_CAST", {spellId = _Q, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z}):send()
   else
     CastSpell(_Q, enemy.x, enemy.z)
-  end
-  
-end]]
-
-function CastQ(Pos)
-  
-  if VIP_USER and Menu.Misc.UsePacket then
-    Packet("S_CAST", {spellId = _Q, toX = Pos.x, toY = Pos.z, fromX = Pos.x, fromY = Pos.z}):send()
-  else
-    CastSpell(_Q, Pos.x, Pos.z)
   end
   
 end
@@ -1541,9 +1385,9 @@ function CastR2(enemy, State)
       if MainTargetHitChance >=2 then
         CastR(AoECastPosition)
       end
-    
+      
     end
-  
+    
   elseif State == Auto then
   
     if NT >= Menu.Auto.Rmin then
@@ -1551,9 +1395,9 @@ function CastR2(enemy, State)
       if MainTargetHitChance >=2 then
         CastR(AoECastPosition)
       end
-    
+      
     end
-  
+    
   end
   
 end
@@ -1561,7 +1405,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function CastI(enemy)
-  
+
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Ignite, targetNetworkId = enemy.networkID}):send()
   else
@@ -1573,7 +1417,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function CastS(enemy)
-  
+
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Smite, targetNetworkId = enemy.networkID}):send()
   else
@@ -1585,7 +1429,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function CastT()
-  
+
   if VIP_USER and Menu.Misc.UsePacket then
   else
     CastSpell(Items["Tiamat"].slot)
@@ -1596,7 +1440,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function CastH()
-  
+
   if VIP_USER and Menu.Misc.UsePacket then
   else
     CastSpell(Items["Hydra"].slot)
@@ -1608,10 +1452,6 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function MoveToPos(MovePos)
-
-  --[[if GetDistance(Pos) then
-    MovePos = myHero+(Vector(Pos)-myHero):normalized()*300
-  end]]
 
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_MOVE", {MovePos.x, MovePos.z}):send()
@@ -1647,7 +1487,6 @@ function OnProcessSpell(object, spell)
       LastAA = os.clock()
       AnimationTime = spell.animationTime
       WindUpTime = spell.windUpTime+0.05
-      --AttackTime = 1/myHero.attackSpeed
     end
     
     if spell.name:find("RivenTriCleave") then
@@ -1666,7 +1505,7 @@ function OnProcessSpell(object, spell)
       CanW = false
       LastW = os.clock()
     end
-  
+    
     if spell.name:find("RivenFeint") then
       BeingE = true
       CanE = false
@@ -1686,11 +1525,11 @@ end
 function OnGainBuff(unit, buff)
 
   if unit.isMe then
-  print("I gain buff")
+  
     if buff.name == "rivenpassiveaaboost" then
       P.stack = buff.stack
     end
-  
+    
     if buff.name == "RivenFengShuiEngine" then
       R.state = true
     end
@@ -1698,7 +1537,7 @@ function OnGainBuff(unit, buff)
     if buff.name == "RivenTriCleave" then
       Q.state = buff.stack
     end
-  
+    
     if buff.name == "recall" then
       Recall = true
     end
@@ -1724,11 +1563,11 @@ function OnGainBuff(unit, buff)
   print("OnGainBuff: "..buff.name)]]
   
 end
- 
+
 function OnLoseBuff(unit, buff)
 
   if unit.isMe then
-    
+  
     if buff.name == "rivenpassiveaaboost" then
       P.stack = buff.stack
     end
@@ -1736,7 +1575,7 @@ function OnLoseBuff(unit, buff)
     if buff.name == "RivenTriCleave" then
       Q.state = 0
     end
-  
+    
     if buff.name == "recall" then
       Recall = false
     end
@@ -1748,37 +1587,5 @@ function OnLoseBuff(unit, buff)
   end
   
   print("OnLoseBuff: "..buff.name)]]
-  
-end
-
---[[function OnRecvPacket(packet)
-
-  if packet.header == 56 and packet.size == 9 then
-  
-    packet.pos = 1
-    
-    if packet: DecodeF() == myHero.networkID and Target and(Menu.Combo.On or Menu.Harass.On) then
-      
-      if GetDistance(Target) <= TrueRange+25 then
-      
-        local movePos = Target+(Vector(myHero)-Target):normalized()*(GetDistance(Target)+57)
-        
-        myHero:MoveTo(movePos.x, movePos.z)
-        
-      end
-      
-    end
-    
-  end
-  
-end]]
-
-function OnAnimation(unit, animation)
-
-  --[[if unit == nil or unit.name ~= myHero.name then
-    return
-  end
-  
-  print("OnAnimation: "..animation.name)]]
   
 end
