@@ -217,7 +217,7 @@ function Variables()
   end
   
   VP = VPrediction()
-  TS = TargetSelector(TARGET_NEAR_MOUSE, Q.range+E.range+TrueRange, DAMAGE_PHYSICAL, false)
+  TS = TargetSelector(TARGET_LESS_CAST, Q.range+E.range+TrueRange, DAMAGE_PHYSICAL, false)
   RTS = TargetSelector(TARGET_LESS_CAST, R.range, DAMAGE_PHYSICAL, false)
   
   EnemyMinions = minionManager(MINION_ENEMY, Q.range+E.range+TrueRange, player, MINION_SORT_MAXHEALTH_DEC)
