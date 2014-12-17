@@ -1,4 +1,4 @@
-Version = "1.21"
+Version = "1.22"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -93,6 +93,7 @@ end
 
 function Variables()
 
+  RebornLoaded, RevampedLoaded, MMALoaded, SOWLoaded = false, false, false, false
   Target = nil
   Player = GetMyHero()
   EnemyHeroes = GetEnemyHeroes()
@@ -107,13 +108,12 @@ function Variables()
   DebugClock = os.clock()
   LastE = os.clock()
   LastSkin = 0
-  RebornLoaded, RevampedLoaded, MMALoaded, SOWLoaded = false, false, false, false
   Recall = false
   
-  Q = {delay = 0.5, range = 600, speed = 1400, ready, Off = 0}
-  W = {delay = 0.5, radius = 350, speed = 1600, ready, Off = 0}
-  E = {delay = 0.5, radius = 0, range = 620, speed = 1100, ready, Off = 0, stack = 0}
-  R = {delay = 0, radius = 325, range = 625, speed = math.huge, ready, Off = 0}
+  Q = {delay = 0, range = 600, speed = 1400, ready, Off = 0}
+  W = {delay = 0, radius = 350, speed = 1600, ready, Off = 0}
+  E = {delay = 0, radius = 0, range = 610, speed = 1100, ready, Off = 0, stack = 0}
+  R = {delay = 0, radius = 375, range = 625, speed = math.huge, ready, Off = 0}
   I = {range = 600, ready}
   Z = {range = 1000, ready}
   
@@ -223,16 +223,8 @@ end
 
 function BlockR(unit)
 
-  if Menu.Misc.BlockR then
-  
-    if Packet(unit):get('spellId') == _R then
-    
-      if HitRCount() == 0 then
-        unit:Block()
-      end
-      
-    end
-    
+  if Menu.Misc.BlockR and Packet(unit):get('spellId') == _R and HitRCount() == 0 then
+    unit:Block()
   end
   
 end
@@ -263,18 +255,18 @@ function VladimirMenu()
   
   Menu:addSubMenu("Predict Settings", "Predict")
   
-    Menu.Predict:addParam("PdOpt", "Predict Settings : (Require reload)", SCRIPT_PARAM_LIST, 2, { "Prodiction (Only Donator)", "VPrediction"})
+    Menu.Predict:addParam("PdOpt", "Predict Settings (Require reload)", SCRIPT_PARAM_LIST, 2, { "Prodiction (Only Donator)", "VPrediction"})
     
   Menu:addSubMenu("Combo Settings", "Combo")
   
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Info", "Use W if W damage > loss health * x%", SCRIPT_PARAM_INFO, "")
       Menu.Combo:addParam("W2", "Default value = 100", SCRIPT_PARAM_SLICE, 100, 0, 200, 0)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       if Donator and Menu.Predict.PdOpt == 1 then
       Menu.Combo:addParam("Emin", "Use E Min Count (Prodiction)", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
@@ -284,13 +276,13 @@ function VladimirMenu()
       end
       Menu.Combo:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
       Menu.Combo:addParam("E2", "Default value = 10", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Info2", "Use R if Full Combo Damage * x% > Target Health", SCRIPT_PARAM_INFO, "")
       Menu.Combo:addParam("R2", "Default value = 90", SCRIPT_PARAM_SLICE, 90, 60, 120, 0)
       Menu.Combo:addParam("Rearly", "Use R early", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("DontR", "Do not use R if Killable with Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("AutoR", "Auto R on Combo", SCRIPT_PARAM_ONOFF, true)
       if Donator and Menu.Predict.PdOpt == 1 then
       Menu.Combo:addParam("Rmin", "Auto R Min Count (Prodiction)", SCRIPT_PARAM_SLICE, 3, 2, 5, 0)
@@ -306,7 +298,7 @@ function VladimirMenu()
       Menu.Clear.Farm:addParam("On", "Lane Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-        Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+        Menu.Clear.Farm:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.Farm:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
         Menu.Clear.Farm:addParam("E2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
@@ -317,7 +309,7 @@ function VladimirMenu()
       Menu.Clear.JFarm:addParam("On", "Jungle Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
         Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-        Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+        Menu.Clear.JFarm:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.JFarm:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
         Menu.Clear.JFarm:addParam("E2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
@@ -328,7 +320,7 @@ function VladimirMenu()
     Menu.Harass:addParam("On", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Harass:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Harass:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
       Menu.Harass:addParam("E2", "Default value = 10", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
@@ -355,7 +347,7 @@ function VladimirMenu()
     Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
       Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.JSteal:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, false)
     Menu.JSteal:addParam("EQ", "Use EQ", SCRIPT_PARAM_ONOFF, false)
       Menu.JSteal:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
@@ -366,17 +358,18 @@ function VladimirMenu()
     Menu.KillSteal:addParam("On", "KillSteal", SCRIPT_PARAM_ONOFF, true)
       Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
+      Menu.KillSteal:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-      Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.KillSteal:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       if Donator and Menu.Predict.PdOpt == 1 then
       Menu.KillSteal:addParam("Ehit", "Use E Hitchance (Prodiction)", SCRIPT_PARAM_SLICE, 2, 1, 3, 0)
       end
       Menu.KillSteal:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
       Menu.KillSteal:addParam("E2", "Default value = 5", SCRIPT_PARAM_SLICE, 5, 0, 100, 0)
-      Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.KillSteal:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, false)
-      Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.KillSteal:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("I", "Use Ignite", SCRIPT_PARAM_ONOFF, true)
     
   Menu:addSubMenu("AutoCast Settings", "Auto")
@@ -392,11 +385,11 @@ function VladimirMenu()
       else
       Menu.Auto:addParam("Emin", "Auto E Min Count", SCRIPT_PARAM_SLICE, 3, 1, 5, 0)
       end
-      Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Auto:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("StackE", "Stack E (When not Combo, Harass)", SCRIPT_PARAM_ONKEYTOGGLE, false, GetKey('T'))
       Menu.Auto:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
       Menu.Auto:addParam("SE2", "Default value = 40", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
-      Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Auto:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoR", "Auto R", SCRIPT_PARAM_ONOFF, true)
       if Donator and Menu.Predict.PdOpt == 1 then
       Menu.Auto:addParam("Rmin", "Auto R Min Count (Prodiction)", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
@@ -404,11 +397,11 @@ function VladimirMenu()
       else
       Menu.Auto:addParam("Rmin", "Auto R Min Count", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
       end
-      Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Auto:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoZ", "Auto Zhonya", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Info", "Auto Zhonya if Current Health < Max health * x%", SCRIPT_PARAM_INFO, "")
       Menu.Auto:addParam("Z", "Default value = 15", SCRIPT_PARAM_SLICE, 15, 0, 100, 0)
-      Menu.Auto:addParam("Zmin", "Auto Zhonya Min Count", SCRIPT_PARAM_SLICE, 0, 0, 5, 0)
+      Menu.Auto:addParam("Zmin", "Auto Zhonya Min Enemy Count", SCRIPT_PARAM_SLICE, 0, 0, 5, 0)
     
   Menu:addSubMenu("Flee Settings", "Flee")
   
@@ -419,15 +412,15 @@ function VladimirMenu()
   Menu:addSubMenu("Misc Settings", "Misc")
   
     if VIP_USER then
-    Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, false)
+    Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, true)
       Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Misc:addParam("Skin", "Use Skin hack", SCRIPT_PARAM_ONOFF, false)
     Menu.Misc:addParam("SkinOpt", "Skin list : ", SCRIPT_PARAM_LIST, 7, { "Count Vladimir", "Marquis Vladimir", "Nosferatu Vladimir", "Vandal Vladimir", "Blood Lord Vladimir", "Soulstealer Vladmir", "Classic"})  
-      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Misc:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     end
     Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, true)
     Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W (QEWQ)", "R>Q>E>W (QWEQ)"})
-      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Misc:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     if VIP_USER then
     Menu.Misc:addParam("BlockR", "Block R if hitcount = 0", SCRIPT_PARAM_ONOFF, true)
     end
@@ -441,8 +434,8 @@ function VladimirMenu()
     Menu.Draw:addParam("W", "Draw W range", SCRIPT_PARAM_ONOFF, false)
     Menu.Draw:addParam("E", "Draw E range", SCRIPT_PARAM_ONOFF, false)
     Menu.Draw:addParam("R", "Draw R range", SCRIPT_PARAM_ONOFF, false)
-      Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Draw:addParam("On2", "Use PermaShow", SCRIPT_PARAM_ONOFF, false)
+      Menu.Draw:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
+    Menu.Draw:addParam("On2", "Use PermaShow (Require reload)", SCRIPT_PARAM_ONOFF, false)
     
     if Menu.Draw.On2 then
     
@@ -456,6 +449,8 @@ function VladimirMenu()
       Menu.Flee:permaShow("On")
       
     end
+    
+  Menu:addTS(TS)
     
 end
 
@@ -600,17 +595,11 @@ function OrbTarget()
   
   if RebornLoaded then
     T = _G.AutoCarry.Crosshair.Attack_Crosshair.target
-  end
-  
-  if RevampedLoaded then
+  elseif RevampedLoaded then
     T = _G.AutoCarry.Orbwalker.target
-  end
-  
-  if MMALoaded then
+  elseif MMALoaded then
     T = _G.MMA_Target
-  end
-  
-  if SOWLoaded then
+  elseif SOWLoaded then
     T = SOWVP:GetTarget()
   end
   
@@ -667,25 +656,21 @@ function Combo()
   local ETargetDmg = (getDmg("E", Target, myHero) + E.stack*getDmg("E", Target, myHero, 2))
   local RTargetDmg = getDmg("R", Target, myHero)
   
-  if R.ready and ComboAutoR then
-  
-    if ValidTarget(Target, MaxRrange) then
-      CastR2(Target, Combo)
-    end
-    
+  if R.ready and ComboAutoR and ValidTarget(Target, MaxRrange) then
+    CastR2(Target, Combo)
   end
   
   if R.ready and ComboR then
     
     if ValidTarget(Target, Q.range) then
-    
-      if Q.ready and ComboQ and DontR and QTargetDmg >= Target.health then
-        CastQ(Target)
-        return
-      end
       
       if ComboRearly and (QTargetDmg+ETargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
         CastR(Target)
+        return
+      end
+    
+      if Q.ready and ComboQ and DontR and QTargetDmg >= Target.health then
+        CastQ(Target)
         return
       end
       
@@ -693,10 +678,12 @@ function Combo()
         CastE()
         CastQ(Target)
         CastR(Target)
-      elseif Q.ready and ComboQ and not (E.ready and ComboE) and (QTargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
+        return
+      elseif Q.ready and ComboQ and (QTargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
         CastQ(Target)
         CastR(Target)
-      elseif not (Q.ready and ComboQ) and E.ready and ComboE and (ETargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
+        return
+      elseif E.ready and ComboE and (ETargetDmg+RTargetDmg)*ComboR2 >= Target.health*100 then
         CastE()
         CastR(Target)
         return
@@ -704,50 +691,22 @@ function Combo()
       
     end
   
-    if ValidTarget(Target, R.range) then
-    
-      if RTargetDmg*ComboR2 >= Target.health*100 then
-        CastR(Target)
-      end
-      
+    if ValidTarget(Target, R.range) and RTargetDmg*ComboR2 >= Target.health*100 then
+      CastR(Target)
     end
     
   end
   
-  if E.ready and ComboE then
-  
-    if ComboE2 <= HealthPercent then
-    
-      if ValidTarget(Target, E.range) then
-        CastE2(Target, Combo)
-      end
-      
-    end
-    
+  if E.ready and ComboE and ComboE2 <= HealthPercent and ValidTarget(Target, E.range) then
+    CastE2(Target, Combo)
   end
   
-  if Q.ready and ComboQ then
-  
-    if ValidTarget(Target, Q.range) then
-      CastQ(Target)
-    end
-    
+  if Q.ready and ComboQ and ValidTarget(Target, Q.range) then
+    CastQ(Target)
   end
   
-  if W.ready and ComboW then
-  
-    if (not Q.ready or not ComboQ) and (not E.ready or not ComboE) then 
-    
-      if WTargetDmg*1000 >= myHero.health*2*ComboW2 then
-      
-        if ValidTarget(Target, W.radius) then
-          CastW()
-        end
-        
-      end
-      
-    end
-    
+  if W.ready and ComboW and not (Q.ready and ComboQ) and not (E.ready and ComboE) and WTargetDmg*1000 >= myHero.health*2*ComboW2 and ValidTarget(Target, W.radius) then
+    CastW()
   end
   
 end
@@ -775,32 +734,12 @@ function Farm()
     local QMinionDmg = getDmg("Q", minion, myHero)
     local EMinionDmg = getDmg("E", minion, myHero) + E.stack*getDmg("E", minion, myHero, 2)
     
-    if E.ready and FarmE then
-    
-      if FarmE2 <= HealthPercent and FarmEmin <= MinionCount(minion, E.range) then
-      
-        if EMinionDmg + AAMinionDmg <= minion.health or EMinionDmg >= minion.health then
-        
-          if ValidTarget(minion, E.range) then
-            CastE()
-          end
-          
-        end
-        
-      end
-      
+    if E.ready and FarmE and FarmE2 <= HealthPercent and FarmEmin <= MinionCount(minion, E.range) and (EMinionDmg + AAMinionDmg <= minion.health or EMinionDmg >= minion.health) and ValidTarget(minion, E.range) then
+      CastE()
     end
     
-    if Q.ready and FarmQ then
-    
-      if QMinionDmg + AAMinionDmg <= minion.health or QMinionDmg >= minion.health then
-      
-        if ValidTarget(minion, Q.range) then
-          CastQ(minion)
-        end
-        
-      end
-      
+    if Q.ready and FarmQ and QMinionDmg + AAMinionDmg <= minion.health or QMinionDmg >= minion.health and ValidTarget(minion, Q.range) then
+      CastQ(minion)
     end
     
   end
@@ -842,24 +781,12 @@ function JFarm()
     local JFarmE2 = Menu.Clear.JFarm.E2
     local JFarmEmin = Menu.Clear.JFarm.Emin
   
-    if E.ready and JFarmE then
-    
-      if JFarmE2 <= HealthPercent and JFarmEmin <= JungleMobCount(junglemob, E.range) then
-      
-        if ValidTarget(junglemob, E.range) then
-          CastE()
-        end
-        
-      end
-      
+    if E.ready and JFarmE and JFarmE2 <= HealthPercent and JFarmEmin <= JungleMobCount(junglemob, E.range) and ValidTarget(junglemob, E.range) then
+      CastE()
     end
     
-    if Q.ready and JFarmQ then
-    
-      if ValidTarget(junglemob, Q.range) then
-        CastQ(junglemob)
-      end
-      
+    if Q.ready and JFarmQ and ValidTarget(junglemob, Q.range) then
+      CastQ(junglemob)
     end
     
   end
@@ -906,41 +833,21 @@ function JSteal()
     
     if Q.ready and JStealQ and E.ready and JStealE and JStealEQ then
     
-      if QjunglemobDmg + EjunglemobDmg >= junglemob.health and EjunglemobDmg < junglemob.health then
-      
-        if JStealE2 <= HealthPercent then
-        
-          if ValidTarget(junglemob, Q.range) then
-            CastE()
-            CastQ(junglemob)
-          end
-          
-        end
-        
+      if QjunglemobDmg + EjunglemobDmg >= junglemob.health and EjunglemobDmg < junglemob.health and JStealE2 <= HealthPercent and ValidTarget(junglemob, Q.range) then
+        CastE()
+        CastQ(junglemob)
       end
       
     elseif Q.ready and JStealQ then
     
-      if QjunglemobDmg >= junglemob.health then
-      
-        if ValidTarget(junglemob, Q.range) then
-          CastQ(junglemob)
-        end
-        
+      if QjunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.range) then
+        CastQ(junglemob)
       end
       
     elseif E.ready and JStealE then
     
-      if EjunglemobDmg >= junglemob.health then
-      
-        if JStealE2 <= HealthPercent then
-        
-          if ValidTarget(junglemob, E.range) then
-            CastE()
-          end
-          
-        end
-        
+      if EjunglemobDmg >= junglemob.health and JStealE2 <= HealthPercent and ValidTarget(junglemob, E.range) then
+        CastE()
       end
       
     end
@@ -961,24 +868,12 @@ function Harass()
   local HarassE = Menu.Harass.E
   local HarassE2 = Menu.Harass.E2
   
-  if E.ready and HarassE then
-  
-    if HarassE2 <= HealthPercent then
-    
-      if ValidTarget(Target, E.range) then
-        CastE2(Target, Harass)
-      end
-    
-    end
-    
+  if E.ready and HarassE and HarassE2 <= HealthPercent and ValidTarget(Target, E.range) then
+    CastE2(Target, Harass)
   end
   
-  if Q.ready and HarassQ then
-  
-    if ValidTarget(Target, Q.range) then
-      CastQ(Target)
-    end
-    
+  if Q.ready and HarassQ and ValidTarget(Target, Q.range) then
+    CastQ(Target)
   end
   
 end
@@ -1007,43 +902,23 @@ function LastHit()
     
     if Q.ready and LastHitQ and E.ready and LastHitE and LastHitEQ then
     
-      if QminionDmg + EminionDmg >= minion.health and EminionDmg < minion.health then
-      
-        if LastHitE2 <= HealthPercent then
-        
-          if ValidTarget(minion, Q.range) then
-            CastE()
-            CastQ(minion)
-          end
-          
-        end
-        
+      if QminionDmg + EminionDmg >= minion.health and EminionDmg < minion.health and LastHitE2 <= HealthPercent and ValidTarget(minion, Q.range) then
+        CastE()
+        CastQ(minion)
       end
       
     end
     
     if Q.ready and LastHitQ then
     
-      if QminionDmg >= minion.health then
-      
-        if ValidTarget(minion, Q.range) then
-          CastQ(minion)
-        end
-        
+      if QminionDmg >= minion.health and ValidTarget(minion, Q.range) then
+        CastQ(minion)
       end
       
     elseif E.ready and LastHitE then
     
-      if EminionDmg >= minion.health then
-      
-        if LastHitE2 <= HealthPercent then
-        
-          if ValidTarget(minion, E.range) then
-            CastE()
-          end
-          
-        end
-        
+      if EminionDmg >= minion.health and LastHitE2 <= HealthPercent and ValidTarget(minion, E.range) then
+        CastE()
       end
       
     end
@@ -1073,68 +948,24 @@ function KillSteal()
   local RTargetDmg = getDmg("R", Target, myHero)
   local ITargetDmg = getDmg("IGNITE", Target, myHero)
   
-  if I.ready and KillStealI then
-  
-    if ITargetDmg >= Target.health then
-    
-      if ValidTarget(Target, I.range) then
-        CastI(Target)
-      end
-      
-    end
-    
+  if I.ready and KillStealI and ITargetDmg >= Target.health and ValidTarget(Target, I.range) then
+    CastI(Target)
   end
   
-  if E.ready and KillStealE then
-  
-    if KillStealE2 <= HealthPercent and ETargetDmg >= Target.health then
-    
-      if ValidTarget(Target, E.range) then
-        CastE1(Target, KillSteal)
-      end
-      
-    end
-    
+  if E.ready and KillStealE and KillStealE2 <= HealthPercent and ETargetDmg >= Target.health and ValidTarget(Target, E.range) then
+    CastE1(Target, KillSteal)
   end
   
-  if Q.ready and KillStealQ then
-  
-    if QTargetDmg >= Target.health then
-    
-      if ValidTarget(Target, Q.range) then
-        CastQ(Target)
-      end
-      
-    end
-    
+  if Q.ready and KillStealQ and QTargetDmg >= Target.health and ValidTarget(Target, Q.range) then
+    CastQ(Target)
   end
   
-  if W.ready and KillStealW then
-  
-    if (not Q.ready or not KillStealQ) and (not E.ready or not KillStealE) then
-    
-      if WTargetDmg >= Target.health then
-      
-        if ValidTarget(Target, W.radius) then
-          CastW()
-        end
-        
-      end
-      
-    end
-    
+  if W.ready and KillStealW and not (Q.ready and KillStealQ) and not (E.ready and KillStealE) and WTargetDmg >= Target.health and ValidTarget(Target, W.radius) then
+    CastW()    
   end
   
-  if R.ready and KillStealR then
-  
-    if RTargetDmg >= Target.health then
-    
-      if ValidTarget(Target, R.range) then
-        CastR(Target)
-      end
-      
-    end
-    
+  if R.ready and KillStealR and RTargetDmg >= Target.health and ValidTarget(Target, R.range) then
+    CastR(Target)
   end
   
 end
@@ -1142,7 +973,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function Auto()
-
+  
   local AutoAutoE = Menu.Auto.AutoE
   local AutoE2 = Menu.Auto.E2
   local AutoAutoZ = Menu.Auto.AutoZ
@@ -1152,24 +983,12 @@ function Auto()
   
   local FleeOn = Menu.Flee.On
   
-  if Z.ready and AutoAutoZ then
-  
-    if AutoZ > HealthPercent and AutoZmin <= EnemyCount(Z.range) then
-      CastZ()
-    end
-    
+  if Z.ready and AutoAutoZ and AutoZ > HealthPercent and AutoZmin <= EnemyCount(Z.range) then
+    CastZ()
   end
   
-  if E.ready and AutoAutoE and not FleeOn and Recall == false then
-  
-    if AutoE2 <= HealthPercent then
-    
-      if ValidTarget(Target, E.range) then
-        CastE2(Target, Auto)
-      end
-      
-    end
-    
+  if E.ready and AutoAutoE and not FleeOn and Recall == false and AutoE2 <= HealthPercent and ValidTarget(Target, E.range) then
+    CastE2(Target, Auto)
   end
   
   if R.ready and AutoAutoR and Recall == false then
@@ -1208,12 +1027,8 @@ end
 
 function AutoStackE()
 
-  if E.ready and not (Menu.Combo.On or Menu.Harass.On or Menu.Flee.On) then
-  
-    if Menu.Auto.SE2 <= HealthPercent then
-      StackE()
-    end
-    
+  if E.ready and not (Menu.Combo.On or Menu.Harass.On or Menu.Flee.On) and Menu.Auto.SE2 <= HealthPercent then
+    StackE()
   end
   
 end
@@ -1354,7 +1169,7 @@ function OnDraw()
     end
     
     if Menu.Draw.E then
-      DrawCircle(Player.x, Player.y, Player.z, E.range - 10, ARGB(0xFF,0xFF,0xFF,0xFF))
+      DrawCircle(Player.x, Player.y, Player.z, E.range, ARGB(0xFF,0xFF,0xFF,0xFF))
     end
     
     if Menu.Draw.R then
@@ -1410,24 +1225,16 @@ function CastE1(enemy, State)
   
     local Pos, Info = Prodiction.GetCircularAOEPrediction(enemy, E.range, E.speed, E.delay, E.radius)
     
-    if State == KillSteal then
-    
-      if Pos and Info.hitchance >= Menu.KillSteal.Ehit then
-        CastE()
-      end
-      
+    if State == KillSteal and Pos and Info.hitchance >= Menu.KillSteal.Ehit then
+      CastE()
     end
     
   elseif Menu.Predict.PdOpt == 2 then
   
     local AoECastPosition, MainTargetHitChance, NT = VP:GetCircularAOECastPosition(enemy, E.delay, E.radius, E.range, E.speed, myHero, false)
     
-    if NT >= 1 then
-    
-      if MainTargetHitChance >= 2 then
-        CastE()
-      end
-      
+    if NT >= 1 and MainTargetHitChance >= 2 then
+      CastE()
     end
     
   end
@@ -1476,32 +1283,20 @@ function CastE2(enemy, State)
     
     if State == Combo then
     
-      if NT >= Menu.Combo.Emin then
-      
-        if MainTargetHitChance >= 2 then
-          CastE()        
-        end
-        
+      if NT >= Menu.Combo.Emin and MainTargetHitChance >= 2 then
+        CastE()
       end
       
     elseif State == Harass then
     
-      if NT >= Menu.Harass.Emin then
-      
-        if MainTargetHitChance >= 2 then
-          CastE()        
-        end
-        
+      if NT >= Menu.Harass.Emin and MainTargetHitChance >= 2 then
+        CastE()
       end
       
     elseif State == Auto then
     
-      if NT >= Menu.Auto.Emin then
-      
-        if MainTargetHitChance >= 2 then
-          CastE()        
-        end
-        
+      if NT >= Menu.Auto.Emin and MainTargetHitChance >= 2 then
+        CastE()
       end
       
     end
