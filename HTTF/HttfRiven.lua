@@ -1,4 +1,4 @@
-Version = "1.14"
+Version = "1.141"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -135,6 +135,7 @@ function Variables()
   TrueRange = 125.5+MyminBBox
   TrueminionRange = TrueRange
   TruejunglemobRange = TrueRange
+	AddRange = 0
   TrueTargetRange = TrueRange
   
   AutoQEQW = {1, 3, 1, 2, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2}
@@ -522,7 +523,7 @@ function Check()
   
   if Target ~=nil then
   
-    local AddRange = GetDistance(Target.minBBox, Target)
+    AddRange = GetDistance(Target.minBBox, Target)
     
     TrueTargetRange = TrueRange+AddRange
     
@@ -823,7 +824,7 @@ function JungleMobCount(range)
   
   for i, junglemob in pairs(JungleMobs.objects) do
   
-    if junglemob ~= nil and ValidTarget(junglemob, myHero) <= range then
+    if junglemob ~= nil and ValidTarget(junglemob, range) then
       count = count + 1
     end
     
