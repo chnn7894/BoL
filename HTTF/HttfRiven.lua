@@ -1,4 +1,4 @@
-Version = "1.134"
+Version = "1.14"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -41,6 +41,7 @@ Versiondata = tonumber(VersionData)
 if AutoUpdate then
 
   if VersionData then
+  
     ServerVersion = type(Versiondata) == "number" and Versiondata or nil
     
     if ServerVersion then
@@ -50,7 +51,7 @@ if AutoUpdate then
         ScriptMsg("Updating, please don't press F9.")
         DelayAction(function() DownloadFile(UpdateURL, ScriptFilePath, function () ScriptMsg("Successfully updated.: v"..Version.." => v"..VersionData..", Press F9 twice to load the updated version.") end) end, 3)
       else
-        ScriptMsg("You've got the latest version: v"..VersionData)
+        ScriptMsg("You've got the latest version: v"..Version)
       end
       
     end
@@ -76,7 +77,6 @@ end
 
 function Variables()
 
-  RebornLoaded, RevampedLoaded, MMALoaded, SOWLoaded = false, false, false, false
   Target = nil
   Player = GetMyHero()
   EnemyHeroes = GetEnemyHeroes()
@@ -93,7 +93,6 @@ function Variables()
     Smite = SUMMONER_2
   end
   
-  DebugClock = os.clock()
   CanTurn = false
   CanMove = true
   CanAA = true
@@ -104,14 +103,13 @@ function Variables()
   BeingQ = false
   BeingW = false
   BeingE = false
-  AnimationTime = 0
-  AttackTime = 0
+  AnimationTime = 1.6
   WindUpTime = 0
   LastAA = 0
   LastQ = 0
   LastW = 0
   LastE = 0
-  LastSkin = 0
+	LastR = 0
   Recall = false
   
   P = {stack = 0}
@@ -237,19 +235,19 @@ function RivenMenu()
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Info", "Use E to stick if Health Percent > x%", SCRIPT_PARAM_INFO, "")
       Menu.Combo:addParam("E2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("FR", "Use First R (FR)", SCRIPT_PARAM_LIST, 2, { "None", "Easy to Kill", "Normal to Kill", "Hard to Kill"})
+      Menu.Combo:addParam("FR", "Use First R (FR): Do not work yet", SCRIPT_PARAM_LIST, 2, { "None", "Easy to Kill", "Normal to Kill", "Hard to Kill"})
       Menu.Combo:addParam("SR", "Use Second R (SR)", SCRIPT_PARAM_LIST, 3, { "None", "Killable", "Max Damage or Killable"})
       Menu.Combo:addParam("Rearly", "Use Second R early", SCRIPT_PARAM_ONOFF, false)
-      Menu.Combo:addParam("DontR", "Do not use FR, SR if Killable with Q or W", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("DontR", "Do not use FR, SR if Killable with Q or W", SCRIPT_PARAM_ONOFF, false)
+      Menu.Combo:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("AutoR", "Auto Second R on Combo", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Rmin", "Auto Second R Min Count", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
       Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
@@ -261,11 +259,11 @@ function RivenMenu()
       Menu.Clear.Farm:addParam("On", "Lane Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-        Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+        Menu.Clear.Farm:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-        Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+        Menu.Clear.Farm:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-        Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+        Menu.Clear.Farm:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("TH", "Use Tiamat or Ravenous Hydra", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.Farm:addParam("THmin", "Use Item Min Count", SCRIPT_PARAM_SLICE, 3, 1, 6, 0)
         
@@ -274,24 +272,24 @@ function RivenMenu()
       Menu.Clear.JFarm:addParam("On", "Jungle Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
         Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-        Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+        Menu.Clear.JFarm:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-        Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+        Menu.Clear.JFarm:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-        Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+        Menu.Clear.JFarm:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("TH", "Use Tiamat or Ravenous Hydra", SCRIPT_PARAM_ONOFF, true)
-        Menu.Clear.JFarm:addParam("THmin", "Use Item Min Count", SCRIPT_PARAM_SLICE, 2, 1, 4, 0)
+        Menu.Clear.JFarm:addParam("THmin", "Use Item Min Count", SCRIPT_PARAM_SLICE, 1, 1, 4, 0)
         
   Menu:addSubMenu("Harass Settings", "Harass")
   
     Menu.Harass:addParam("On", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Harass:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Harass:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Harass:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
       
   Menu:addSubMenu("LastHit Settings", "LastHit")
@@ -299,7 +297,7 @@ function RivenMenu()
     Menu.LastHit:addParam("On", "LastHit Key 1", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
       Menu.LastHit:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.LastHit:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, false)
-      Menu.LastHit:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.LastHit:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.LastHit:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, false)
       
   Menu:addSubMenu("Jungle Steal Settings", "JSteal")
@@ -307,12 +305,12 @@ function RivenMenu()
     Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
       Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("Q", "Use Q1, Q2", SCRIPT_PARAM_ONOFF, true)
-      Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.JSteal:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-      Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.JSteal:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("QW", "Use QW", SCRIPT_PARAM_ONOFF, true)
     if Smite ~= nil then
-      Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.JSteal:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("S", "Use Smite", SCRIPT_PARAM_ONOFF, true)
     end
     
@@ -321,16 +319,16 @@ function RivenMenu()
     Menu.KillSteal:addParam("On", "KillSteal", SCRIPT_PARAM_ONOFF, true)
       Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.KillSteal:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-      Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.KillSteal:addParam("R", "Use Second R", SCRIPT_PARAM_ONOFF, false)
+      Menu.KillSteal:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
+    Menu.KillSteal:addParam("R", "Use Second R", SCRIPT_PARAM_ONOFF, true)
     if Ignite ~= nil then
-      Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.KillSteal:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("I", "Use Ignite", SCRIPT_PARAM_ONOFF, true)
     end
     if Smite ~= nil then
-      Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.KillSteal:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("S", "Use Stalker's Blade", SCRIPT_PARAM_ONOFF, true)
     end
     
@@ -340,11 +338,11 @@ function RivenMenu()
       Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoW", "Auto W", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Wmin", "Auto W Min Count", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
-      Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Auto:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoR", "Auto Second R", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Rmin", "Auto Second R Min Count", SCRIPT_PARAM_SLICE, 5, 1, 5, 0)
     if Smite ~= nil then
-      Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Auto:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoS", "Auto Smite", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
     end
     
@@ -356,13 +354,7 @@ function RivenMenu()
   
     if VIP_USER then
     Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, false)
-      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Misc:addParam("Skin", "Use Skin hack", SCRIPT_PARAM_ONOFF, false)
-    Menu.Misc:addParam("SkinOpt", "Skin list : ", SCRIPT_PARAM_LIST, 6, { "1", "2", "3", "4", "5", "Classic"})  
-      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     end
-    Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, false)
-    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, {"R>Q>E>W (QEQW)"})
    
   Menu:addSubMenu("Draw Settings", "Draw")
   
@@ -374,7 +366,7 @@ function RivenMenu()
     Menu.Draw:addParam("E", "Draw E range", SCRIPT_PARAM_ONOFF, false)
     Menu.Draw:addParam("R", "Draw R range", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("S", "Draw Smite range", SCRIPT_PARAM_ONOFF, true)
-      Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Draw:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("On2", "Use PermaShow", SCRIPT_PARAM_ONOFF, false)
     
     if Menu.Draw.On2 then
@@ -470,7 +462,7 @@ function Check()
   end
   
   --[[if not CanQ and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-FirstQ > spell.cd then
-    CanW = true
+    CanQ = true
   end]]
   
   if not CanW and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastW > 4.2 then
@@ -593,11 +585,11 @@ function Combo()
   local WTargetDmg = GetDmg("W", RTarget)
   local RTargetDmg = GetDmg("R", RTarget)
   
-  if R.ready and R.state == true and ComboAutoR and ValidTarget(RTarget, R.range) then
+  if R.ready and R.state and ComboAutoR and ValidTarget(RTarget, R.range) then
     CastR2(RTarget, Combo)
   end
   
-  if R.ready and R.state == true and ComboR and ComboSR ~= 1 then
+  if R.ready and R.state and ComboR and ComboSR ~= 1 then
   
     if ValidTarget(RTarget, Q.radius) then
     
@@ -679,9 +671,7 @@ function Combo()
   
   if Items["Tiamat"].ready and ComboItem and not BeingAA and ValidTarget(Target, Items["Tiamat"].range) then
     CastT()
-  end
-  
-  if Items["Hydra"].ready and ComboItem and not BeingAA and ValidTarget(Target, Items["Hydra"].range) then
+  elseif Items["Hydra"].ready and ComboItem and not BeingAA and ValidTarget(Target, Items["Hydra"].range) then
     CastH()
   end
   
@@ -726,7 +716,7 @@ function Farm()
       
     end
     
-    if Q.ready and FarmQ and CanQ and --[[(QMinionDmg+AAMinionDmg <= minion.health or QMinionDmg >= minion.health) and ]]os.clock()-LastE > 0.25 and ValidTarget(minion, Q.radius) then
+    if Q.ready and FarmQ and CanQ and (QMinionDmg+AAMinionDmg <= minion.health or QMinionDmg >= minion.health) and os.clock()-LastE > 0.25 and ValidTarget(minion, Q.radius) then
       CastQ(minion)
     end
     
@@ -734,9 +724,9 @@ function Farm()
       CastW()
     end
     
-    if Items["Tiamat"].ready and FarmTH and not BeingAA and FarmTHmin <= MinionCount(minion, Items["Tiamat"].maxrange) then
+    if Items["Tiamat"].ready and FarmTH and not BeingAA and FarmTHmin <= MinionCount(Items["Tiamat"].maxrange) then
       CastT()
-    elseif Items["Hydra"].ready and FarmTH and not BeingAA and FarmTHmin <= MinionCount(minion, Items["Hydra"].maxrange) then
+    elseif Items["Hydra"].ready and FarmTH and not BeingAA and FarmTHmin <= MinionCount(Items["Hydra"].maxrange) then
       CastH()
     end
     
@@ -746,13 +736,13 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
-function MinionCount(enemy, range)
+function MinionCount(range)
 
   local count = 0
   
   for i, minion in pairs(EnemyMinions.objects) do
   
-    if minion ~= nil and GetDistance(enemy, minion) <= range then
+    if minion ~= nil and ValidTarget(minion, range) then
       count = count + 1
     end
     
@@ -812,11 +802,11 @@ function JFarm()
       CastW()
     end
     
-    if Items["Tiamat"].ready and JFarmTH and not BeingAA and JFarmTHmin <= JungleMobCount(junglemob, Items["Tiamat"].range) then
+    if Items["Tiamat"].ready and JFarmTH and not BeingAA and JFarmTHmin <= JungleMobCount(Items["Tiamat"].range) then
       CastT()
     end
     
-    if Items["Hydra"].ready and JFarmTH and not BeingAA and JFarmTHmin <= JungleMobCount(junglemob, Items["Hydra"].range) then
+    if Items["Hydra"].ready and JFarmTH and not BeingAA and JFarmTHmin <= JungleMobCount(Items["Hydra"].range) then
       CastH()
       
     end
@@ -827,13 +817,13 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
-function JungleMobCount(enemy, range)
+function JungleMobCount(range)
 
   local count = 0
   
   for i, junglemob in pairs(JungleMobs.objects) do
   
-    if junglemob ~= nil and GetDistance(enemy, junglemob) <= range then
+    if junglemob ~= nil and ValidTarget(junglemob, myHero) <= range then
       count = count + 1
     end
     
@@ -1109,48 +1099,6 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
-function Skin()
-
-  local SkinOpt = Menu.Misc.SkinOpt 
-  
-  if SkinOpt ~= LastSkin then
-    GenModelPacket("Riven", SkinOpt)
-    LastSkin = Menu.Misc.SkinOpt
-  end
-  
-end
-
-function GenModelPacket(Champion, SkinId)
-
-  p = CLoLPacket(0x97)
-  p:EncodeF(myHero.networkID)
-  p.pos = 1
-  t1 = p:Decode1()
-  t2 = p:Decode1()
-  t3 = p:Decode1()
-  t4 = p:Decode1()
-  p:Encode1(t1)
-  p:Encode1(t2)
-  p:Encode1(t3)
-  p:Encode1(bit32.band(t4,0xB))
-  p:Encode1(1)
-  p:Encode4(SkinId)
-  
-  for i = 1, #Champion do
-    p:Encode1(string.byte(Champion:sub(i,i)))
-  end
-  
-  for i = #Champion+1, 64 do
-    p:Encode1(0)
-  end
-  
-  p:Hide()
-  RecvPacket(p)
-  
-end
-
-----------------------------------------------------------------------------------------------------
-
 function AutoLevel()
 
   if Menu.Misc.ALOpt == 1 then
@@ -1280,7 +1228,7 @@ function Orbwalk(State)
   end
   
   if CanTurn then
-    CancelPos = myHero+(Vector(mousePos)-myHero):normalized()*-1000
+    CancelPos = myHero+(Vector(mousePos)-myHero):normalized()*-300
     MoveToPos(CancelPos)
   end
   
@@ -1412,8 +1360,6 @@ function CastAA(enemy)
     myHero:Attack(enemy)
   end
   
-  LastAA = os.clock()
-  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1449,8 +1395,6 @@ function CastE(Pos)
   else
     CastSpell(_E, Pos.x, Pos.z)
   end
-  
-  LastE = os.clock()
   
 end
 
@@ -1523,6 +1467,7 @@ end
 function CastT()
 
   if VIP_USER and Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = Items["Hydra"].slot}):send()
   else
     CastSpell(Items["Tiamat"].slot)
   end
@@ -1534,6 +1479,7 @@ end
 function CastH()
 
   if VIP_USER and Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = Items["Hydra"].slot}):send()
   else
     CastSpell(Items["Hydra"].slot)
   end
@@ -1623,7 +1569,7 @@ function OnProcessSpell(object, spell)
   
 end
 
-function OnGainBuff(unit, buff)
+--[[function OnGainBuff(unit, buff)
 
   if unit.isMe then
   
@@ -1632,7 +1578,7 @@ function OnGainBuff(unit, buff)
     end
     
     if buff.name == "RivenFengShuiEngine" then
-      --R.state = true
+      R.state = true
     end
     
     if buff.name == "RivenTriCleave" then
@@ -1643,25 +1589,13 @@ function OnGainBuff(unit, buff)
       Recall = true
     end
     
-    --[[if buff.name == "riventricleavesoundone" then
-      Q.state = 1
-    end
-    
-    if buff.name == "riventricleavesoundtwo" then
-      Q.state = 2
-    end
-    
-    if buff.name == "riventricleavesoundthree" then
-      Q.state = 0
-    end]]
-    
   end
   
-  --[[if unit == nil or unit.name ~= myHero.name then
+  if unit == nil or unit.name ~= myHero.name then
     return
   end
   
-  print("OnGainBuff: "..buff.name)]]
+  print("OnGainBuff: "..buff.name)
   
 end
 
@@ -1683,10 +1617,10 @@ function OnLoseBuff(unit, buff)
     
   end
   
-  --[[if unit == nil or unit.name ~= myHero.name then
+  if unit == nil or unit.name ~= myHero.name then
     return
   end
   
-  print("OnLoseBuff: "..buff.name)]]
+  print("OnLoseBuff: "..buff.name)
   
-end
+end]]
