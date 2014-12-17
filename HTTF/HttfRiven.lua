@@ -1,4 +1,4 @@
-Version = "1.141"
+Version = "1.142"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -135,8 +135,8 @@ function Variables()
   TrueRange = 125.5+MyminBBox
   TrueminionRange = TrueRange
   TruejunglemobRange = TrueRange
-	AddRange = 0
   TrueTargetRange = TrueRange
+	TargetAddRange = 0
   
   AutoQEQW = {1, 3, 1, 2, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2}
   
@@ -523,9 +523,10 @@ function Check()
   
   if Target ~=nil then
   
-    AddRange = GetDistance(Target.minBBox, Target)
+    local AddRange = GetDistance(Target.minBBox, Target)
     
     TrueTargetRange = TrueRange+AddRange
+		TargetAddRange = AddRange
     
   end
   
@@ -670,9 +671,9 @@ function Combo()
     CastW()
   end
   
-  if Items["Tiamat"].ready and ComboItem and not BeingAA and ValidTarget(Target, Items["Tiamat"].range) then
+  if Items["Tiamat"].ready and ComboItem and not BeingAA and ValidTarget(Target, Items["Tiamat"].range+TargetAddRange) then
     CastT()
-  elseif Items["Hydra"].ready and ComboItem and not BeingAA and ValidTarget(Target, Items["Hydra"].range) then
+  elseif Items["Hydra"].ready and ComboItem and not BeingAA and ValidTarget(Target, Items["Hydra"].range+TargetAddRange) then
     CastH()
   end
   
@@ -725,9 +726,9 @@ function Farm()
       CastW()
     end
     
-    if Items["Tiamat"].ready and FarmTH and not BeingAA and FarmTHmin <= MinionCount(Items["Tiamat"].maxrange) then
+    if Items["Tiamat"].ready and FarmTH and not BeingAA and FarmTHmin <= MinionCount(Items["Tiamat"].maxrange+AddRange) then
       CastT()
-    elseif Items["Hydra"].ready and FarmTH and not BeingAA and FarmTHmin <= MinionCount(Items["Hydra"].maxrange) then
+    elseif Items["Hydra"].ready and FarmTH and not BeingAA and FarmTHmin <= MinionCount(Items["Hydra"].maxrange+AddRange) then
       CastH()
     end
     
@@ -803,11 +804,11 @@ function JFarm()
       CastW()
     end
     
-    if Items["Tiamat"].ready and JFarmTH and not BeingAA and JFarmTHmin <= JungleMobCount(Items["Tiamat"].range) then
+    if Items["Tiamat"].ready and JFarmTH and not BeingAA and JFarmTHmin <= JungleMobCount(Items["Tiamat"].range+AddRange) then
       CastT()
     end
     
-    if Items["Hydra"].ready and JFarmTH and not BeingAA and JFarmTHmin <= JungleMobCount(Items["Hydra"].range) then
+    if Items["Hydra"].ready and JFarmTH and not BeingAA and JFarmTHmin <= JungleMobCount(Items["Hydra"].range+AddRange) then
       CastH()
       
     end
@@ -1360,6 +1361,8 @@ function CastAA(enemy)
   else
     myHero:Attack(enemy)
   end
+	
+	LastAA = os.clock()
   
 end
 
