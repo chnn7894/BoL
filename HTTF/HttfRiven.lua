@@ -1,4 +1,4 @@
-Version = "1.142"
+Version = "1.143"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -109,7 +109,7 @@ function Variables()
   LastQ = 0
   LastW = 0
   LastE = 0
-	LastR = 0
+  LastR = 0
   Recall = false
   
   P = {stack = 0}
@@ -136,7 +136,7 @@ function Variables()
   TrueminionRange = TrueRange
   TruejunglemobRange = TrueRange
   TrueTargetRange = TrueRange
-	TargetAddRange = 0
+  TargetAddRange = 0
   
   AutoQEQW = {1, 3, 1, 2, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2}
   
@@ -245,7 +245,7 @@ function RivenMenu()
       Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("FR", "Use First R (FR): Do not work yet", SCRIPT_PARAM_LIST, 2, { "None", "Easy to Kill", "Normal to Kill", "Hard to Kill"})
-      Menu.Combo:addParam("SR", "Use Second R (SR)", SCRIPT_PARAM_LIST, 3, { "None", "Killable", "Max Damage or Killable"})
+      Menu.Combo:addParam("SR", "Use Second R (SR)", SCRIPT_PARAM_LIST, 2, { "None", "Killable", "Max Damage or Killable"})
       Menu.Combo:addParam("Rearly", "Use Second R early", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("DontR", "Do not use FR, SR if Killable with Q or W", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
@@ -450,12 +450,13 @@ end
 
 function Check()
   
-  if CanTurn and os.clock()-LastQ > 0.2 then --0.35
+  if CanTurn and os.clock()-LastQ > 0.1 then --0.35
     CanTurn = false
   end
   
   if not CanMove and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA > WindUpTime and os.clock()-LastQ > 0.25 and os.clock()-LastW > 0.2667 and os.clock()-LastE > 0.5 then
     CanMove = true
+    print("CanMove: T")
   end
   
   if not CanAA and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA > math.max(WindUpTime, AnimationTime) then
@@ -480,6 +481,7 @@ function Check()
     CanQ = true
     CanW = true
     CanE = true
+    print("DoneAA: CanMove: T")
   end
   
   if BeingQ and os.clock()-LastQ > 0.25 then
@@ -526,7 +528,7 @@ function Check()
     local AddRange = GetDistance(Target.minBBox, Target)
     
     TrueTargetRange = TrueRange+AddRange
-		TargetAddRange = AddRange
+    TargetAddRange = AddRange
     
   end
   
@@ -651,7 +653,7 @@ function Combo()
     return
   end
   
-  if E.ready and ComboE and ComboE2 <= HealthPercent and CanE == true then
+  if E.ready and ComboE and ComboE2 <= HealthPercent and CanE then
   
     if not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, E.range+TrueTargetRange-50) then
       CastE(Target)
@@ -708,7 +710,7 @@ function Farm()
     local QMinionDmg = GetDmg("Q", minion)
     local WMinionDmg = GetDmg("W", minion)
     
-    if E.ready and FarmE and CanE == true then
+    if E.ready and FarmE and CanE then
     
       if ValidTarget(minion, E.range+TrueminionRange-50) then
         CastE(minion)
@@ -779,7 +781,7 @@ function JFarm()
     local JFarmTH = Menu.Clear.JFarm.TH
     local JFarmTHmin = Menu.Clear.JFarm.THmin
     
-    if E.ready and JFarmE and CanE == true then
+    if E.ready and JFarmE and CanE then
     
       if ValidTarget(junglemob, E.range+TruejunglemobRange-50) then
         CastE(junglemob)
@@ -908,7 +910,7 @@ function Harass()
   local HarassE = Menu.Harass.E
   local HarassItem = Menu.Harass.Item
   
-  if E.ready and HarassE and CanE == true then
+  if E.ready and HarassE and CanE then
   
     if not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, E.range+TrueTargetRange-50) then
       CastE(Target)
@@ -988,7 +990,7 @@ function KillSteal()
   local ITargetDmg = GetDmg("IGNITE", RTarget)
   local SBTargetDmg = GetDmg("STALKER", RTarget)
   
-  if R.ready and KillStealR and R.state == true and ComboSR ~= 1 and RTargetDmg >= RTarget.health and ValidTarget(RTarget, R.range) then
+  if R.ready and KillStealR and R.state and ComboSR ~= 1 and RTargetDmg >= RTarget.health and ValidTarget(RTarget, R.range) then
     CastR(RTarget)
   end
   
@@ -1053,7 +1055,7 @@ function Auto()
   local JStealOn = Menu.JSteal.On
   local FleeOn = Menu.Flee.On
   
-  if Recall == true then
+  if Recall then
     return
   end
   
@@ -1061,7 +1063,7 @@ function Auto()
     CastW()
   end
   
-  if R.ready and R.state == true and AutoAutoR and not FleeOn and ValidTarget(Target, R.range) then
+  if R.ready and R.state and AutoAutoR and not FleeOn and ValidTarget(Target, R.range) then
     CastR2(RTarget, Auto)
   end
   
@@ -1190,6 +1192,7 @@ function Orbwalk(State)
         CanW = false
         CanE = false
         CastAA(junglemob)
+        print("JFarm: CanMove: F")
       end
       
     end
@@ -1361,8 +1364,8 @@ function CastAA(enemy)
   else
     myHero:Attack(enemy)
   end
-	
-	LastAA = os.clock()
+  
+  LastAA = os.clock()
   
 end
 
@@ -1376,6 +1379,8 @@ function CastQ(enemy)
     CastSpell(_Q, enemy.x, enemy.z)
   end
   
+  LastQ = os.clock()
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1387,6 +1392,8 @@ function CastW()
   else
     CastSpell(_W)
   end
+  
+  LastW = os.clock()
   
 end
 
@@ -1400,6 +1407,8 @@ function CastE(Pos)
     CastSpell(_E, Pos.x, Pos.z)
   end
   
+  LastE = os.clock()
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1412,11 +1421,13 @@ function CastR(enemy)
     CastSpell(_R, enemy.x, enemy.z)
   end
   
+  LastR = os.clock()
+  
 end
 
 function CastR2(enemy, State)
 
-  local AoECastPosition, MainTargetHitChance, NT = VP:GetConeAOECastPosition(enemy, R.delay, R.angle, R.range, R.speed, myHero)
+  local AoECastPosition, MainTargetHitChance, NT = VP:GetConeAOECastPosition(enemy, R.delay, R.angle, R.range, R.speed, myHero, false)
   
   if State == Combo then
   
@@ -1524,14 +1535,15 @@ function OnProcessSpell(object, spell)
   if object.isMe then
   
     if spell.name:find("RivenBasicAttack" or "RivenBasicAttack2" or "RivenBasicAttack3") then
+      LastAA = os.clock()
       BeingAA = true
       CanAA = false
-      LastAA = os.clock()
       AnimationTime = spell.animationTime
       WindUpTime = spell.windUpTime+0.05
     end
     
     if spell.name:find("RivenTriCleave") then
+      LastQ = os.clock()
       
       if not Menu.Flee.On then
         CanTurn = true
@@ -1539,28 +1551,29 @@ function OnProcessSpell(object, spell)
       
       BeingQ = true
       CanQ = false
-      LastQ = os.clock()
     end
     
     if spell.name:find("RivenMartyr") then
+      LastW = os.clock()
       BeingW = true
       CanW = false
-      LastW = os.clock()
     end
     
     if spell.name:find("RivenFeint") then
+      LastE = os.clock()
       BeingE = true
       CanE = false
-      LastE = os.clock()
     end
     
     if spell.name:find("RivenFengShuiEngine") then
-      R.state = true
       LastR = os.clock()
+      R.state = true
+      print("RivenFengShuiEngine")
     end
     
     if spell.name:find("rivenizunablade") then
       R.state = false
+      print("rivenizunablade")
     end
     
   end
