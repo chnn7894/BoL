@@ -1,4 +1,4 @@
-Version = "1.143"
+Version = "1.144"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -456,7 +456,6 @@ function Check()
   
   if not CanMove and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA > WindUpTime and os.clock()-LastQ > 0.25 and os.clock()-LastW > 0.2667 and os.clock()-LastE > 0.5 then
     CanMove = true
-    print("CanMove: T")
   end
   
   if not CanAA and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA > math.max(WindUpTime, AnimationTime) then
@@ -481,7 +480,6 @@ function Check()
     CanQ = true
     CanW = true
     CanE = true
-    print("DoneAA: CanMove: T")
   end
   
   if BeingQ and os.clock()-LastQ > 0.25 then
@@ -1192,7 +1190,6 @@ function Orbwalk(State)
         CanW = false
         CanE = false
         CastAA(junglemob)
-        print("JFarm: CanMove: F")
       end
       
     end
@@ -1568,12 +1565,10 @@ function OnProcessSpell(object, spell)
     if spell.name:find("RivenFengShuiEngine") then
       LastR = os.clock()
       R.state = true
-      print("RivenFengShuiEngine")
     end
     
     if spell.name:find("rivenizunablade") then
       R.state = false
-      print("rivenizunablade")
     end
     
   end
