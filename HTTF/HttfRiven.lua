@@ -1,4 +1,4 @@
-Version = "1.21"
+Version = "1.211"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -450,7 +450,7 @@ end
 
 function Check()
   
-  if CanTurn and os.clock()-LastQ > 0.1 then --0.35
+  if CanTurn and os.clock()-LastQ > 0.05 then --0.35
     CanTurn = false
   end
   
@@ -592,7 +592,7 @@ function Combo()
   end
   
   if R.ready and R.state and ComboR and ComboSR ~= 1 then
-    
+  
     if ValidTarget(RTarget, R.range) then
     
       if ComboSR == 2 and RTargetDmg >= RTarget.health then
@@ -602,7 +602,7 @@ function Combo()
       end
       
     end
-  
+    
     if ValidTarget(RTarget, Q.radius) then
     
       if ComboRearly and QTargetDmg+WTargetDmg+RTargetDmg >= RTarget.health and ValidTarget(RTarget, W.radius) then
@@ -1028,7 +1028,11 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function Auto()
-
+  
+  if Recall then
+    return
+  end
+  
   for i, junglemob in pairs(JungleMobs.objects) do
   
     if junglemob == nil or not S.ready then
@@ -1056,13 +1060,8 @@ function Auto()
   local ComboOn = Menu.Combo.On
   local HarassOn = Menu.Harass.On
   local JStealOn = Menu.JSteal.On
-  local FleeOn = Menu.Flee.On
   
-  if Recall then
-    return
-  end
-  
-  if R.ready and R.state and AutoAutoR and not FleeOn and ValidTarget(RTarget, R.range) then
+  if R.ready and R.state and AutoAutoR and ValidTarget(RTarget, R.range) then
     CastR2(RTarget, Auto)
   end
   
