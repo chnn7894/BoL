@@ -1,4 +1,4 @@
-Version = "1.211"
+Version = "1.22"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -450,7 +450,7 @@ end
 
 function Check()
   
-  if CanTurn and os.clock()-LastQ > 0.05 then --0.35
+  if CanTurn and os.clock()-LastQ > 0.1 then --0.35
     CanTurn = false
   end
   
@@ -655,7 +655,7 @@ function Combo()
   
   if E.ready and ComboE and ComboE2 <= HealthPercent and CanE then
   
-    if not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, E.range+TrueTargetRange-50) then
+    if --[[not ValidTarget(Target, TrueTargetRange)]]GetDistance(Target, myHero) > E.range and ValidTarget(Target, E.range+TrueTargetRange-50) then
       CastE(Target)
     elseif Q.ready and ComboQ and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
       CastE(Target)
@@ -1379,6 +1379,10 @@ end
 
 function CastQ(enemy)
 
+  if enemy == nil then
+    return
+  end
+  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = _Q, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z}):send()
   else
@@ -1407,6 +1411,10 @@ end
 
 function CastE(Pos)
 
+  if Pos == nil then
+    return
+  end
+  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = _E, toX = Pos.x, toY = Pos.z, fromX = Pos.x, fromY = Pos.z}):send()
   else
@@ -1421,6 +1429,10 @@ end
 
 function CastR(enemy)
 
+  if enemy == nil then
+    return
+  end
+  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet('S_CAST', {spellId = _R, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z}):send()
   else
@@ -1475,6 +1487,10 @@ end
 
 function CastS(enemy)
 
+  if enemy == nil then
+    return
+  end
+  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Smite, targetNetworkId = enemy.networkID}):send()
   else
