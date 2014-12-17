@@ -1,4 +1,4 @@
-Version = "1.144"
+Version = "1.20"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -597,6 +597,8 @@ function Combo()
     
       if ComboRearly and QTargetDmg+WTargetDmg+RTargetDmg >= RTarget.health and ValidTarget(RTarget, W.radius) then
         CastR(RTarget)
+        DelayAction(function() CastQ(RTarget) end, 0.25)
+        DelayAction(function() CastW() end, 0.5)
         return
       end
       
@@ -604,7 +606,7 @@ function Combo()
       
         if Q.ready and ComboQ and W.ready and ComboW and QTargetDmg+WTargetDmg >= RTarget.health then
           CastQ(RTarget)
-          CastW()
+          DelayAction(function() CastW() end, 0.25)
           return
         elseif Q.ready and ComboQ and QTargetDmg >= RTarget.health then
           CastQ(RTarget)
@@ -618,16 +620,16 @@ function Combo()
       
         if Q.ready and ComboQ and W.ready and ComboW and QTargetDmg+WTargetDmg+RTargetDmg >= RTarget.health then
           CastQ(RTarget)
-          CastR(RTarget)
-          CastW()
+          DelayAction(function() CastR(RTarget) end, 0.25)
+          DelayAction(function() CastW() end, 0.5)
           return
         elseif Q.ready and ComboQ and QTargetDmg+RTargetDmg >= RTarget.health then
           CastQ(RTarget)
-          CastR(RTarget)
+          DelayAction(function() CastR(RTarget) end, 0.25)
           return
         elseif W.ready and ComboW and WTargetDmg+RTargetDmg >= RTarget.health and ValidTarget(RTarget, W.radius) then
           CastR(RTarget)
-          CastW()
+          DelayAction(function() CastW() end, 0.25)
           return
         end
         
@@ -657,18 +659,19 @@ function Combo()
       CastE(Target)
     elseif Q.ready and ComboQ and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
       CastE(Target)
+      DelayAction(function() CastQ(Target) end, 0.25)
     end
     
+  end
+  
+  if W.ready and ComboW and CanW and os.clock()-LastE > 0.25 and ValidTarget(Target, W.radius) then
+    CastW()
   end
   
   if Q.ready and ComboQ and CanQ and os.clock()-LastE > 0.25 and ValidTarget(Target, Q.radius) then
     CastQ(Target)
   elseif Q.ready and ComboQ and os.clock()-LastE > 0.25 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
     CastQ(Target)
-  end
-  
-  if W.ready and ComboW and CanW and os.clock()-LastE > 0.25 and ValidTarget(Target, W.radius) then
-    CastW()
   end
   
   if Items["Tiamat"].ready and ComboItem and not BeingAA and ValidTarget(Target, Items["Tiamat"].range+TargetAddRange) then
@@ -714,16 +717,17 @@ function Farm()
         CastE(minion)
       elseif Q.ready and JFarmQ and ValidTarget(junglemob, Q.radius+E.range-50) then
         CastE(minion)
+        DelayAction(function() CastQ(minion) end, 0.25)
       end
       
     end
     
-    if Q.ready and FarmQ and CanQ and (QMinionDmg+AAMinionDmg <= minion.health or QMinionDmg >= minion.health) and os.clock()-LastE > 0.25 and ValidTarget(minion, Q.radius) then
-      CastQ(minion)
-    end
-    
     if W.ready and FarmW and CanW and (WMinionDmg+AAMinionDmg <= minion.health or WMinionDmg >= minion.health) and os.clock()-LastE > 0.25 and ValidTarget(minion, W.radius) then
       CastW()
+    end
+    
+    if Q.ready and FarmQ and CanQ and (QMinionDmg+AAMinionDmg <= minion.health or QMinionDmg >= minion.health) and os.clock()-LastE > 0.25 and ValidTarget(minion, Q.radius) then
+      CastQ(minion)
     end
     
     if Items["Tiamat"].ready and FarmTH and not BeingAA and FarmTHmin <= MinionCount(Items["Tiamat"].maxrange+AddRange) then
@@ -786,6 +790,7 @@ function JFarm()
         return
       elseif Q.ready and JFarmQ and ValidTarget(junglemob, Q.radius+E.range-50) then
         CastE(junglemob)
+        DelayAction(function() CastQ(junglemob) end, 0.25)
         return
       end
       
@@ -793,15 +798,15 @@ function JFarm()
     
     if Q.ready and JFarmQ and CanQ and W.ready and JFarmW and os.clock()-LastE > 0.25 and ValidTarget(junglemob, Q.radius) then --CanW and
       CastQ(junglemob)
+      DelayAction(function() CastW() end, 0.25)
+    end
+    
+    if W.ready and JFarmW and CanW and os.clock()-LastE > 0.25 and ValidTarget(junglemob, W.radius) then
       CastW()
     end
     
     if Q.ready and JFarmQ and CanQ and os.clock()-LastE > 0.25 and ValidTarget(junglemob, Q.radius) then
       CastQ(junglemob)
-    end
-    
-    if W.ready and JFarmW and CanW and os.clock()-LastE > 0.25 and ValidTarget(junglemob, W.radius) then
-      CastW()
     end
     
     if Items["Tiamat"].ready and JFarmTH and not BeingAA and JFarmTHmin <= JungleMobCount(Items["Tiamat"].range+AddRange) then
@@ -866,25 +871,25 @@ function JSteal()
         CastS(junglemob)
       elseif Q.ready and JStealQ and Q.state <=1 and W.ready and JStealW and QjunglemobDmg+WjunglemobDmg+SjunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.radius) then
         CastQ(junglemob)
+        DelayAction(function() CastW() end, 0.25)
+        DelayAction(function() CastS(junglemob) end, 0.25)
+      elseif W.ready and JStealW and WjunglemobDmg+SjunglemobDmg >= junglemob.health and ValidTarget(junglemob, W.radius) then
         CastW()
         CastS(junglemob)
       elseif Q.ready and JStealQ and Q.state <=1 and QjunglemobDmg+SjunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.radius) then
         CastQ(junglemob)
-        CastS(junglemob)
-      elseif W.ready and JStealW and WjunglemobDmg+SjunglemobDmg >= junglemob.health and ValidTarget(junglemob, W.radius) then
-        CastW()
-        CastS(junglemob)
+        DelayAction(function() CastS(junglemob) end, 0.25)
       end
       
     else
     
       if Q.ready and JStealQ and Q.state <=1 and W.ready and JStealW and QjunglemobDmg+WjunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.radius) then
         CastQ(junglemob)
+        DelayAction(function() CastW() end, 0.25)
+      elseif W.ready and JStealW and WjunglemobDmg >= junglemob.health and ValidTarget(junglemob, W.radius) then
         CastW()
       elseif Q.ready and JStealQ and Q.state <=1 and QjunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.radius) then
         CastQ(junglemob)
-      elseif W.ready and JStealW and WjunglemobDmg >= junglemob.health and ValidTarget(junglemob, W.radius) then
-        CastW()
       end
       
     end
@@ -914,18 +919,19 @@ function Harass()
       CastE(Target)
     elseif Q.ready and HarassQ and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
       CastE(Target)
+      DelayAction(function() CastQ(Target) end, 0.25)
     end
     
+  end
+  
+  if W.ready and HarassW and CanW and os.clock()-LastE > 0.25 and ValidTarget(Target, W.radius) then
+    CastW()
   end
   
   if Q.ready and HarassQ and CanQ and os.clock()-LastE > 0.25 and ValidTarget(Target, Q.radius) then
     CastQ(Target)
   elseif Q.ready and HarassQ and os.clock()-LastE > 0.25 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
     CastQ(Target)
-  end
-  
-  if W.ready and HarassW and CanW and os.clock()-LastE > 0.25 and ValidTarget(Target, W.radius) then
-    CastW()
   end
   
   if Items["Tiamat"].ready and HarassItem and not BeingAA and ValidTarget(Target, Items["Tiamat"].range) then
@@ -960,12 +966,12 @@ function LastHit()
     local QminionDmg = GetDmg("Q", minion)
     local WminionDmg = GetDmg("W", minion)
     
-    if Q.ready and LastHitQ and QminionDmg >= minion.health and ValidTarget(minion, Q.radius) then
-      CastQ(minion)
-    end
-    
     if W.ready and LastHitW and WminionDmg >= minion.health and ValidTarget(minion, W.radius) then
       CastW()
+    end
+    
+    if Q.ready and LastHitQ and QminionDmg >= minion.health and ValidTarget(minion, Q.radius) then
+      CastQ(minion)
     end
     
   end
@@ -1010,12 +1016,12 @@ function KillSteal()
   local QTargetDmg = GetDmg("Q", Target)
   local WTargetDmg = GetDmg("W", Target)
   
-  if Q.ready and KillStealQ and QTargetDmg >= Target.health and ValidTarget(Target, Q.radius) then
-    CastQ(Target)
-  end
-  
   if W.ready and KillStealW and WTargetDmg >= Target.health and ValidTarget(Target, W.radius) then
     CastW(Target)
+  end
+  
+  if Q.ready and KillStealQ and QTargetDmg >= Target.health and ValidTarget(Target, Q.radius) then
+    CastQ(Target)
   end
   
 end
