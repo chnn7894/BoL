@@ -1,4 +1,4 @@
-Version = "1.0"
+Version = "1.1"
 AutoUpdate = true
 
 if myHero.charName ~= "Ryze" then
@@ -227,6 +227,9 @@ function RyzeMenu()
       Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, false)
         Menu.Clear.Farm:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+        Menu.Clear.Farm:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
+      Menu.Clear.Farm:addParam("Info", "Use Spell if Current Mana Percent > x%", SCRIPT_PARAM_INFO, "")
+      Menu.Clear.Farm:addParam("Mana", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
         
     Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
     
@@ -247,16 +250,22 @@ function RyzeMenu()
     Menu.Harass:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Harass:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+      Menu.Harass:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
+    Menu.Harass:addParam("Info", "Use Spell if Current Mana Percent > x%", SCRIPT_PARAM_INFO, "")
+    Menu.Harass:addParam("Mana", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
       
   Menu:addSubMenu("LastHit Settings", "LastHit")
   
     Menu.LastHit:addParam("On", "LastHit Key 1", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
       Menu.LastHit:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.LastHit:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
+    Menu.LastHit:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, false)
       Menu.LastHit:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.LastHit:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, false)
       Menu.LastHit:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.LastHit:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, false)
+      Menu.LastHit:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
+    Menu.LastHit:addParam("Info", "Use Spell if Current Mana Percent > x%", SCRIPT_PARAM_INFO, "")
+    Menu.LastHit:addParam("Mana", "Default value = 80", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
     
   Menu:addSubMenu("KillSteal Settings", "KillSteal")
   
@@ -280,7 +289,9 @@ function RyzeMenu()
   Menu:addSubMenu("Misc Settings", "Misc")
   
     Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, true)
+      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
   end
+    Menu.Misc:addParam("Orbwalk", "Use Orbwalk", SCRIPT_PARAM_ONOFF, true)
   
   Menu:addSubMenu("Draw Settings", "Draw")
   
@@ -398,6 +409,8 @@ function Check()
   
   EnemyMinions:update()
   JungleMobs:update()
+  
+  ManaPercent = (myHero.mana/myHero.maxMana)*100
 
   TrueRange = 550+GetDistance(myHero.minBBox, myHero)
   
@@ -484,11 +497,16 @@ function Farm()
     local FarmQ = Menu.Clear.Farm.Q
     local FarmW = Menu.Clear.Farm.W
     local FarmE = Menu.Clear.Farm.E
+    local FarmMana = Menu.Clear.Farm.Mana
     
     local AAMinionDmg = GetDmg("AD", minion)
     local QMinionDmg = GetDmg("Q", minion)
     local WMinionDmg = GetDmg("W", minion)
     local EMinionDmg = GetDmg("E", minion)
+    
+    if ManaPercent < FarmMana then
+      return
+    end
     
     if Q.ready and FarmQ and CanQ and (QMinionDmg+AAMinionDmg <= minion.health or QMinionDmg >= minion.health) and ValidTarget(minion, Q.range) then
       CastQ(minion)
@@ -558,6 +576,11 @@ function Harass()
   local HarassQ = Menu.Harass.Q
   local HarassW = Menu.Harass.W
   local HarassE = Menu.Harass.E
+  local HarassMana = Menu.Harass.Mana
+    
+  if ManaPercent < HarassMana then
+    return
+  end
   
   if Q.ready and HarassQ and CanQ and ValidTarget(Target, Q.range) then
     CastQ(Target)
@@ -592,10 +615,15 @@ function LastHit()
     local LastHitQ = Menu.LastHit.Q
     local LastHitW = Menu.LastHit.W
     local LastHitE = Menu.LastHit.E
+    local LastHitMana = Menu.LastHit.Mana
     
     local QminionDmg = GetDmg("Q", minion)
     local WminionDmg = GetDmg("W", minion)
     local EminionDmg = GetDmg("E", minion)
+    
+    if ManaPercent < LastHitMana then
+      return
+    end
     
     if Q.ready and LastHitQ and QminionDmg >= minion.health and ValidTarget(minion, Q.range) then
       CastQ(minion)
@@ -660,6 +688,10 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function Orbwalk(State)
+
+  if not Menu.Misc.Orbwalk then
+    return
+  end
 
   if State == Flee then
     MoveToMouse()
