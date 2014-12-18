@@ -719,13 +719,23 @@ function Orbwalk(State)
         
         local AAMinionDmg = GetDmg("AD", minion)
         
-        if (2*AAMinionDmg <= minion.health or AAMinionDmg >= minion.health) and ValidTarget(minion, TrueminionRange) then
-          CanMove = false
-          CanQ = false
-          CanW = false
-          CanE = false
-          CastAA(minion)
-        end
+        if ValidTarget(minion, TrueminionRange) then
+				
+				  if AAMinionDmg >= minion.health then
+            CanMove = false
+            CanQ = false
+            CanW = false
+            CanE = false
+            CastAA(minion)
+          elseif 2*AAMinionDmg <= minion.health then
+            CanMove = false
+            CanQ = false
+            CanW = false
+            CanE = false
+            CastAA(minion)
+					end
+					
+				end
         
       end
       
