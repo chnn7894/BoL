@@ -1,4 +1,4 @@
-Version = "1.22"
+Version = "1.23"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -450,7 +450,7 @@ end
 
 function Check()
   
-  if CanTurn and os.clock()-LastQ > 0.1 then --0.35
+  if CanTurn and os.clock()-LastQ > 0.2 then --0.35
     CanTurn = false
   end
   
@@ -521,6 +521,8 @@ function Check()
   
   HealthPercent = (myHero.health/myHero.maxHealth)*100
   
+  TrueRange = 125.5+GetDistance(myHero.minBBox, myHero)
+  
   if Target ~=nil then
   
     local AddRange = GetDistance(Target.minBBox, Target)
@@ -534,7 +536,10 @@ function Check()
     RTargetHealthPercent = (RTarget.health/RTarget.maxHealth)*100
   end
   
-  Q.level, W.level, E.level, R.level = player:GetSpellData(_Q).level, player:GetSpellData(_W).level, player:GetSpellData(_E).level, player:GetSpellData(_R).level
+  Q.level = player:GetSpellData(_Q).level
+  W.level = player:GetSpellData(_W).level
+  E.level = player:GetSpellData(_E).level
+  R.level = player:GetSpellData(_R).level
   
 end
 
@@ -1163,14 +1168,51 @@ function Orbwalk(State)
         
         local AAMinionDmg = GetDmg("AD", minion)
         
-        if (2*AAMinionDmg <= minion.health or AAMinionDmg >= minion.health) and ValidTarget(minion, TrueminionRange) then
+        if AAMinionDmg >= minion.health and ValidTarget(minion, TrueminionRange) then
           CanTurn = false
           CanMove = false
           CanQ = false
           CanW = false
           CanE = false
           CastAA(minion)
-        elseif ValidTarget(minion, TrueminionRange) then
+        end
+        
+      end
+    
+      for i, minion in pairs(EnemyMinions.objects) do
+      
+        if minion == nil then
+          return
+        end
+        
+        local AddRange = GetDistance(minion.minBBox, minion)
+        local TrueminionRange = TrueRange+AddRange
+        
+        local AAMinionDmg = GetDmg("AD", minion)
+        
+        if minion.health >= 2*AAMinionDmg and ValidTarget(minion, TrueminionRange) then
+          CanTurn = false
+          CanMove = false
+          CanQ = false
+          CanW = false
+          CanE = false
+          CastAA(minion)
+        end
+        
+      end
+    
+      for i, minion in pairs(EnemyMinions.objects) do
+      
+        if minion == nil then
+          return
+        end
+        
+        local AddRange = GetDistance(minion.minBBox, minion)
+        local TrueminionRange = TrueRange+AddRange
+        
+        local AAMinionDmg = GetDmg("AD", minion)
+        
+        if ValidTarget(minion, TrueminionRange) then
           CanTurn = false
           CanMove = false
           CanQ = false
@@ -1185,23 +1227,23 @@ function Orbwalk(State)
     
       for i, junglemob in pairs(JungleMobs.objects) do
       
-      if junglemob == nil then
-        return
+        if junglemob == nil then
+          return
+        end
+        
+        local AddRange = GetDistance(junglemob.minBBox, junglemob)
+        local TruejunglemobRange = TrueRange+AddRange
+        
+        if ValidTarget(junglemob, TruejunglemobRange) then
+          CanTurn = false
+          CanMove = false
+          CanQ = false
+          CanW = false
+          CanE = false
+          CastAA(junglemob)
+        end
+        
       end
-      
-      local AddRange = GetDistance(junglemob.minBBox, junglemob)
-      local TruejunglemobRange = TrueRange+AddRange
-      
-      if ValidTarget(junglemob, TruejunglemobRange) then
-        CanTurn = false
-        CanMove = false
-        CanQ = false
-        CanW = false
-        CanE = false
-        CastAA(junglemob)
-      end
-      
-    end
     
     elseif Target ~= nil and State == Harass and ValidTarget(Target, TrueTargetRange) then
       CanTurn = false
@@ -1352,7 +1394,7 @@ function OnDraw()
       DrawCircle(Player.x, Player.y, Player.z, R.range, ARGB(0xFF,0xFF,0,0))
     end
     
-    if Menu.Draw.S and S.ready and Menu.Auto.AutoS then
+    if Menu.Draw.S and S.ready and ((Menu.Auto.On and Menu.Auto.AutoS) or (Menu.JSteal.On and Menu.JSteal.S)) then
       DrawCircle(Player.x, Player.y, Player.z, S.range, ARGB(0xFF,0xFF,0x14,0x93))
     end
     
