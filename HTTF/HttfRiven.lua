@@ -1,4 +1,4 @@
-Version = "1.23"
+Version = "1.231"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -217,7 +217,7 @@ function Variables()
   end
   
   VP = VPrediction()
-  TS = TargetSelector(TARGET_LESS_CAST, Q.range+E.range+TrueRange, DAMAGE_PHYSICAL, false)
+  TS = TargetSelector(TARGET_NEAR_MOUSE, Q.range+E.range+TrueRange, DAMAGE_PHYSICAL, false)
   RTS = TargetSelector(TARGET_LESS_CAST, R.range, DAMAGE_PHYSICAL, false)
   
   EnemyMinions = minionManager(MINION_ENEMY, Q.range+E.range+TrueRange, player, MINION_SORT_MAXHEALTH_DEC)
@@ -610,7 +610,7 @@ function Combo()
     
     if ValidTarget(RTarget, Q.radius) then
     
-      if ComboRearly and QTargetDmg+WTargetDmg+RTargetDmg >= RTarget.health and ValidTarget(RTarget, W.radius) then
+      if ComboRearly and QTargetDmg+WTargetDmg+RTargetDmg >= RTarget.health then
         CastR(RTarget)
         DelayAction(function() CastQ(RTarget) end, 0.25)
         DelayAction(function() CastW() end, 0.5)
@@ -626,7 +626,7 @@ function Combo()
         elseif Q.ready and ComboQ and QTargetDmg >= RTarget.health then
           CastQ(RTarget)
           return
-        elseif W.ready and ComboW and WTargetDmg >= RTarget.health and ValidTarget(RTarget, W.radius) then
+        elseif W.ready and ComboW and WTargetDmg >= RTarget.health then
           CastW()
           return
         end
@@ -642,7 +642,7 @@ function Combo()
           CastQ(RTarget)
           DelayAction(function() CastR(RTarget) end, 0.25)
           return
-        elseif W.ready and ComboW and WTargetDmg+RTargetDmg >= RTarget.health and ValidTarget(RTarget, W.radius) then
+        elseif W.ready and ComboW and WTargetDmg+RTargetDmg >= RTarget.health then
           CastW()
           DelayAction(function() CastR(RTarget) end, 0.2667)
           return
@@ -660,7 +660,7 @@ function Combo()
   
   if E.ready and ComboE and ComboE2 <= HealthPercent and CanE then
   
-    if --[[not ValidTarget(Target, TrueTargetRange)]]GetDistance(Target, myHero) > E.range and ValidTarget(Target, E.range+TrueTargetRange-50) then
+    if --[[not ValidTarget(Target, TrueTargetRange)]]GetDistance(Target, myHero) >= E.range-TrueTargetRange+50 and ValidTarget(Target, E.range+TrueTargetRange-50) then
       CastE(Target)
     elseif Q.ready and ComboQ and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
       CastE(Target)
