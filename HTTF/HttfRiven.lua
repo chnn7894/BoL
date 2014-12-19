@@ -1,4 +1,4 @@
-Version = "1.231"
+Version = "1.232"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -300,6 +300,8 @@ function RivenMenu()
     Menu.LastHit:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, false)
       Menu.LastHit:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.LastHit:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, false)
+      Menu.LastHit:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
+    Menu.LastHit:addParam("Orbwalk", "Use Orbwalk", SCRIPT_PARAM_ONOFF, true)
       
   Menu:addSubMenu("Jungle Steal Settings", "JSteal")
   
@@ -952,7 +954,11 @@ end
 
 function LastHit()
 
-  Orbwalk(LastHit)
+  local LastHitOrbwalk = Menu.LastHit.Orbwalk
+  
+  if LastHitOrbwalk then
+    Orbwalk(LastHit)
+	end
   
   if not (Q.ready or W.ready) then
     return
