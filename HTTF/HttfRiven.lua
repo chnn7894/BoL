@@ -1,4 +1,4 @@
-Version = "1.232"
+Version = "1.24"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -604,8 +604,10 @@ function Combo()
     
       if ComboSR == 2 and RTargetDmg >= RTarget.health then
         CastR(RTarget)
+        return
       elseif ComboSR == 3 and (RTargetDmg >= RTarget.health or 25 >= RTargetHealthPercent) then
         CastR(RTarget)
+        return
       end
       
     end
@@ -619,21 +621,7 @@ function Combo()
         return
       end
       
-      if ComboDontR then
-      
-        if Q.ready and ComboQ and W.ready and ComboW and QTargetDmg+WTargetDmg >= RTarget.health then
-          CastQ(RTarget)
-          DelayAction(function() CastW() end, 0.25)
-          return
-        elseif Q.ready and ComboQ and QTargetDmg >= RTarget.health then
-          CastQ(RTarget)
-          return
-        elseif W.ready and ComboW and WTargetDmg >= RTarget.health then
-          CastW()
-          return
-        end
-        
-      elseif not ComboDontR then
+      if not ComboDontR then
       
         if Q.ready and ComboQ and W.ready and ComboW and QTargetDmg+WTargetDmg+RTargetDmg >= RTarget.health then
           CastQ(RTarget)
@@ -651,6 +639,18 @@ function Combo()
         end
         
       end
+        
+      elseif ComboDontR then
+      
+        if Q.ready and ComboQ and W.ready and ComboW and QTargetDmg+WTargetDmg >= RTarget.health then
+          CastQ(RTarget)
+          DelayAction(function() CastW() end, 0.25)
+          return
+        elseif Q.ready and ComboQ and QTargetDmg >= RTarget.health then
+          CastQ(RTarget)
+        elseif W.ready and ComboW and WTargetDmg >= RTarget.health and ValidTarget(RTarget, W.radius) then
+          CastW()
+        end
       
     end
     
@@ -662,11 +662,12 @@ function Combo()
   
   if E.ready and ComboE and ComboE2 <= HealthPercent and CanE then
   
-    if --[[not ValidTarget(Target, TrueTargetRange)]]GetDistance(Target, myHero) >= E.range-TrueTargetRange+50 and ValidTarget(Target, E.range+TrueTargetRange-50) then
+    if GetDistance(Target, myHero) >= E.range-TrueTargetRange+50 and ValidTarget(Target, E.range+TrueTargetRange-50) then
       CastE(Target)
     elseif Q.ready and ComboQ and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
       CastE(Target)
       DelayAction(function() CastQ(Target) end, 0.5)
+      return
     end
     
   end
@@ -677,13 +678,13 @@ function Combo()
     CastH()
   end
   
-  if W.ready and ComboW and CanW and os.clock()-LastE > 0.25 and ValidTarget(Target, W.radius) then
+  if W.ready and ComboW and CanW and os.clock()-LastE > 0.5 and ValidTarget(Target, W.radius) then
     CastW()
   end
   
-  if Q.ready and ComboQ and CanQ and os.clock()-LastE > 0.25 and ValidTarget(Target, Q.radius) then
+  if Q.ready and ComboQ and CanQ and os.clock()-LastE > 0.5 and ValidTarget(Target, Q.radius) then
     CastQ(Target)
-  elseif Q.ready and ComboQ and os.clock()-LastE > 0.25 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
+  elseif Q.ready and ComboQ and os.clock()-LastE > 0.5 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
     CastQ(Target)
   end
   
@@ -725,6 +726,7 @@ function Farm()
       elseif Q.ready and JFarmQ and ValidTarget(junglemob, Q.radius+E.range-50) then
         CastE(minion)
         DelayAction(function() CastQ(minion) end, 0.5)
+        return
       end
       
     end
@@ -735,11 +737,11 @@ function Farm()
       CastH()
     end
     
-    if W.ready and FarmW and CanW and (WMinionDmg+AAMinionDmg <= minion.health or WMinionDmg >= minion.health) and os.clock()-LastE > 0.25 and ValidTarget(minion, W.radius) then
+    if W.ready and FarmW and CanW and (WMinionDmg+AAMinionDmg <= minion.health or WMinionDmg >= minion.health) and os.clock()-LastE > 0.5 and ValidTarget(minion, W.radius) then
       CastW()
     end
     
-    if Q.ready and FarmQ and CanQ and (QMinionDmg+AAMinionDmg <= minion.health or QMinionDmg >= minion.health) and os.clock()-LastE > 0.25 and ValidTarget(minion, Q.radius) then
+    if Q.ready and FarmQ and CanQ and (QMinionDmg+AAMinionDmg <= minion.health or QMinionDmg >= minion.health) and os.clock()-LastE > 0.5 and ValidTarget(minion, Q.radius) then
       CastQ(minion)
     end
     
@@ -794,7 +796,6 @@ function JFarm()
     
       if ValidTarget(junglemob, E.range+TruejunglemobRange-50) then
         CastE(junglemob)
-        return
       elseif Q.ready and JFarmQ and ValidTarget(junglemob, Q.radius+E.range-50) then
         CastE(junglemob)
         DelayAction(function() CastQ(junglemob) end, 0.5)
@@ -803,24 +804,25 @@ function JFarm()
       
     end
     
-    if Items["Tiamat"].ready and JFarmTH and not BeingAA and os.clock()-LastE > 0.25 and JFarmTHmin <= JungleMobCount(Items["Tiamat"].range+AddRange) then
+    if Items["Tiamat"].ready and JFarmTH and not BeingAA and os.clock()-LastE > 0.5 and JFarmTHmin <= JungleMobCount(Items["Tiamat"].range+AddRange) then
       CastT()
     end
     
-    if Items["Hydra"].ready and JFarmTH and not BeingAA and os.clock()-LastE > 0.25 and JFarmTHmin <= JungleMobCount(Items["Hydra"].range+AddRange) then
+    if Items["Hydra"].ready and JFarmTH and not BeingAA and os.clock()-LastE > 0.5 and JFarmTHmin <= JungleMobCount(Items["Hydra"].range+AddRange) then
       CastH()
     end
     
-    if Q.ready and JFarmQ and CanQ and W.ready and JFarmW and os.clock()-LastE > 0.25 and ValidTarget(junglemob, Q.radius) then --CanW and
+    if Q.ready and JFarmQ and CanQ and W.ready and JFarmW and os.clock()-LastE > 0.5 and ValidTarget(junglemob, Q.radius) then --CanW and
       CastQ(junglemob)
       DelayAction(function() CastW() end, 0.25)
+      return
     end
     
-    if W.ready and JFarmW and CanW and os.clock()-LastE > 0.25 and ValidTarget(junglemob, W.radius) then
+    if W.ready and JFarmW and CanW and os.clock()-LastE > 0.5 and ValidTarget(junglemob, W.radius) then
       CastW()
     end
     
-    if Q.ready and JFarmQ and CanQ and os.clock()-LastE > 0.25 and ValidTarget(junglemob, Q.radius) then
+    if Q.ready and JFarmQ and CanQ and os.clock()-LastE > 0.5 and ValidTarget(junglemob, Q.radius) then
       CastQ(junglemob)
     end
     
@@ -875,27 +877,19 @@ function JSteal()
     
       if SjunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
         CastS(junglemob)
-      elseif Q.ready and JStealQ and Q.state <=1 and W.ready and JStealW and QjunglemobDmg+WjunglemobDmg+SjunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.radius) then
-        CastQ(junglemob)
-        DelayAction(function() CastW() end, 0.25)
-        DelayAction(function() CastS(junglemob) end, 0.25)
-      elseif W.ready and JStealW and WjunglemobDmg+SjunglemobDmg >= junglemob.health and ValidTarget(junglemob, W.radius) then
-        CastW()
-        CastS(junglemob)
-      elseif Q.ready and JStealQ and Q.state <=1 and QjunglemobDmg+SjunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.radius) then
-        CastQ(junglemob)
-        DelayAction(function() CastS(junglemob) end, 0.25)
+        return
       end
       
-    else
+    elseif ValidTarget(junglemob, Q.radius) then
     
-      if Q.ready and JStealQ and Q.state <=1 and W.ready and JStealW and QjunglemobDmg+WjunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.radius) then
+      if Q.ready and JStealQ and Q.state <=1 and W.ready and JStealW and QjunglemobDmg+WjunglemobDmg >= junglemob.health then
         CastQ(junglemob)
         DelayAction(function() CastW() end, 0.25)
+        return
+      elseif Q.ready and JStealQ and Q.state <=1 and QjunglemobDmg >= junglemob.health then
+        CastQ(junglemob)
       elseif W.ready and JStealW and WjunglemobDmg >= junglemob.health and ValidTarget(junglemob, W.radius) then
         CastW()
-      elseif Q.ready and JStealQ and Q.state <=1 and QjunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.radius) then
-        CastQ(junglemob)
       end
       
     end
@@ -921,30 +915,31 @@ function Harass()
   
   if E.ready and HarassE and CanE then
   
-    if not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, E.range+TrueTargetRange-50) then
+    if GetDistance(Target, myHero) >= E.range-TrueTargetRange+50 and ValidTarget(Target, E.range+TrueTargetRange-50) then
       CastE(Target)
     elseif Q.ready and HarassQ and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
       CastE(Target)
       DelayAction(function() CastQ(Target) end, 0.5)
+      return
     end
     
   end
   
-  if Items["Tiamat"].ready and HarassItem and not BeingAA and os.clock()-LastE > 0.25 and ValidTarget(Target, Items["Tiamat"].range) then
+  if Items["Tiamat"].ready and HarassItem and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(Target, Items["Tiamat"].range) then
     CastT()
   end
   
-  if Items["Hydra"].ready and HarassItem and not BeingAA and os.clock()-LastE > 0.25 and ValidTarget(Target, Items["Hydra"].range) then
+  if Items["Hydra"].ready and HarassItem and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(Target, Items["Hydra"].range) then
     CastH()
   end
   
-  if W.ready and HarassW and CanW and os.clock()-LastE > 0.25 and ValidTarget(Target, W.radius) then
+  if W.ready and HarassW and CanW and os.clock()-LastE > 0.5 and ValidTarget(Target, W.radius) then
     CastW()
   end
   
-  if Q.ready and HarassQ and CanQ and os.clock()-LastE > 0.25 and ValidTarget(Target, Q.radius) then
+  if Q.ready and HarassQ and CanQ and os.clock()-LastE > 0.5 and ValidTarget(Target, Q.radius) then
     CastQ(Target)
-  elseif Q.ready and HarassQ and os.clock()-LastE > 0.25 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
+  elseif Q.ready and HarassQ and os.clock()-LastE > 0.5 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
     CastQ(Target)
   end
   
@@ -958,7 +953,7 @@ function LastHit()
   
   if LastHitOrbwalk then
     Orbwalk(LastHit)
-	end
+  end
   
   if not (Q.ready or W.ready) then
     return
@@ -1104,11 +1099,11 @@ function Flee()
 
   Orbwalk(Flee)
   
-  if Q.ready and os.clock()-LastE > 0.25 then
+  if Q.ready and os.clock()-LastE > 0.5 then
     CastQ(mousePos)
   end
   
-  if E.ready then
+  if E.ready and os.clock()-LastQ > 0.25 then
     CastE(mousePos)
   end
   
@@ -1289,6 +1284,7 @@ function Orbwalk(State)
   if CanTurn then
     CancelPos = myHero+(Vector(mousePos)-myHero):normalized()*-300
     MoveToPos(CancelPos)
+    return
   end
   
   if CanMove then
@@ -1413,6 +1409,10 @@ end
 
 function CastAA(enemy)
 
+  if enemy == nil then
+    return
+  end
+  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_MOVE", {sourceNetworkId = myHero.networkID, type = 7, x = enemy.x, y = enemy.z}):send()
   else
@@ -1493,6 +1493,10 @@ end
 
 function CastR2(enemy, State)
 
+  if enemy == nil then
+    return
+  end
+  
   local AoECastPosition, MainTargetHitChance, NT = VP:GetConeAOECastPosition(enemy, R.delay, R.angle, R.range, R.speed, myHero, false)
   
   if State == Combo then
@@ -1523,6 +1527,10 @@ end
 
 function CastI(enemy)
 
+  if enemy == nil then
+    return
+  end
+  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Ignite, targetNetworkId = enemy.networkID}):send()
   else
