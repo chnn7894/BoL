@@ -672,9 +672,9 @@ function Combo()
     
   end
   
-  if Items["Tiamat"].ready and ComboItem and not BeingAA and os.clock()-LastE > 0.25 and ValidTarget(Target, Items["Tiamat"].range+TargetAddRange) then
+  if Items["Tiamat"].ready and ComboItem and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(Target, Items["Tiamat"].range+TargetAddRange) then
     CastT()
-  elseif Items["Hydra"].ready and ComboItem and not BeingAA and os.clock()-LastE > 0.25 and ValidTarget(Target, Items["Hydra"].range+TargetAddRange) then
+  elseif Items["Hydra"].ready and ComboItem and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(Target, Items["Hydra"].range+TargetAddRange) then
     CastH()
   end
   
@@ -731,9 +731,9 @@ function Farm()
       
     end
     
-    if Items["Tiamat"].ready and FarmTH and not BeingAA and os.clock()-LastE > 0.25 and FarmTHmin <= MinionCount(Items["Tiamat"].maxrange+AddRange) then
+    if Items["Tiamat"].ready and FarmTH and not BeingAA and os.clock()-LastE > 0.5 and FarmTHmin <= MinionCount(Items["Tiamat"].maxrange+AddRange) then
       CastT()
-    elseif Items["Hydra"].ready and FarmTH and not BeingAA and os.clock()-LastE > 0.25 and FarmTHmin <= MinionCount(Items["Hydra"].maxrange+AddRange) then
+    elseif Items["Hydra"].ready and FarmTH and not BeingAA and os.clock()-LastE > 0.5 and FarmTHmin <= MinionCount(Items["Hydra"].maxrange+AddRange) then
       CastH()
     end
     
