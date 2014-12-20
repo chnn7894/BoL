@@ -1,4 +1,4 @@
-Version = "2.221"
+Version = "2.3"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -712,7 +712,7 @@ function Combo()
     
   end
   
-  if W.ready and ComboW and CanW and os.clock()-LastE > 0.5 and ValidTarget(Target, W.radius) then
+  if W.ready and ComboW and CanW and --[[os.clock()-LastE > 0.5 and ]]ValidTarget(Target, W.radius) then
     CastW()
   end
   
@@ -737,7 +737,7 @@ function FCombo()
   local RADTargetDmg = GetDmg("RAD", RTarget)
   local RQTargetDmg = GetDmg("RQ", RTarget)
   local RWTargetDmg = GetDmg("RW", RTarget)
-  local FCRTargetDmg = RGetDmg("FCR", Target)
+  local FCRTargetDmg = RGetDmg("FCR", RTarget)
   local SBTargetDmg = GetDmg("STALKER", RTarget)
   
   local FComboF = Menu.FCombo.F
@@ -746,7 +746,7 @@ function FCombo()
     CastS(RTarget)
   end
   
-  if Q.ready and W.ready and E.ready and R.ready --[[and RWTargetDmg+RADTargetDmg+RQTargetDmg+FCRTargetDmg >= RTarget.health]] then
+  if Q.ready and W.ready and E.ready and R.ready --[[and RADTargetDmg+RQTargetDmg+RWTargetDmg+FCRTargetDmg >= RTarget.health]] then
   
     AfterCombo = false
     
@@ -754,8 +754,8 @@ function FCombo()
     
       if FComboF and F.ready and ValidTarget(RTarget, E.range+F.range+W.radius-50) then
         CastE(RTarget)
-        DelayAction(function() CastSR() end, 0.25)
-        DelayAction(function() CastF(RTarget) end, 0.5)
+        DelayAction(function() CastSR() end, 0.2)
+        DelayAction(function() CastF(RTarget) end, 0.25)
       elseif not (FComboF and F.ready) and ValidTarget(RTarget, E.range+W.radius-50) then
         CastE(RTarget)
         DelayAction(function() CastSR() end, 0.25)
@@ -765,7 +765,7 @@ function FCombo()
     
       if FComboF and F.ready and ValidTarget(RTarget, E.range+F.range+W.radius-50) then
         CastE(RTarget)
-        DelayAction(function() CastF(RTarget) end, 0.5)
+        DelayAction(function() CastF(RTarget) end, 0.25)
       elseif not (FComboF and F.ready) and ValidTarget(RTarget, E.range+W.radius-50) then
         CastE(RTarget)
       end
@@ -774,25 +774,29 @@ function FCombo()
     
   end
   
-  if Items["Tiamat"].ready and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(RTarget, Items["Tiamat"].range+RTargetAddRange) then
-    CastT()
-  elseif Items["Hydra"].ready and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(RTarget, Items["Hydra"].range+RTargetAddRange) then
-    CastH()
-  end
-  
   if StartFullCombo and ValidTarget(RTarget, W.radius) then
     CastW()
   end
   
-  if StartFullCombo2 and not (CanAA or BeingAA) then
-    CastR(RTarget)
+  if Target == nil then
+    return
+  end
+  
+  if Items["Tiamat"].ready and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(Target, Items["Tiamat"].range+TargetAddRange) then
+    CastT()
+  elseif Items["Hydra"].ready and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(Target, Items["Hydra"].range+TargetAddRange) then
+    CastH()
+  end
+  
+  if StartFullCombo2 and not BeingAA then
+    CastR(Target)
   end
   
   if StartFullCombo3 then
-    CastQ(RTarget)
+    CastQ(Target)
   end
   
-  if Target == nil or not AfterCombo then
+  if not AfterCombo then
     return
   end
   
@@ -806,7 +810,7 @@ function FCombo()
     
   end
   
-  if W.ready and CanW and os.clock()-LastE > 0.5 and ValidTarget(Target, W.radius) then
+  if W.ready and CanW and --[[os.clock()-LastE > 0.5 and ]]ValidTarget(Target, W.radius) then
     CastW()
   end
   
@@ -1225,12 +1229,10 @@ function Flee()
   
   if Q.ready and os.clock()-LastE > 0.5 then
     CastQ(mousePos)
-    LastQ = os.clock()
   end
   
-  if E.ready and os.clock()-LastQ > 0.25 then
+  if E.ready and os.clock()-LastQ > 0.5 then
     CastE(mousePos)
-    LastE = os.clock()
   end
   
 end
@@ -1421,6 +1423,10 @@ end
 
 function GetDmg(spell, enemy)
 
+  if enemy == nil then
+    return
+  end
+
   local Level = myHero.level
   local TotalDmg = myHero.totalDamage
   local RTotalDmg = 1.2*TotalDmg
@@ -1499,7 +1505,7 @@ end
 
 function RGetDmg(spell, enemy)
 
-  if RTarget == nil then
+  if enemy == nil then
     return
   end
   
@@ -1512,9 +1518,9 @@ function RGetDmg(spell, enemy)
   local Armor = math.max(0, enemy.armor*ArmorPenPercent-ArmorPen)
   local ArmorPercent = Armor/(100+Armor)
   
-  local RQTargetDmg = GetDmg("RQ", RTarget)
-  local RWTargetDmg = GetDmg("RW", RTarget)
-  local RADTargetDmg = GetDmg("RAD", RTarget)
+  local RQTargetDmg = GetDmg("RQ", enemy)
+  local RWTargetDmg = GetDmg("RW", enemy)
+  local RADTargetDmg = GetDmg("RAD", enemy)
   local FCREnemyHealth = enemy.health-RQTargetDmg-RWTargetDmg-RADTargetDmg
   local FCRTargetLossHealth = 1-(FCREnemyHealth/enemy.maxHealth)
   
