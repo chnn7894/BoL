@@ -1,4 +1,4 @@
-Version = "2.21"
+Version = "2.22"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -1224,10 +1224,12 @@ function Flee()
   
   if Q.ready and os.clock()-LastE > 0.5 then
     CastQ(mousePos)
+    LastQ = os.clock()
   end
   
   if E.ready and os.clock()-LastQ > 0.25 then
     CastE(mousePos)
+    LastE = os.clock()
   end
   
 end
@@ -1404,7 +1406,7 @@ function Orbwalk(State)
   end
   
   if CanTurn then
-    CancelPos = myHero+(Vector(mousePos)-myHero):normalized()*-1000
+    CancelPos = myHero+(Vector(mousePos)-myHero):normalized()*300
     MoveToPos(CancelPos)
   end
   
