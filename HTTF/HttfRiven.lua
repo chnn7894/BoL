@@ -1,4 +1,4 @@
-Version = "2.22"
+Version = "2.221"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -738,6 +738,7 @@ function FCombo()
   local RQTargetDmg = GetDmg("RQ", RTarget)
   local RWTargetDmg = GetDmg("RW", RTarget)
   local FCRTargetDmg = RGetDmg("FCR", Target)
+  local SBTargetDmg = GetDmg("STALKER", RTarget)
   
   local FComboF = Menu.FCombo.F
   
