@@ -1,4 +1,4 @@
-Version = "1.241"
+Version = "2.0"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -93,6 +93,12 @@ function Variables()
     Smite = SUMMONER_2
   end
   
+  if myHero:GetSpellData(SUMMONER_1).name:find("summonerflash") then
+    Flash = SUMMONER_1
+  elseif myHero:GetSpellData(SUMMONER_2).name:find("summonerflash") then
+    Flash = SUMMONER_2
+  end
+  
   CanTurn = false
   CanMove = true
   CanAA = true
@@ -103,6 +109,10 @@ function Variables()
   BeingQ = false
   BeingW = false
   BeingE = false
+  StartFullCombo = false
+  StartFullCombo2 = false
+  StartFullCombo3 = false
+  AfterCombo = false
   AnimationTime = 1.6
   WindUpTime = 0
   LastAA = 0
@@ -113,17 +123,18 @@ function Variables()
   Recall = false
   
   P = {stack = 0}
-  Q = {radius = 275, range = 225, level = 0, ready, state = 0}
-  W = {radius = 260, level = 0, ready}
+  Q = {radius = 300, range = 225, move = 260, level = 0, ready, state = 0}
+  W = {radius = 250, level = 0, ready}
   E = {range = 250, level = 0, ready}
   R = {delay = 0, angle = 45, range = 900, speed = 1200, level = 0, ready, state = false}
   I = {range = 600, ready}
   S = {range = 760, ready}
+  F = {range = 400, ready}
   
   Items =
   {
-  ["Tiamat"] = {id=3077, range = 150, maxrange = 400, slot = nil, ready},
-  ["Hydra"] = {id=3074, range = 150, maxrange = 400, slot = nil, ready},
+  ["Tiamat"] = {id=3077, range = 150, maxrange = 300, slot = nil, ready},
+  ["Hydra"] = {id=3074, range = 150, maxrange = 300, slot = nil, ready},
   ["Stalker"] = {id=3706, range = 760, slot = nil, ready},
   ["StalkerW"] = {id=3707, slot = nil},
   ["StalkerM"] = {id=3708, slot = nil},
@@ -131,12 +142,13 @@ function Variables()
   ["StalkerD"] = {id=3710, slot = nil}
   }
   
-  MyminBBox = 39.44
-  TrueRange = 125.5+MyminBBox
+  MyFirstminBBox = 39.44
+  TrueRange = myHero.range+MyFirstminBBox-5
   TrueminionRange = TrueRange
   TruejunglemobRange = TrueRange
   TrueTargetRange = TrueRange
   TargetAddRange = 0
+  RTargetAddRange = 0
   
   AutoQEQW = {1, 3, 1, 2, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2}
   
@@ -253,6 +265,12 @@ function RivenMenu()
       Menu.Combo:addParam("Rmin", "Auto Second R Min Count", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
       Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
       
+  Menu:addSubMenu("Full Combo Settings", "FCombo")
+  
+    Menu.FCombo:addParam("On", "Full Combo (ERFW>AA>Item>RQ)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('T'))
+      Menu.FCombo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.FCombo:addParam("F", "Use Flash (F)", SCRIPT_PARAM_ONOFF, true)
+    
   Menu:addSubMenu("Clear Settings", "Clear")  
   
     Menu.Clear:addSubMenu("Lane Clear Settings", "Farm")
@@ -413,6 +431,10 @@ function OnTick()
     Combo()
   end
   
+  if Menu.FCombo.On then
+    FCombo()
+  end
+  
   if Menu.Clear.Farm.On then
     Farm()
   end
@@ -514,6 +536,7 @@ function Check()
   R.ready = myHero:CanUseSpell(_R) == READY
   I.ready = Ignite ~= nil and myHero:CanUseSpell(Ignite) == READY
   S.ready = Smite ~= nil and myHero:CanUseSpell(Smite) == READY
+  F.ready = Flash ~= nil and myHero:CanUseSpell(Flash) == READY
   Items["Tiamat"].ready = Items["Tiamat"].slot and myHero:CanUseSpell(Items["Tiamat"].slot) == READY
   Items["Hydra"].ready = Items["Hydra"].slot and myHero:CanUseSpell(Items["Hydra"].slot) == READY
   Items["Stalker"].ready = Smite ~= nil and (Items["Stalker"].slot or Items["StalkerW"].slot or Items["StalkerM"].slot or Items["StalkerJ"].slot or Items["StalkerD"].slot) and myHero:CanUseSpell(Smite) == READY
@@ -523,7 +546,17 @@ function Check()
   
   HealthPercent = (myHero.health/myHero.maxHealth)*100
   
-  TrueRange = 125.5+GetDistance(myHero.minBBox, myHero)
+  if R.state then
+    Q.radius = 400
+    Q.range = 325
+    W.radius = 270
+  elseif not R.state then
+    Q.radius = 300
+    Q.range = 225
+    W.radius = 250
+  end
+  
+  TrueRange = myHero.range+GetDistance(myHero.minBBox, myHero)-5
   
   if Target ~=nil then
   
@@ -536,6 +569,7 @@ function Check()
   
   if RTarget ~= nil then
     RTargetHealthPercent = (RTarget.health/RTarget.maxHealth)*100
+    RTargetAddRange = GetDistance(RTarget.minBBox, RTarget)
   end
   
   Q.level = player:GetSpellData(_Q).level
@@ -574,7 +608,7 @@ function Combo()
 
   Orbwalk(Combo)
   
-  if RTarget == nil or not (Q.ready or W.ready or E.ready or R.ready) then
+  if RTarget == nil then
     return
   end
   
@@ -593,6 +627,11 @@ function Combo()
   local QTargetDmg = GetDmg("Q", RTarget)
   local WTargetDmg = GetDmg("W", RTarget)
   local RTargetDmg = GetDmg("R", RTarget)
+  local SBTargetDmg = GetDmg("STALKER", RTarget)
+  
+  if Items["Stalker"].ready and ComboItem and SBTargetDmg >= RTarget.health and ValidTarget(RTarget, Items["Stalker"].range) then
+    CastS(RTarget)
+  end
   
   if R.ready and R.state and ComboAutoR and ValidTarget(RTarget, R.range) then
     CastR2(RTarget, Combo)
@@ -666,7 +705,7 @@ function Combo()
       CastE(Target)
     elseif Q.ready and ComboQ and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
       CastE(Target)
-      DelayAction(function() CastQ(Target) end, 0.5)
+      --DelayAction(function() CastQ(Target) end, 0.5)
       return
     end
     
@@ -683,6 +722,102 @@ function Combo()
   end
   
   if Q.ready and ComboQ and CanQ and os.clock()-LastE > 0.5 and ValidTarget(Target, Q.radius) then
+    CastQ(Target)
+  elseif Q.ready and ComboQ and os.clock()-LastE > 0.5 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
+    CastQ(Target)
+  end
+  
+end
+
+----------------------------------------------------------------------------------------------------
+
+function FCombo()
+
+  Orbwalk(FCombo)
+  
+  if RTarget == nil then
+    return
+  end
+    
+  local RADTargetDmg = GetDmg("RAD", RTarget)
+  local RQTargetDmg = GetDmg("RQ", RTarget)
+  local RWTargetDmg = GetDmg("RW", RTarget)
+  local FCRTargetDmg = RGetDmg("FCR", Target)
+  
+  local FComboF = Menu.FCombo.F
+  
+  if Items["Stalker"].ready and SBTargetDmg >= RTarget.health and ValidTarget(RTarget, Items["Stalker"].range) then
+    CastS(RTarget)
+  end
+  
+  if Q.ready and W.ready and E.ready and R.ready --[[and RWTargetDmg+RADTargetDmg+RQTargetDmg+FCRTargetDmg >= RTarget.health]] then
+  
+    AfterCombo = false
+    
+    if not R.state then
+    
+      if FComboF and F.ready and ValidTarget(RTarget, E.range+F.range+W.radius) then
+        CastE(RTarget)
+        DelayAction(function() CastSR() end, 0.25)
+        DelayAction(function() CastF(RTarget) end, 0.5)
+        --DelayAction(function() CastW() end, 0.5)
+      elseif not (FComboF and F.ready) and ValidTarget(RTarget, E.range+W.radius) then
+        CastE(RTarget)
+        DelayAction(function() CastSR() end, 0.25)
+      end
+      
+    elseif R.state then
+    
+      if FComboF and F.ready and ValidTarget(RTarget, E.range+RTargetAddRange) then
+        CastE(RTarget)
+        DelayAction(function() CastF(RTarget) end, 0.5)
+      elseif not (FComboF and F.ready) and ValidTarget(RTarget, E.range+W.radius) then
+        CastE(RTarget)
+      end
+      
+    end
+    
+  end
+  
+  if Items["Tiamat"].ready and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(RTarget, Items["Tiamat"].range+RTargetAddRange) then
+    CastT()
+  elseif Items["Hydra"].ready and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(RTarget, Items["Hydra"].range+RTargetAddRange) then
+    CastH()
+  end
+  
+  if StartFullCombo and ValidTarget(RTarget, W.radius) then
+    CastW()
+  end
+  
+  if StartFullCombo2 and not (CanAA or BeingAA) then
+    CastR(RTarget)
+  end
+  
+  if StartFullCombo3 then
+    CastQ(RTarget)
+  end
+  
+  if Target == nil or not AfterCombo then
+    return
+  end
+  
+  if E.ready and CanE then
+  
+    if GetDistance(Target, myHero) >= E.range-TrueTargetRange+50 and ValidTarget(Target, E.range+TrueTargetRange-50) then
+      CastE(Target)
+    elseif Q.ready and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
+      CastE(Target)
+      --DelayAction(function() CastQ(Target) end, 0.5)
+      return
+    end
+    
+  end
+  
+  if W.ready and CanW and os.clock()-LastE > 0.5 and ValidTarget(Target, W.radius) then
+    CastW()
+  end
+  
+  if Q.ready and CanQ and os.clock()-LastE > 0.5 and ValidTarget(Target, Q.radius) then
     CastQ(Target)
   elseif Q.ready and ComboQ and os.clock()-LastE > 0.5 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
     CastQ(Target)
@@ -725,7 +860,7 @@ function Farm()
         CastE(minion)
       elseif Q.ready and JFarmQ and ValidTarget(junglemob, Q.radius+E.range-50) then
         CastE(minion)
-        DelayAction(function() CastQ(minion) end, 0.5)
+        --DelayAction(function() CastQ(minion) end, 0.5)
         return
       end
       
@@ -798,7 +933,7 @@ function JFarm()
         CastE(junglemob)
       elseif Q.ready and JFarmQ and ValidTarget(junglemob, Q.radius+E.range-50) then
         CastE(junglemob)
-        DelayAction(function() CastQ(junglemob) end, 0.5)
+        --DelayAction(function() CastQ(junglemob) end, 0.5)
         return
       end
       
@@ -904,26 +1039,11 @@ function Harass()
 
   Orbwalk(Harass)
   
-  if Target == nil or not (Q.ready or W.ready or E.ready) then
+  if Target == nil then
     return
   end
   
-  local HarassQ = Menu.Harass.Q
-  local HarassW = Menu.Harass.W
-  local HarassE = Menu.Harass.E
   local HarassItem = Menu.Harass.Item
-  
-  if E.ready and HarassE and CanE then
-  
-    if GetDistance(Target, myHero) >= E.range-TrueTargetRange+50 and ValidTarget(Target, E.range+TrueTargetRange-50) then
-      CastE(Target)
-    elseif Q.ready and HarassQ and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
-      CastE(Target)
-      DelayAction(function() CastQ(Target) end, 0.5)
-      return
-    end
-    
-  end
   
   if Items["Tiamat"].ready and HarassItem and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(Target, Items["Tiamat"].range) then
     CastT()
@@ -931,6 +1051,26 @@ function Harass()
   
   if Items["Hydra"].ready and HarassItem and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(Target, Items["Hydra"].range) then
     CastH()
+  end
+  
+  if not (Q.ready or W.ready or E.ready) then
+    return
+  end
+  
+  local HarassQ = Menu.Harass.Q
+  local HarassW = Menu.Harass.W
+  local HarassE = Menu.Harass.E
+  
+  if E.ready and HarassE and CanE then
+  
+    if GetDistance(Target, myHero) >= E.range-TrueTargetRange+50 and ValidTarget(Target, E.range+TrueTargetRange-50) then
+      CastE(Target)
+    elseif Q.ready and HarassQ and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
+      CastE(Target)
+      --DelayAction(function() CastQ(Target) end, 0.5)
+      return
+    end
+    
   end
   
   if W.ready and HarassW and CanW and os.clock()-LastE > 0.5 and ValidTarget(Target, W.radius) then
@@ -1064,8 +1204,13 @@ function Auto()
   local AutoAutoR = Menu.Auto.AutoR
   
   local ComboOn = Menu.Combo.On
+  local FComboOn = Menu.FCombo.On
   local HarassOn = Menu.Harass.On
   local JStealOn = Menu.JSteal.On
+  
+  if FComboOn then
+    return
+  end
   
   if R.ready and R.state and AutoAutoR and ValidTarget(RTarget, R.range) then
     CastR2(RTarget, Auto)
@@ -1097,13 +1242,13 @@ end
 
 function Flee()
 
-  Orbwalk(Flee)
+  MoveToMouse()
   
   if Q.ready and os.clock()-LastE > 0.5 then
     CastQ(mousePos)
   end
   
-  if E.ready and os.clock()-LastQ > 0.25 then
+  if E.ready and os.clock()-LastQ > 0.5 then
     CastE(mousePos)
   end
   
@@ -1142,14 +1287,13 @@ end
 
 function Orbwalk(State)
 
-  if State == Flee then
-    MoveToMouse()
+  if Menu.Flee.On then
     return
   end
   
   if CanAA and CanMove then
   
-    if Target ~= nil and State == Combo and ValidTarget(Target, TrueTargetRange) then
+    if Target ~= nil and (State == Combo or State == FCombo) and ValidTarget(Target, TrueTargetRange) then
       CanTurn = false
       CanMove = false
       CanQ = false
@@ -1282,7 +1426,7 @@ function Orbwalk(State)
   end
   
   if CanTurn then
-    CancelPos = myHero+(Vector(mousePos)-myHero):normalized()*-300
+    CancelPos = myHero+(Vector(mousePos)-myHero):normalized()*-1000
     MoveToPos(CancelPos)
   end
   
@@ -1298,7 +1442,9 @@ function GetDmg(spell, enemy)
 
   local Level = myHero.level
   local TotalDmg = myHero.totalDamage
+  local RTotalDmg = 1.2*TotalDmg
   local AddDmg = myHero.addDamage
+  local RAddDmg = AddDmg+0.2*TotalDmg
   local ArmorPen = myHero.armorPen
   local ArmorPenPercent = myHero.armorPenPercent
   
@@ -1350,10 +1496,16 @@ function GetDmg(spell, enemy)
     PureDmg = TotalDmg
   elseif spell == "PAD" then
     PureDmg = TotalDmg+(20+math.floor(Level/3)*5)*TotalDmg/100
+  elseif spell == "RAD" then
+    PureDmg = TotalDmg+(20+math.floor(Level/3)*5)*RTotalDmg/100
   elseif spell == "Q" then
     PureDmg = 20*Q.level-10+(.05*Q.level+.35)*TotalDmg
+  elseif spell == "RQ" then
+    PureDmg = 20*Q.level-10+(.05*Q.level+.35)*RTotalDmg
   elseif spell == "W" then
     PureDmg = 30*W.level+20+AddDmg
+  elseif spell == "RW" then
+    PureDmg = 30*W.level+20+RAddDmg
   elseif spell == "R" then
     PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+TargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
   end
@@ -1362,6 +1514,37 @@ function GetDmg(spell, enemy)
   
   return TrueDmg
   
+end
+
+function RGetDmg(spell, enemy)
+
+  if RTarget == nil then
+    return
+  end
+  
+  local TotalDmg = myHero.totalDamage
+  local AddDmg = myHero.addDamage
+  local RAddDmg = AddDmg+0.2*TotalDmg
+  local ArmorPen = myHero.armorPen
+  local ArmorPenPercent = myHero.armorPenPercent
+    
+  local Armor = math.max(0, enemy.armor*ArmorPenPercent-ArmorPen)
+  local ArmorPercent = Armor/(100+Armor)
+  
+  local RQTargetDmg = GetDmg("RQ", RTarget)
+  local RWTargetDmg = GetDmg("RW", RTarget)
+  local RADTargetDmg = GetDmg("RAD", RTarget)
+  local FCREnemyHealth = enemy.health-RQTargetDmg-RWTargetDmg-RADTargetDmg
+  local FCRTargetLossHealth = 1-(FCREnemyHealth/enemy.maxHealth)
+  
+  if spell == "FCR" then
+    PureDmg = math.min((40*R.level+40+.6*RAddDmg)*(1+FCRTargetLossHealth*(8/3)),120*R.level+120+1.8*RAddDmg)
+  end
+  
+  local TrueDmg = PureDmg*(1-ArmorPercent)
+  
+  return TrueDmg
+
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1474,9 +1657,25 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
+function CastSR()
+
+  if R.state then
+    return
+  end
+  
+  if VIP_USER and Menu.Misc.UsePacket then
+    Packet('S_CAST', {spellId = _R}):send()
+  else
+    CastSpell(_R)
+  end
+  
+  LastR = os.clock()
+  
+end
+
 function CastR(enemy)
 
-  if enemy == nil then
+  if enemy == nil or not R.state then
     return
   end
   
@@ -1485,8 +1684,6 @@ function CastR(enemy)
   else
     CastSpell(_R, enemy.x, enemy.z)
   end
-  
-  LastR = os.clock()
   
 end
 
@@ -1550,6 +1747,22 @@ function CastS(enemy)
     Packet("S_CAST", {spellId = Smite, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Smite, enemy)
+  end
+  
+end
+
+----------------------------------------------------------------------------------------------------
+
+function CastF(Pos)
+
+  if Pos == nil then
+    return
+  end
+  
+  if VIP_USER and Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = Flash, toX = Pos.x, toY = Pos.z, fromX = Pos.x, fromY = Pos.z}):send()
+  else
+    CastSpell(Flash, Pos.x, Pos.z)
   end
   
 end
@@ -1620,6 +1833,7 @@ function OnProcessSpell(object, spell)
     end
     
     if spell.name:find("RivenTriCleave") then
+    
       LastQ = os.clock()
       BeingQ = true
       
@@ -1628,12 +1842,19 @@ function OnProcessSpell(object, spell)
       end
       
       CanQ = false
+      StartFullCombo = false
+      StartFullCombo2 = false
+      StartFullCombo3 = false
+      AfterCombo = true
+      
     end
     
     if spell.name:find("RivenMartyr") then
       LastW = os.clock()
       BeingW = true
       CanW = false
+      StartFullCombo = false
+      StartFullCombo2 = true
     end
     
     if spell.name:find("RivenFeint") then
@@ -1645,10 +1866,13 @@ function OnProcessSpell(object, spell)
     if spell.name:find("RivenFengShuiEngine") then
       LastR = os.clock()
       R.state = true
+      StartFullCombo = true
     end
     
     if spell.name:find("rivenizunablade") then
       R.state = false
+      StartFullCombo2 = false
+      StartFullCombo3 = true
     end
     
   end
