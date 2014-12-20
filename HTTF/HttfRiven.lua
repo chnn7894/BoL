@@ -475,7 +475,7 @@ end
 
 function Check()
   
-  if CanTurn and os.clock()-LastQ > 0.3 then
+  if CanTurn and os.clock()-LastQ > 0.35 then
     CanTurn = false
   end
   
