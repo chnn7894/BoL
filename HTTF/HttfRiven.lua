@@ -1,4 +1,4 @@
-Version = "2.1"
+Version = "2.2"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -475,7 +475,7 @@ end
 
 function Check()
   
-  if CanTurn and os.clock()-LastQ > 0.28 then
+  if CanTurn and os.clock()-LastQ > 0.3 then
     CanTurn = false
   end
   
@@ -696,6 +696,12 @@ function Combo()
     return
   end
   
+  if Items["Tiamat"].ready and ComboItem and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(Target, Items["Tiamat"].range+TargetAddRange) then
+    CastT()
+  elseif Items["Hydra"].ready and ComboItem and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(Target, Items["Hydra"].range+TargetAddRange) then
+    CastH()
+  end
+  
   if E.ready and ComboE and ComboE2 <= HealthPercent and CanE then
   
     if GetDistance(Target, myHero) >= E.range-TrueTargetRange+50 and ValidTarget(Target, E.range+TrueTargetRange-50) then
@@ -704,12 +710,6 @@ function Combo()
       CastE(Target)
     end
     
-  end
-  
-  if Items["Tiamat"].ready and ComboItem and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(Target, Items["Tiamat"].range+TargetAddRange) then
-    CastT()
-  elseif Items["Hydra"].ready and ComboItem and not BeingAA and os.clock()-LastE > 0.5 and ValidTarget(Target, Items["Hydra"].range+TargetAddRange) then
-    CastH()
   end
   
   if W.ready and ComboW and CanW and os.clock()-LastE > 0.5 and ValidTarget(Target, W.radius) then
@@ -751,21 +751,21 @@ function FCombo()
     
     if not R.state then
     
-      if FComboF and F.ready and ValidTarget(RTarget, E.range+F.range+W.radius) then
+      if FComboF and F.ready and ValidTarget(RTarget, E.range+F.range+W.radius-50) then
         CastE(RTarget)
         DelayAction(function() CastSR() end, 0.25)
         DelayAction(function() CastF(RTarget) end, 0.5)
-      elseif not (FComboF and F.ready) and ValidTarget(RTarget, E.range+W.radius) then
+      elseif not (FComboF and F.ready) and ValidTarget(RTarget, E.range+W.radius-50) then
         CastE(RTarget)
         DelayAction(function() CastSR() end, 0.25)
       end
       
     elseif R.state then
     
-      if FComboF and F.ready and ValidTarget(RTarget, E.range+RTargetAddRange) then
+      if FComboF and F.ready and ValidTarget(RTarget, E.range+F.range+W.radius-50) then
         CastE(RTarget)
         DelayAction(function() CastF(RTarget) end, 0.5)
-      elseif not (FComboF and F.ready) and ValidTarget(RTarget, E.range+W.radius) then
+      elseif not (FComboF and F.ready) and ValidTarget(RTarget, E.range+W.radius-50) then
         CastE(RTarget)
       end
       
@@ -846,14 +846,6 @@ function Farm()
     local QMinionDmg = GetDmg("Q", minion)
     local WMinionDmg = GetDmg("W", minion)
     
-    if Q.ready and FarmQ and CanQ and (QMinionDmg+AAMinionDmg <= minion.health or QMinionDmg >= minion.health) and os.clock()-LastE > 0.5 and ValidTarget(minion, Q.radius) then
-      CastQ(minion)
-    end
-    
-    if W.ready and FarmW and CanW and (WMinionDmg+AAMinionDmg <= minion.health or WMinionDmg >= minion.health) and os.clock()-LastE > 0.5 and ValidTarget(minion, W.radius) then
-      CastW()
-    end
-    
     if E.ready and FarmE and CanE then
     
       if ValidTarget(minion, E.range+TrueminionRange-50) then
@@ -862,6 +854,14 @@ function Farm()
         CastE(minion)
       end
       
+    end
+    
+    if W.ready and FarmW and CanW and (WMinionDmg+AAMinionDmg <= minion.health or WMinionDmg >= minion.health) and os.clock()-LastE > 0.5 and ValidTarget(minion, W.radius) then
+      CastW()
+    end
+    
+    if Q.ready and FarmQ and CanQ and (QMinionDmg+AAMinionDmg <= minion.health or QMinionDmg >= minion.health) and os.clock()-LastE > 0.5 and ValidTarget(minion, Q.radius) then
+      CastQ(minion)
     end
     
     if Items["Tiamat"].ready and FarmTH and not BeingAA and os.clock()-LastE > 0.5 and FarmTHmin <= MinionCount(Items["Tiamat"].maxrange+AddRange) then
@@ -917,14 +917,6 @@ function JFarm()
     local JFarmTH = Menu.Clear.JFarm.TH
     local JFarmTHmin = Menu.Clear.JFarm.THmin
     
-    if Q.ready and JFarmQ and CanQ and os.clock()-LastE > 0.5 and ValidTarget(junglemob, Q.radius) then
-      CastQ(junglemob)
-    end
-    
-    if W.ready and JFarmW and CanW and os.clock()-LastE > 0.5 and ValidTarget(junglemob, W.radius) then
-      CastW()
-    end
-    
     if E.ready and JFarmE and CanE then
     
       if ValidTarget(junglemob, E.range+TruejunglemobRange-50) then
@@ -933,6 +925,14 @@ function JFarm()
         CastE(junglemob)
       end
       
+    end
+    
+    if W.ready and JFarmW and CanW and os.clock()-LastE > 0.5 and ValidTarget(junglemob, W.radius) then
+      CastW()
+    end
+    
+    if Q.ready and JFarmQ and CanQ and os.clock()-LastE > 0.5 and ValidTarget(junglemob, Q.radius) then
+      CastQ(junglemob)
     end
     
     if Items["Tiamat"].ready and JFarmTH and not BeingAA and os.clock()-LastE > 0.5 and JFarmTHmin <= JungleMobCount(Items["Tiamat"].range+AddRange) then
@@ -1041,16 +1041,6 @@ function Harass()
   local HarassW = Menu.Harass.W
   local HarassE = Menu.Harass.E
   
-  if Q.ready and HarassQ and CanQ and os.clock()-LastE > 0.5 and ValidTarget(Target, Q.radius) then
-    CastQ(Target)
-  elseif Q.ready and HarassQ and os.clock()-LastE > 0.5 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
-    CastQ(Target)
-  end
-  
-  if W.ready and HarassW and CanW and os.clock()-LastE > 0.5 and ValidTarget(Target, W.radius) then
-    CastW()
-  end
-  
   if E.ready and HarassE and CanE then
   
     if GetDistance(Target, myHero) >= E.range-TrueTargetRange+50 and ValidTarget(Target, E.range+TrueTargetRange-50) then
@@ -1059,6 +1049,16 @@ function Harass()
       CastE(Target)
     end
     
+  end
+  
+  if W.ready and HarassW and CanW and os.clock()-LastE > 0.5 and ValidTarget(Target, W.radius) then
+    CastW()
+  end
+  
+  if Q.ready and HarassQ and CanQ and os.clock()-LastE > 0.5 and ValidTarget(Target, Q.radius) then
+    CastQ(Target)
+  elseif Q.ready and HarassQ and os.clock()-LastE > 0.5 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
+    CastQ(Target)
   end
   
 end
@@ -1089,12 +1089,12 @@ function LastHit()
     local QminionDmg = GetDmg("Q", minion)
     local WminionDmg = GetDmg("W", minion)
     
-    if Q.ready and LastHitQ and QminionDmg >= minion.health and ValidTarget(minion, Q.radius) then
-      CastQ(minion)
-    end
-    
     if W.ready and LastHitW and WminionDmg >= minion.health and ValidTarget(minion, W.radius) then
       CastW()
+    end
+    
+    if Q.ready and LastHitQ and QminionDmg >= minion.health and ValidTarget(minion, Q.radius) then
+      CastQ(minion)
     end
     
   end
@@ -1139,12 +1139,12 @@ function KillSteal()
   local QTargetDmg = GetDmg("Q", Target)
   local WTargetDmg = GetDmg("W", Target)
   
-  if Q.ready and KillStealQ and QTargetDmg >= Target.health and ValidTarget(Target, Q.radius) then
-    CastQ(Target)
-  end
-  
   if W.ready and KillStealW and WTargetDmg >= Target.health and ValidTarget(Target, W.radius) then
     CastW(Target)
+  end
+  
+  if Q.ready and KillStealQ and QTargetDmg >= Target.health and ValidTarget(Target, Q.radius) then
+    CastQ(Target)
   end
   
 end
@@ -1582,6 +1582,10 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function CastQ(enemy)
+
+  if not Menu.Flee.On then
+    CanTurn = true
+  end
   
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = _Q, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z}):send()
@@ -1786,10 +1790,6 @@ function OnProcessSpell(object, spell)
     
       LastQ = os.clock()
       BeingQ = true
-      
-      if not Menu.Flee.On then
-        CanTurn = true
-      end
       
       CanQ = false
       StartFullCombo = false
