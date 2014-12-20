@@ -1,4 +1,4 @@
-Version = "2.0"
+Version = "2.1"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -685,8 +685,8 @@ function Combo()
         elseif W.ready and ComboW and WTargetDmg >= RTarget.health and ValidTarget(RTarget, W.radius) then
           CastW()
         end
-			  
-			end
+        
+      end
       
     end
     
