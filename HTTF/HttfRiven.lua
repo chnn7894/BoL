@@ -1,4 +1,4 @@
-Version = "2.2"
+Version = "2.21"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
