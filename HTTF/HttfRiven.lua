@@ -1,4 +1,4 @@
-Version = "2.3"
+Version = "2.31"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -475,7 +475,7 @@ end
 
 function Check()
   
-  if CanTurn and os.clock()-LastQ > 0.35 then
+  if CanTurn and os.clock()-LastQ > 0.3 then
     CanTurn = false
   end
   
@@ -1409,8 +1409,9 @@ function Orbwalk(State)
   end
   
   if CanTurn then
-    CancelPos = myHero+(Vector(mousePos)-myHero):normalized()*300
+    CancelPos = myHero+(Vector(mousePos)-myHero):normalized()*-300
     MoveToPos(CancelPos)
+    return
   end
   
   if CanMove then
