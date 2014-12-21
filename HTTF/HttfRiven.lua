@@ -1,4 +1,4 @@
-Version = "2.32"
+Version = "2.33"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -1409,8 +1409,10 @@ function Orbwalk(State)
   end
   
   if CanTurn then
-    CancelPos = myHero+(Vector(mousePos)-myHero):normalized()*-1000
+    CancelPos = myHero+(Vector(mousePos)-myHero):normalized()*-300
+    CancelPos2 = myHero+(Vector(mousePos)-myHero):normalized()*300
     MoveToPos(CancelPos)
+    MoveToPos(CancelPos2)
   end
   
   if CanMove then
@@ -1792,7 +1794,7 @@ function OnProcessSpell(object, spell)
       BeingAA = true
       CanAA = false
       AnimationTime = spell.animationTime
-      WindUpTime = spell.windUpTime+0.05
+      WindUpTime = spell.windUpTime
     end
     
     if spell.name:find("RivenTriCleave") then
