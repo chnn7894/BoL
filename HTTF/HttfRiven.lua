@@ -1,4 +1,4 @@
-Version = "3.0"
+Version = "3.01"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -394,17 +394,6 @@ function RivenMenu()
     Menu.Draw:addParam("R", "Draw R range", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("S", "Draw Smite range", SCRIPT_PARAM_ONOFF, true)
     
-  Menu:addSubMenu("Debug Settings", "Debug")
-  
-    Menu.Debug:addParam("ExtraCanTurn", "Extra CanTurn", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
-    Menu.Debug:addParam("ExtraAA", "ExtraAA", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
-    Menu.Debug:addParam("ExtraQ", "ExtraQ", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
-    Menu.Debug:addParam("ExtraW", "ExtraW", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
-    Menu.Debug:addParam("ExtraE", "ExtraE", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
-    Menu.Debug:addParam("ExtraCanTurn", "Extra CanTurn", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
-    Menu.Debug:addParam("ExtraCanMove", "Extra CanMove", SCRIPT_PARAM_SLICE, 0, 0, .05, 3)
-    Menu.Debug:addParam("ExtraJFarmRange", "Extra JFarm Range", SCRIPT_PARAM_SLICE, 0, -5, 5, 0)
-    
   Menu:addTS(TS)
   
 end
@@ -473,9 +462,9 @@ end
 
 function Check()
 
-  if BeingAA and os.clock()-LastAA >= WindUpTime+Menu.Debug.ExtraAA then
+  if BeingAA and os.clock()-LastAA >= WindUpTime then
     BeingAA = false
-    DelayAction(function() CanMove = true end, Menu.Debug.ExtraCanMove)
+    DelayAction(function() CanMove = true end, 0.002)
     CanQ = true
     CanW = true
     CanE = true
@@ -483,18 +472,18 @@ function Check()
     CanSR = true
   end
   
-  if BeingQ and os.clock()-LastQ >= 0.25+0.15+Menu.Debug.ExtraQ then
+  if BeingQ and os.clock()-LastQ >= 0.25+0.15 then
     BeingQ = false
     CanMove = true
     CanAA = true
   end
   
-  if BeingW and os.clock()-LastW >= 0.2667+Menu.Debug.ExtraW then
+  if BeingW and os.clock()-LastW >= 0.2667 then
     BeingW = false
     CanMove = true
   end
   
-  if BeingE and os.clock()-LastE >= 0.5+Menu.Debug.ExtraE then
+  if BeingE and os.clock()-LastE >= 0.5 then
     BeingE = false
     CanMove = true
   end
@@ -503,7 +492,7 @@ function Check()
     CanMove = true
   end
   
-  if not CanAA and not (BeingQ or BeingW or BeingE) and os.clock()-LastAA >= AnimationTime+Menu.Debug.ExtraAA then
+  if not CanAA and not (BeingQ or BeingW or BeingE) and os.clock()-LastAA >= AnimationTime then
     CanAA = true
   end
   
@@ -1392,7 +1381,7 @@ function Orbwalk(State)
         local AddRange = GetDistance(junglemob.minBBox, junglemob)
         local TruejunglemobRange = TrueRange+AddRange
         
-        if ValidTarget(junglemob, TruejunglemobRange+Menu.Debug.ExtraJFarmRange) then
+        if ValidTarget(junglemob, TruejunglemobRange) then
           OrbCastAA(junglemob)
           return
         end
@@ -1829,7 +1818,7 @@ function OnProcessSpell(object, spell)
       BeingQ = true
       
       if not Menu.Flee.On then
-        DelayAction(function() CanTurn = true end, 0.2+Menu.Debug.ExtraCanTurn)
+        DelayAction(function() CanTurn = true end, 0.2)
         CanMove = false
       end
       CanQ = false
