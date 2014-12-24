@@ -1,4 +1,4 @@
-Version = "3.01"
+Version = "3.02"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -695,7 +695,7 @@ function Combo()
   end
   
   if CanTurn then
-    CancelPos = myHero+(Vector(Target)-myHero):normalized()*-500
+    CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
     MoveToPos(CancelPos)
     CanTurn = false
   end
@@ -1068,6 +1068,12 @@ function Harass()
   local HarassQ = Menu.Harass.Q
   local HarassW = Menu.Harass.W
   local HarassE = Menu.Harass.E
+  
+  if CanTurn then
+    CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
+    MoveToPos(CancelPos)
+    CanTurn = false
+  end
   
   if Items["Tiamat"].ready and HarassItem and not BeingAA and ValidTarget(Target, Items["Tiamat"].range) then
     CastT()
@@ -1822,6 +1828,8 @@ function OnProcessSpell(object, spell)
         CanMove = false
       end
       CanQ = false
+      StartFullCombo = false
+      StartFullCombo2 = false
       StartFullCombo3 = false
       AfterCombo = true
       LastQ = os.clock()
