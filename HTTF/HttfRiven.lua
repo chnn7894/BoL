@@ -1,4 +1,4 @@
-Version = "3.02"
+Version = "3.03"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -117,7 +117,6 @@ function Variables()
   CanQ = true
   CanW = true
   CanE = true
-  CanFR = true
   CanSR = true
   LastAA = 0
   LastQ = 0
@@ -256,14 +255,16 @@ function RivenMenu()
     Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Info", "Use E to stick if Health Percent > x%", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("Info", "Use E if Health Percent > x%", SCRIPT_PARAM_INFO, "")
       Menu.Combo:addParam("E2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
       Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("EAA", "Don't use E if enemy in AA range", SCRIPT_PARAM_ONOFF, true)
+      Menu.Combo:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("FR", "Use First R (FR): Do not work yet", SCRIPT_PARAM_LIST, 2, { "None", "Easy to Kill", "Normal to Kill", "Hard to Kill"})
+      Menu.Combo:addParam("FR", "Use First R (FR)", SCRIPT_PARAM_LIST, 2, { "None", "Killable", "Max Damage or Killable"})
       Menu.Combo:addParam("SR", "Use Second R (SR)", SCRIPT_PARAM_LIST, 2, { "None", "Killable", "Max Damage or Killable"})
       Menu.Combo:addParam("Rearly", "Use Second R early", SCRIPT_PARAM_ONOFF, false)
-      Menu.Combo:addParam("DontR", "Do not use FR, SR if Killable with Q or W", SCRIPT_PARAM_ONOFF, false)
+      Menu.Combo:addParam("DontR", "Don't use FR, SR if Killable with Q or W", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("AutoR", "Auto Second R on Combo", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Rmin", "Auto Second R Min Count", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
@@ -468,7 +469,6 @@ function Check()
     CanQ = true
     CanW = true
     CanE = true
-    CanFR = true
     CanSR = true
   end
   
@@ -506,10 +506,6 @@ function Check()
   
   if not CanE and not (BeingAA or BeingQ or BeingW) and E.ready then
     CanE = true
-  end
-  
-  if not CanFR and not BeingAA and not R.state and R.ready then
-    CanFR = true
   end
   
   if not CanSR and not BeingAA and R.state and R.ready then
@@ -612,6 +608,7 @@ function Combo()
   local ComboW = Menu.Combo.W
   local ComboE = Menu.Combo.E
   local ComboE2 = Menu.Combo.E2
+  local ComboEAA = Menu.Combo.EAA
   local ComboR = Menu.Combo.R
   local ComboFR = Menu.Combo.FR
   local ComboSR = Menu.Combo.SR
@@ -636,7 +633,21 @@ function Combo()
     CastR2(KSTarget, Combo)
   end
   
-  if R.ready and R.state and ComboR and ComboSR ~= 1 then
+  if R.ready and not R.state and ComboR and ComboFR ~= 1 then
+  
+    if ValidTarget(KSTarget, R.range) then
+    
+      if ComboFR == 2 and RKSTargetDmg >= KSTarget.health then
+        CastFR()
+        return
+      elseif ComboFR == 3 and (RKSTargetDmg >= KSTarget.health or 25 >= KSTargetHealthPercent) then
+        CastFR()
+        return
+      end
+      
+    end
+    
+  elseif R.ready and R.state and ComboR and ComboSR ~= 1 then
   
     if ValidTarget(KSTarget, R.range) then
     
@@ -712,7 +723,9 @@ function Combo()
   
   if E.ready and ComboE and ComboE2 <= HealthPercent and CanE then
   
-    if not ValidTarget(Target, E.range-TrueTargetRange+50)--[[GetDistance(Target, myHero) >= E.range-TrueTargetRange+50]] and ValidTarget(Target, E.range+TrueTargetRange-50) then
+    if not ComboEAA and not ValidTarget(Target, E.range-TrueTargetRange+50) and ValidTarget(Target, E.range+TrueTargetRange-50) then
+      CastE(Target)
+    elseif ComboEAA and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, E.range+TrueTargetRange-50) then
       CastE(Target)
     elseif Q.ready and ComboQ and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
       CastE(Target)
@@ -897,7 +910,7 @@ function Farm()
       
     end
     
-    if W.ready and FarmW and CanW and (WMinionDmg+AAMinionDmg <= minion.health or WMinionDmg >= minion.health) and os.clock()-LastE > 0.25 and ValidTarget(minion, W.radius) then
+    if W.ready and FarmW and CanW and (WMinionDmg+AAMinionDmg <= minion.health or WMinionDmg >= minion.health) and os.clock()-LastE >= 0.25 and ValidTarget(minion, W.radius) then
       CastW()
     elseif Q.ready and FarmQ and CanQ and (QMinionDmg+AAMinionDmg <= minion.health or QMinionDmg >= minion.health) and ValidTarget(minion, Q.radius) then
       CastQ(minion)
@@ -974,7 +987,7 @@ function JFarm()
       
     end
     
-    if W.ready and JFarmW and CanW and os.clock()-LastE > 0.5 and ValidTarget(junglemob, W.radius) then
+    if W.ready and JFarmW and CanW and os.clock()-LastE >= 0.5 and ValidTarget(junglemob, W.radius) then
       CastW()
     elseif Q.ready and JFarmQ and CanQ and ValidTarget(junglemob, Q.radius) then
       CastQ(junglemob)
@@ -1097,11 +1110,11 @@ function Harass()
     
   end
   
-  if W.ready and HarassW and CanW and os.clock()-LastE > 0.25 and ValidTarget(Target, W.radius) then
+  if W.ready and HarassW and CanW and os.clock()-LastE >= 0.25 and ValidTarget(Target, W.radius) then
     CastW()
-  elseif Q.ready and HarassQ and CanQ and os.clock()-LastE > 0.25 and ValidTarget(Target, Q.radius) then
+  elseif Q.ready and HarassQ and CanQ and os.clock()-LastE >= 0.25 and ValidTarget(Target, Q.radius) then
     CastQ(Target)
-  elseif Q.ready and HarassQ and os.clock()-LastE > 0.25 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
+  elseif Q.ready and HarassQ and os.clock()-LastE >= 0.25 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
     CastQ(Target)
   end
   
@@ -1269,7 +1282,9 @@ function Flee()
   if E.ready and os.clock()-LastQ > 0.25 then
     CastE(mousePos)
     LastE = os.clock()
-  elseif Q.ready and os.clock()-LastE > 0.25 then
+  end
+  
+  if Q.ready and os.clock()-LastE >= 0.25 then
     CastQ(mousePos)
     LastQ = os.clock()
   end
@@ -1432,7 +1447,6 @@ function OrbCastAA(enemy)
   CanQ = false
   CanW = false
   CanE = false
-  CanFR = false
   CanSR = false
   LastAA = os.clock()
 end
@@ -1813,34 +1827,35 @@ function OnProcessSpell(object, spell)
   if object.isMe then
   
     if not BeingQ and spell.name:find("RivenBasicAttack" or "RivenBasicAttack2" or "RivenBasicAttack3") then
+      LastAA = os.clock()
       AnimationTime = spell.animationTime
       WindUpTime = spell.windUpTime
       BeingAA = true
       CanAA = false
-      LastAA = os.clock()
     end
     
     if spell.name:find("RivenTriCleave") then
+      LastQ = os.clock()
       BeingQ = true
       
       if not Menu.Flee.On then
         DelayAction(function() CanTurn = true end, 0.2)
         CanMove = false
       end
+      
       CanQ = false
       StartFullCombo = false
       StartFullCombo2 = false
       StartFullCombo3 = false
       AfterCombo = true
-      LastQ = os.clock()
     end
     
     if spell.name:find("RivenMartyr") then
+      LastW = os.clock()
       BeingW = true
       CanW = false
       StartFullCombo = false
       StartFullCombo2 = true
-      LastW = os.clock()
     end
     
     if spell.name:find("RivenFeint") then
@@ -1850,10 +1865,9 @@ function OnProcessSpell(object, spell)
     end
     
     if spell.name:find("RivenFengShuiEngine") then
-      R.state = true
-      CanFR = false
-      StartFullCombo = true
       LastFR = os.clock()
+      R.state = true
+      StartFullCombo = true
     end
     
     if spell.name:find("rivenizunablade") then
