@@ -1,4 +1,4 @@
-Version = "3.041"
+Version = "3.042"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -256,13 +256,13 @@ function RivenMenu()
       Menu.Combo:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("E2", "Use E if Health Percent > x%", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-      Menu.Combo:addParam("EAA", "Don't use E if enemy in AA range", SCRIPT_PARAM_ONOFF, true)
+      Menu.Combo:addParam("EAA", "Don't use E if enemy is in AA range", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("FR", "Use First R (FR)", SCRIPT_PARAM_LIST, 2, { "None", "Killable", "Max Damage or Killable"})
       Menu.Combo:addParam("SR", "Use Second R (SR)", SCRIPT_PARAM_LIST, 2, { "None", "Killable", "Max Damage or Killable"})
       Menu.Combo:addParam("Rearly", "Use Second R early", SCRIPT_PARAM_ONOFF, false)
-      Menu.Combo:addParam("DontR", "Don't use FR, SR if Killable with Q or W", SCRIPT_PARAM_ONOFF, false)
+      Menu.Combo:addParam("DontR", "Don't use SR if Killable with Q or W", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("AutoR", "Auto Second R on Combo", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Rmin", "Auto Second R Min Count", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
@@ -1650,6 +1650,10 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function CastQ(enemy)
+
+  if not Menu.Flee.On then
+    DelayAction(function() CanTurn = true end, 0.2+Menu.Debug.ExtraCanTurn)
+  end
   
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = _Q, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z}):send()
@@ -1845,12 +1849,7 @@ function OnProcessSpell(object, spell)
     if spell.name:find("RivenTriCleave") then
       LastQ = os.clock()
       BeingQ = true
-      
-      if not Menu.Flee.On then
-        DelayAction(function() CanTurn = true end, 0.2+Menu.Debug.ExtraCanTurn)
-        CanMove = false
-      end
-      
+      CanMove = false
       CanQ = false
       StartFullCombo = false
       StartFullCombo2 = false
