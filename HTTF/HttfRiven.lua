@@ -402,7 +402,6 @@ function RivenMenu()
     Menu.Debug:addParam("ExtraE", "ExtraE", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
     Menu.Debug:addParam("ExtraCanTurn", "Extra CanTurn", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
     Menu.Debug:addParam("ExtraCanMove", "Extra CanMove (0.02)", SCRIPT_PARAM_SLICE, 0.02, 0, .05, 3)
-    Menu.Debug:addParam("ExtraJFarmRange", "Extra JFarm Range", SCRIPT_PARAM_SLICE, 0, -5, 5, 0)
     
   Menu:addTS(TS)
   
