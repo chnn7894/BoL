@@ -1,4 +1,4 @@
-Version = "3.04"
+Version = "3.041"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -504,7 +504,7 @@ function Check()
     CanAA = true
   end
   
-  --[[if not CanQ and not (BeingAA or BeingW or BeingE) and os.clock()-FirstQ > 13*(1-myHero.cdr) then
+  --[[if not CanQ and not (BeingAA or BeingW or BeingE) and os.clock()-FirstQ >= 13*(1-myHero.cdr) then
     CanQ = true
   end]]
   
@@ -830,7 +830,7 @@ function FCombo()
   elseif AfterCombo then
   
     if CanTurn then
-      CancelPos = myHero+(Vector(Target)-myHero):normalized()*-500
+      CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
       MoveToPos(CancelPos)
       CanTurn = false
     end
@@ -1287,7 +1287,7 @@ function Flee()
 
   MoveToMouse()
   
-  if E.ready and os.clock()-LastQ > 0.25 then
+  if E.ready and os.clock()-LastQ >= 0.25 then
     CastE(mousePos)
     LastE = os.clock()
   end
