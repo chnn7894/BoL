@@ -1,4 +1,4 @@
-Version = "3.03"
+Version = "3.04"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -255,11 +255,9 @@ function RivenMenu()
     Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Info", "Use E if Health Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Combo:addParam("E2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-      Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("E2", "Use E if Health Percent > x%", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
       Menu.Combo:addParam("EAA", "Don't use E if enemy in AA range", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("FR", "Use First R (FR)", SCRIPT_PARAM_LIST, 2, { "None", "Killable", "Max Damage or Killable"})
       Menu.Combo:addParam("SR", "Use Second R (SR)", SCRIPT_PARAM_LIST, 2, { "None", "Killable", "Max Damage or Killable"})
@@ -395,6 +393,17 @@ function RivenMenu()
     Menu.Draw:addParam("R", "Draw R range", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("S", "Draw Smite range", SCRIPT_PARAM_ONOFF, true)
     
+  Menu:addSubMenu("Advanced Settings", "Debug")
+  
+    Menu.Debug:addParam("ExtraCanTurn", "Extra CanTurn", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
+    Menu.Debug:addParam("ExtraAA", "ExtraAA", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
+    Menu.Debug:addParam("ExtraQ", "ExtraQ (0.1)", SCRIPT_PARAM_SLICE, 0.1, 0.08, .12, 2)
+    Menu.Debug:addParam("ExtraW", "ExtraW", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
+    Menu.Debug:addParam("ExtraE", "ExtraE", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
+    Menu.Debug:addParam("ExtraCanTurn", "Extra CanTurn", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
+    Menu.Debug:addParam("ExtraCanMove", "Extra CanMove (0.02)", SCRIPT_PARAM_SLICE, 0.02, 0, .05, 3)
+    Menu.Debug:addParam("ExtraJFarmRange", "Extra JFarm Range", SCRIPT_PARAM_SLICE, 0, -5, 5, 0)
+    
   Menu:addTS(TS)
   
 end
@@ -465,34 +474,34 @@ function Check()
 
   if BeingAA and os.clock()-LastAA >= WindUpTime then
     BeingAA = false
-    DelayAction(function() CanMove = true end, 0.002)
+    DelayAction(function() CanMove = true end, Menu.Debug.ExtraCanMove)
     CanQ = true
     CanW = true
     CanE = true
     CanSR = true
   end
   
-  if BeingQ and os.clock()-LastQ >= 0.25+0.15 then
+  if BeingQ and os.clock()-LastQ >= 0.25+Menu.Debug.ExtraQ then
     BeingQ = false
     CanMove = true
     CanAA = true
   end
   
-  if BeingW and os.clock()-LastW >= 0.2667 then
+  if BeingW and os.clock()-LastW >= 0.2667+Menu.Debug.ExtraW then
     BeingW = false
     CanMove = true
   end
   
-  if BeingE and os.clock()-LastE >= 0.5 then
+  if BeingE and os.clock()-LastE >= 0.5+Menu.Debug.ExtraE then
     BeingE = false
     CanMove = true
   end
   
-  if not CanMove and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA >= WindUpTime then
+  if not CanMove and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA >= WindUpTime+Menu.Debug.ExtraCanMove then
     CanMove = true
   end
   
-  if not CanAA and not (BeingQ or BeingW or BeingE) and os.clock()-LastAA >= AnimationTime then
+  if not CanAA and not (BeingQ or BeingW or BeingE) and os.clock()-LastAA >= AnimationTime+Menu.Debug.ExtraAA then
     CanAA = true
   end
   
@@ -663,7 +672,7 @@ function Combo()
     
     if ValidTarget(Target, Q.radius) then
     
-      if ComboRearly and RTargetDmg+QTargetDmg+WTargetDmg >= Target.health then
+      if Q.ready and ComboQ and W.ready and ComboW and ComboRearly and RTargetDmg+QTargetDmg+WTargetDmg >= Target.health then
         CastSR(Target)
         DelayAction(function() CastQ(Target) end, 0.25)
         DelayAction(function() CastW() end, 0.5)
@@ -706,7 +715,7 @@ function Combo()
   end
   
   if CanTurn then
-    CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
+    CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
     MoveToPos(CancelPos)
     CanTurn = false
   end
@@ -885,7 +894,7 @@ function Farm()
     local WMinionDmg = GetDmg("W", minion)
 
     if CanTurn then
-      CancelPos = myHero+(Vector(minion)-myHero):normalized()*-500
+      CancelPos = myHero+(Vector(minion)-myHero):normalized()*-300
       MoveToPos(CancelPos)
       CanTurn = false
     end
@@ -960,7 +969,7 @@ function JFarm()
     local JFarmTHmin = Menu.Clear.JFarm.THmin
     
     if CanTurn then
-      CancelPos = myHero+(Vector(junglemob)-myHero):normalized()*-500
+      CancelPos = myHero+(Vector(junglemob)-myHero):normalized()*-300
       MoveToPos(CancelPos)
       CanTurn = false
     end
@@ -1083,7 +1092,7 @@ function Harass()
   local HarassE = Menu.Harass.E
   
   if CanTurn then
-    CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
+    CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
     MoveToPos(CancelPos)
     CanTurn = false
   end
@@ -1143,7 +1152,7 @@ function LastHit()
     local WminionDmg = GetDmg("W", minion)
   
     if CanTurn then
-      CancelPos = myHero+(Vector(minion)-myHero):normalized()*-500
+      CancelPos = myHero+(Vector(minion)-myHero):normalized()*-300
       MoveToPos(CancelPos)
       CanTurn = false
     end
@@ -1839,7 +1848,7 @@ function OnProcessSpell(object, spell)
       BeingQ = true
       
       if not Menu.Flee.On then
-        DelayAction(function() CanTurn = true end, 0.2)
+        DelayAction(function() CanTurn = true end, 0.2+Menu.Debug.ExtraCanTurn)
         CanMove = false
       end
       
@@ -1859,9 +1868,9 @@ function OnProcessSpell(object, spell)
     end
     
     if spell.name:find("RivenFeint") then
+      LastE = os.clock()
       BeingE = true
       CanE = false
-      LastE = os.clock()
     end
     
     if spell.name:find("RivenFengShuiEngine") then
