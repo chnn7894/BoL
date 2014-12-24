@@ -1,4 +1,4 @@
-Version = "3.042"
+Version = "3.05"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -395,13 +395,12 @@ function RivenMenu()
     
   Menu:addSubMenu("Advanced Settings", "Debug")
   
-    Menu.Debug:addParam("ExtraCanTurn", "Extra CanTurn", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
-    Menu.Debug:addParam("ExtraAA", "ExtraAA", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
-    Menu.Debug:addParam("ExtraQ", "ExtraQ (0.1)", SCRIPT_PARAM_SLICE, 0.1, 0.08, .12, 2)
-    Menu.Debug:addParam("ExtraW", "ExtraW", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
-    Menu.Debug:addParam("ExtraE", "ExtraE", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
-    Menu.Debug:addParam("ExtraCanTurn", "Extra CanTurn", SCRIPT_PARAM_SLICE, 0, -.05, .05, 3)
-    Menu.Debug:addParam("ExtraCanMove", "Extra CanMove (0.02)", SCRIPT_PARAM_SLICE, 0.02, 0, .05, 3)
+    Menu.Debug:addParam("ExtraAA", "ExtraAA", SCRIPT_PARAM_SLICE, 0, 0, 0.0125, 3)
+    Menu.Debug:addParam("ExtraQ", "ExtraQ (0.125)", SCRIPT_PARAM_SLICE, 0.125, 0.115, 0.135, 3)
+    Menu.Debug:addParam("ExtraW", "ExtraW", SCRIPT_PARAM_SLICE, 0, -0.01, 0.01, 3)
+    Menu.Debug:addParam("ExtraE", "ExtraE", SCRIPT_PARAM_SLICE, 0, -0.01, 0.01, 3)
+    Menu.Debug:addParam("ExtraCanTurn", "Extra CanTurn (0.125)", SCRIPT_PARAM_SLICE, 0.125, 0, 0.25, 3)
+    Menu.Debug:addParam("ExtraCanMove", "Extra CanMove (0.002)", SCRIPT_PARAM_SLICE, 0.002, 0, 0.0125, 3)
     
   Menu:addTS(TS)
   
@@ -471,7 +470,7 @@ end
 
 function Check()
 
-  if BeingAA and os.clock()-LastAA >= WindUpTime then
+  if BeingAA and os.clock()-LastAA >= WindUpTime+Menu.Debug.ExtraAA then
     BeingAA = false
     DelayAction(function() CanMove = true end, Menu.Debug.ExtraCanMove)
     CanQ = true
@@ -496,7 +495,7 @@ function Check()
     CanMove = true
   end
   
-  if not CanMove and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA >= WindUpTime+Menu.Debug.ExtraCanMove then
+  if not CanMove and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA >= WindUpTime+Menu.Debug.ExtraAA+Menu.Debug.ExtraCanMove then
     CanMove = true
   end
   
@@ -1652,7 +1651,7 @@ end
 function CastQ(enemy)
 
   if not Menu.Flee.On then
-    DelayAction(function() CanTurn = true end, 0.2+Menu.Debug.ExtraCanTurn)
+    DelayAction(function() CanTurn = true end, Menu.Debug.ExtraCanTurn)
   end
   
   if VIP_USER and Menu.Misc.UsePacket then
