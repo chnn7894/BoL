@@ -1747,7 +1747,7 @@ function _ENV.DrawFCD(enemy)
     local Pos = SPos.x+_ENV.math.max(0, (enemy.health-FCDmg)/enemy.maxHealth)*Width
     _ENV.DrawText("|", 13, Pos, EPos.y, _ENV.ARGB(255, 0, 255, 0))
     
-    _ENV.DrawText("HP : ".._ENV.math.max(0, math.floor(enemy.health-FCDmg)), 15, SPos.x, SPos.y+35, (_ENV.ARGB(255, 0, 255, 0)))
+    _ENV.DrawText("HP : ".._ENV.math.max(0, math.floor(enemy.health-FCDmg)), 15, SPos.x, SPos.y+20, (_ENV.ARGB(255, 0, 255, 0)))
     
   end
   
