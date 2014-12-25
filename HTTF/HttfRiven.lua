@@ -1,4 +1,4 @@
-Version = "3.05"
+Version = "3.1"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -118,11 +118,14 @@ function Variables()
   CanW = true
   CanE = true
   CanSR = true
+  FCDamage = {}
   LastAA = 0
+  LastP = 0
   LastQ = 0
   LastW = 0
   LastE = 0
   LastFR = 0
+  LastDraw = 0
   Recall = false
   
   P = {stack = 0}
@@ -270,9 +273,9 @@ function RivenMenu()
       
   Menu:addSubMenu("Full Combo Settings", "FCombo")
   
-    Menu.FCombo:addParam("On", "Full Combo (ERFW>AA>Item>RQ)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('T'))
+    Menu.FCombo:addParam("On", "Full Combo (ER Flash W>AA>Item>RQ)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('T'))
       Menu.FCombo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.FCombo:addParam("F", "Use Flash (F)", SCRIPT_PARAM_ONOFF, true)
+    Menu.FCombo:addParam("F", "Use Flash", SCRIPT_PARAM_ONOFF, true)
     
   Menu:addSubMenu("Clear Settings", "Clear")  
   
@@ -392,15 +395,16 @@ function RivenMenu()
     Menu.Draw:addParam("E", "Draw E range", SCRIPT_PARAM_ONOFF, false)
     Menu.Draw:addParam("R", "Draw R range", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("S", "Draw Smite range", SCRIPT_PARAM_ONOFF, true)
+    Menu.Draw:addParam("FCD", "Draw Full Combo damage", SCRIPT_PARAM_ONOFF, true)
     
   Menu:addSubMenu("Advanced Settings", "Debug")
   
     Menu.Debug:addParam("ExtraAA", "ExtraAA", SCRIPT_PARAM_SLICE, 0, 0, 0.0125, 3)
-    Menu.Debug:addParam("ExtraQ", "ExtraQ (0.125)", SCRIPT_PARAM_SLICE, 0.125, 0.115, 0.135, 3)
+    Menu.Debug:addParam("ExtraQ", "ExtraQ (0.145)", SCRIPT_PARAM_SLICE, 0.145, 0.1, 0.15, 3)
     Menu.Debug:addParam("ExtraW", "ExtraW", SCRIPT_PARAM_SLICE, 0, -0.01, 0.01, 3)
     Menu.Debug:addParam("ExtraE", "ExtraE", SCRIPT_PARAM_SLICE, 0, -0.01, 0.01, 3)
     Menu.Debug:addParam("ExtraCanTurn", "Extra CanTurn (0.125)", SCRIPT_PARAM_SLICE, 0.125, 0, 0.25, 3)
-    Menu.Debug:addParam("ExtraCanMove", "Extra CanMove (0.002)", SCRIPT_PARAM_SLICE, 0.002, 0, 0.0125, 3)
+    Menu.Debug:addParam("ExtraCanMove", "Extra CanMove (0.003)", SCRIPT_PARAM_SLICE, 0.003, 0, 0.0125, 3)
     
   Menu:addTS(TS)
   
@@ -519,6 +523,14 @@ function Check()
     CanSR = true
   end
   
+  if P.stack ~= 0 and os.clock()-LastP >= 5 then
+    P.stack = 0
+  end
+  
+  if Q.state ~= 0 and os.clock()-LastQ >= 4 then
+    Q.state = 0
+  end
+  
   if R.state and os.clock()-LastFR >= 15 then
     R.state = false
   end
@@ -574,6 +586,50 @@ function Check()
   W.level = player:GetSpellData(_W).level
   E.level = player:GetSpellData(_E).level
   R.level = player:GetSpellData(_R).level
+  
+  _ENV.DrawKillable()
+  
+end
+
+function _ENV.DrawKillable()
+
+  if Menu.Draw.FCD and os.clock()-LastDraw >= 0.1 then
+  
+    for i, enemy in ipairs(EnemyHeroes) do
+    
+      if ValidTarget(enemy, 1500) then
+        FCDamage[enemy.hash] = GetFCDmg(enemy)
+      end
+      
+      LastDraw = os.clock()
+      
+    end
+    
+  end
+  
+end
+
+function _ENV.GetFCDmg(enemy)
+  
+  local PADTargetDmg = GetDmg("PAD", enemy)
+  local QTargetDmg = GetDmg("Q", enemy)
+  local WTargetDmg = GetDmg("W", enemy)
+  local FCRTargetDmg = RGetDmg("FCR", enemy)
+  
+  local RADTargetDmg = GetDmg("RAD", enemy)
+  local RQTargetDmg = GetDmg("RQ", enemy)
+  local RWTargetDmg = GetDmg("RW", enemy)
+  local RFCRTargetDmg = RGetDmg("RFCR", enemy)
+  
+  local TotalDmg = 0
+  
+  if not R.ready and not R.state then
+    TotalDmg = WTargetDmg+PADTargetDmg+QTargetDmg+FCRTargetDmg
+  else
+    TotalDmg = RWTargetDmg+RADTargetDmg+RQTargetDmg+RFCRTargetDmg
+  end
+  
+  return TotalDmg
   
 end
 
@@ -760,7 +816,7 @@ function FCombo()
     return
   end
     
-  local ADTargetDmg = GetDmg("AD", Target)
+  local PADTargetDmg = GetDmg("PAD", Target)
   local QTargetDmg = GetDmg("Q", Target)
   local WTargetDmg = GetDmg("W", Target)
   local FCRTargetDmg = RGetDmg("FCR", Target)
@@ -784,7 +840,7 @@ function FCombo()
     
     if not R.state then
     
-      if FComboF and F.ready and ValidTarget(Target, E.range+F.range+W.radius-50) then
+      if FComboF and F.ready and not ValidTarget(Target, E.range+W.radius-50) and ValidTarget(Target, E.range+F.range+W.radius-50) then
         CastE(Target)
         DelayAction(function() CastFR() end, 0.2)
         DelayAction(function() CastF(Target) end, 0.25)
@@ -795,7 +851,7 @@ function FCombo()
       
     elseif R.state then
     
-      if FComboF and F.ready and ValidTarget(Target, E.range+F.range+W.radius-50) then
+      if FComboF and F.ready and not ValidTarget(Target, E.range+W.radius-50) and ValidTarget(Target, E.range+F.range+W.radius-50) then
         CastE(Target)
         DelayAction(function() CastF(Target) end, 0.25)
       elseif not (FComboF and F.ready) and ValidTarget(Target, E.range+W.radius-50) then
@@ -1480,32 +1536,32 @@ function GetDmg(spell, enemy)
   
   if spell == "IGNITE" then
   
-    local TrueDmg = 50+20*Level
+    if I.ready then
+      local TrueDmg = 50+20*Level
+    else
+      local TrueDmg = 0
+    end
     
     return TrueDmg
     
   elseif spell == "SMITE" then
   
     if Level <= 4 then
-    
       local TrueDmg = 370+20*Level
       
       return TrueDmg
       
     elseif Level <= 9 then
-    
       local TrueDmg = 330+30*Level
       
       return TrueDmg
       
     elseif Level <= 14 then
-    
       local TrueDmg = 240+40*Level
       
       return TrueDmg
       
     else
-    
       local TrueDmg = 100+50*Level
       
       return TrueDmg
@@ -1514,26 +1570,61 @@ function GetDmg(spell, enemy)
     
   elseif spell == "STALKER" then
   
-    local TrueDmg = 20+8*Level
-    
-    return TrueDmg
+    if S.ready then
+      local TrueDmg = 20+8*Level
+    else
+      local TrudDmg = 0
+    end
     
   elseif spell == "AD" then
     PureDmg = TotalDmg
+    local TrueDmg = PureDmg*(1-ArmorPercent)
   elseif spell == "PAD" then
     PureDmg = TotalDmg+(20+math.floor(Level/3)*5)*TotalDmg/100
+    local TrueDmg = PureDmg*(1-ArmorPercent)
   elseif spell == "RAD" then
     PureDmg = TotalDmg+(20+math.floor(Level/3)*5)*RTotalDmg/100
+    local TrueDmg = PureDmg*(1-ArmorPercent)
   elseif spell == "Q" then
-    PureDmg = 20*Q.level-10+(.05*Q.level+.35)*TotalDmg
+  
+    if Q.ready then
+      PureDmg = 20*Q.level-10+(.05*Q.level+.35)*TotalDmg
+    else
+      PureDmg = 0
+    end
+    
   elseif spell == "RQ" then
-    PureDmg = 20*Q.level-10+(.05*Q.level+.35)*RTotalDmg
+  
+    if Q.ready then
+      PureDmg = 20*Q.level-10+(.05*Q.level+.35)*RTotalDmg
+    else
+      PureDmg = 0
+    end
+    
   elseif spell == "W" then
-    PureDmg = 30*W.level+20+AddDmg
+  
+    if W.ready then
+      PureDmg = 30*W.level+20+AddDmg
+    else
+      PureDmg = 0
+    end
+    
   elseif spell == "RW" then
-    PureDmg = 30*W.level+20+RAddDmg
+  
+    if W.ready then
+      PureDmg = 30*W.level+20+RAddDmg
+    else
+      PureDmg = 0
+    end
+    
   elseif spell == "R" then
-    PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+TargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+  
+    if R.ready then
+      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+TargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+    else
+      PureDmg = 0
+    end
+    
   end
   
   local TrueDmg = PureDmg*(1-ArmorPercent)
@@ -1557,7 +1648,7 @@ function RGetDmg(spell, enemy)
   local Armor = math.max(0, enemy.armor*ArmorPenPercent-ArmorPen)
   local ArmorPercent = Armor/(100+Armor)
   
-  local ADTargetDmg = GetDmg("AD", enemy)
+  local PADTargetDmg = GetDmg("PAD", enemy)
   local QTargetDmg = GetDmg("Q", enemy)
   local WTargetDmg = GetDmg("W", enemy)
   local RADTargetDmg = GetDmg("RAD", enemy)
@@ -1567,7 +1658,7 @@ function RGetDmg(spell, enemy)
   local QREnemyHealth = enemy.health-QTargetDmg
   local WREnemyHealth = enemy.health-WTargetDmg
   local QWREnemyHealth = enemy.health-QTargetDmg-WTargetDmg
-  local FCREnemyHealth = enemy.health-WTargetDmg-ADTargetDmg-QTargetDmg
+  local FCREnemyHealth = enemy.health-WTargetDmg-PADTargetDmg-QTargetDmg
   local RFCREnemyHealth = enemy.health-RWTargetDmg-RADTargetDmg-RQTargetDmg
   
   local QRTargetLossHealth = 1-(QREnemyHealth/enemy.maxHealth)
@@ -1629,8 +1720,58 @@ function OnDraw()
       DrawCircle(Player.x, Player.y, Player.z, S.range, ARGB(0xFF,0xFF,0x14,0x93))
     end
     
+    if _ENV.Menu.Draw.FCD then
+    
+      for i, enemy in _ENV.ipairs(_ENV.EnemyHeroes) do
+      
+        if _ENV.ValidTarget(enemy, 1500) then
+          _ENV.DrawFCD(enemy)
+        end
+        
+      end
+      
+    end
+    
   end
   
+end
+
+function _ENV.DrawFCD(enemy)
+
+  local SPos, EPos = _ENV.HPos(enemy)
+  local FCDmg = FCDamage[enemy.hash] or 0
+  
+  if SPos then
+  
+    local Width = EPos.x-SPos.x
+    local Pos = SPos.x+_ENV.math.max(0, (enemy.health-FCDmg)/enemy.maxHealth)*Width
+    _ENV.DrawText("|", 13, Pos, EPos.y, _ENV.ARGB(255, 0, 255, 0))
+    
+    _ENV.DrawText("HP : ".._ENV.math.max(0, math.floor(enemy.health-FCDmg)), 15, SPos.x, SPos.y+35, (_ENV.ARGB(255, 0, 255, 0)))
+    
+  end
+  
+end
+
+function _ENV.HPos(enemy)
+  local Pos = GetUnitHPBarPos(enemy)
+  local PosOffset = GetUnitHPBarOffset(enemy)
+	
+  local POffset = Point(enemy.barData.PercentageOffset.x, enemy.barData.PercentageOffset.y)
+	
+  local PosOffsetX = 169
+  local PosOffsetY = 47
+  local PosOffsetX2 = 16
+  local PosOffsetY2 = 18
+	
+  Pos.x = Pos.x+(PosOffset.x-0.5+POffset.x)*PosOffsetX+PosOffsetX2
+  Pos.y = Pos.y+(PosOffset.y-0.5+POffset.y)*PosOffsetY+PosOffsetY2
+	
+  local SPos = Point(Pos.x, Pos.y)
+  local EPos = Point(Pos.x + 103, Pos.y)
+	
+  return Point(SPos.x, SPos.y), Point(EPos.x, EPos.y)
+	
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1839,6 +1980,12 @@ function OnProcessSpell(object, spell)
   
     if not BeingQ and spell.name:find("RivenBasicAttack" or "RivenBasicAttack2" or "RivenBasicAttack3") then
       LastAA = os.clock()
+      LastP = os.clock()
+      
+      if P.stack >= 1 then
+        P.stack = P.stack - 1
+      end
+      
       AnimationTime = spell.animationTime
       WindUpTime = spell.windUpTime
       BeingAA = true
@@ -1847,6 +1994,18 @@ function OnProcessSpell(object, spell)
     
     if spell.name:find("RivenTriCleave") then
       LastQ = os.clock()
+      LastP = os.clock()
+      
+      if P.stack <= 2 then
+        P.stack = P.stack + 1
+      end
+      
+      if Q.state <= 1 then
+        Q.state = Q.state + 1
+      elseif Q.state == 2 then
+        Q.state = 0
+      end
+      
       BeingQ = true
       CanMove = false
       CanQ = false
@@ -1858,6 +2017,12 @@ function OnProcessSpell(object, spell)
     
     if spell.name:find("RivenMartyr") then
       LastW = os.clock()
+      LastP = os.clock()
+      
+      if P.stack <= 2 then
+        P.stack = P.stack + 1
+      end
+      
       BeingW = true
       CanW = false
       StartFullCombo = false
@@ -1866,17 +2031,35 @@ function OnProcessSpell(object, spell)
     
     if spell.name:find("RivenFeint") then
       LastE = os.clock()
+      LastP = os.clock()
+      
+      if P.stack <= 2 then
+        P.stack = P.stack + 1
+      end
+      
       BeingE = true
       CanE = false
     end
     
     if spell.name:find("RivenFengShuiEngine") then
       LastFR = os.clock()
+      LastP = os.clock()
+      
+      if P.stack <= 2 then
+        P.stack = P.stack + 1
+      end
+      
       R.state = true
       StartFullCombo = true
     end
     
     if spell.name:find("rivenizunablade") then
+      LastP = os.clock()
+      
+      if P.stack <= 2 then
+        P.stack = P.stack + 1
+      end
+      
       R.state = false
       CanSR = false
       StartFullCombo2 = false
