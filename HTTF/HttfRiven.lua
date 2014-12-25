@@ -1,4 +1,4 @@
-Version = "3.101"
+Version = "3.102"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -267,8 +267,8 @@ function RivenMenu()
       Menu.Combo:addParam("Rearly", "Use Second R early", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("DontR", "Don't use SR if Killable with Q or W", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("AutoR", "Auto Second R on Combo", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Rmin", "Auto Second R Min Count", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
+    Menu.Combo:addParam("AutoR", "Use Cast R by Min Count", SCRIPT_PARAM_ONOFF, true)
+      Menu.Combo:addParam("Rmin", "Cast R Min Count", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
       Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
       
   Menu:addSubMenu("Full Combo Settings", "FCombo")
@@ -363,11 +363,11 @@ function RivenMenu()
   
     Menu.Auto:addParam("On", "AutoCast", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Auto:addParam("AutoW", "Auto W", SCRIPT_PARAM_ONOFF, true)
-      Menu.Auto:addParam("Wmin", "Auto W Min Count", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
+    Menu.Auto:addParam("AutoW", "Use W by Min Count", SCRIPT_PARAM_ONOFF, true)
+      Menu.Auto:addParam("Wmin", "W Min Count", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
       Menu.Auto:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
-    Menu.Auto:addParam("AutoR", "Auto Second R", SCRIPT_PARAM_ONOFF, true)
-      Menu.Auto:addParam("Rmin", "Auto Second R Min Count", SCRIPT_PARAM_SLICE, 5, 1, 5, 0)
+    Menu.Auto:addParam("AutoR", "Use Cast R by Min Count", SCRIPT_PARAM_ONOFF, true)
+      Menu.Auto:addParam("Rmin", "Cast R Min Count", SCRIPT_PARAM_SLICE, 5, 1, 5, 0)
     if Smite ~= nil then
       Menu.Auto:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoS", "Auto Smite", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
@@ -1756,22 +1756,22 @@ end
 function _ENV.HPos(enemy)
   local Pos = GetUnitHPBarPos(enemy)
   local PosOffset = GetUnitHPBarOffset(enemy)
-	
+  
   local POffset = Point(enemy.barData.PercentageOffset.x, enemy.barData.PercentageOffset.y)
-	
+  
   local PosOffsetX = 169
   local PosOffsetY = 47
   local PosOffsetX2 = 16
   local PosOffsetY2 = 18
-	
+  
   Pos.x = Pos.x+(PosOffset.x-0.5+POffset.x)*PosOffsetX+PosOffsetX2
   Pos.y = Pos.y+(PosOffset.y-0.5+POffset.y)*PosOffsetY+PosOffsetY2
-	
+  
   local SPos = Point(Pos.x, Pos.y)
   local EPos = Point(Pos.x + 103, Pos.y)
-	
+  
   return Point(SPos.x, SPos.y), Point(EPos.x, EPos.y)
-	
+  
 end
 
 ----------------------------------------------------------------------------------------------------
