@@ -1,4 +1,4 @@
-Version = "3.102"
+Version = "3.103"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -1536,11 +1536,7 @@ function GetDmg(spell, enemy)
   
   if spell == "IGNITE" then
   
-    if I.ready then
-      local TrueDmg = 50+20*Level
-    else
-      local TrueDmg = 0
-    end
+    local TrueDmg = 50+20*Level
     
     return TrueDmg
     
@@ -1548,43 +1544,28 @@ function GetDmg(spell, enemy)
   
     if Level <= 4 then
       local TrueDmg = 370+20*Level
-      
-      return TrueDmg
-      
     elseif Level <= 9 then
       local TrueDmg = 330+30*Level
-      
-      return TrueDmg
-      
     elseif Level <= 14 then
       local TrueDmg = 240+40*Level
-      
-      return TrueDmg
-      
     else
       local TrueDmg = 100+50*Level
-      
-      return TrueDmg
-      
     end
+    
+    return TrueDmg
     
   elseif spell == "STALKER" then
   
-    if S.ready then
-      local TrueDmg = 20+8*Level
-    else
-      local TrudDmg = 0
-    end
+    local TrueDmg = 20+8*Level
+    
+    return TrueDmg
     
   elseif spell == "AD" then
     PureDmg = TotalDmg
-    local TrueDmg = PureDmg*(1-ArmorPercent)
   elseif spell == "PAD" then
     PureDmg = TotalDmg+(20+math.floor(Level/3)*5)*TotalDmg/100
-    local TrueDmg = PureDmg*(1-ArmorPercent)
   elseif spell == "RAD" then
     PureDmg = TotalDmg+(20+math.floor(Level/3)*5)*RTotalDmg/100
-    local TrueDmg = PureDmg*(1-ArmorPercent)
   elseif spell == "Q" then
   
     if Q.ready then
