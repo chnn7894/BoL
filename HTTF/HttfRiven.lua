@@ -1,4 +1,4 @@
-Version = "3.1"
+Version = "3.101"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -262,8 +262,8 @@ function RivenMenu()
       Menu.Combo:addParam("EAA", "Don't use E if enemy is in AA range", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("FR", "Use First R (FR)", SCRIPT_PARAM_LIST, 2, { "None", "Killable", "Max Damage or Killable"})
-      Menu.Combo:addParam("SR", "Use Second R (SR)", SCRIPT_PARAM_LIST, 2, { "None", "Killable", "Max Damage or Killable"})
+      Menu.Combo:addParam("FR", "Use Active R (FR)", SCRIPT_PARAM_LIST, 3, { "None", "Killable", "Max Damage or Killable"})
+      Menu.Combo:addParam("SR", "Use Cast R (SR)", SCRIPT_PARAM_LIST, 2, { "None", "Killable", "Max Damage or Killable"})
       Menu.Combo:addParam("Rearly", "Use Second R early", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("DontR", "Don't use SR if Killable with Q or W", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
