@@ -1,4 +1,4 @@
-Version = "3.104"
+Version = "3.105"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -1544,15 +1544,25 @@ function GetDmg(spell, enemy)
   
     if Level <= 4 then
       local TrueDmg = 370+20*Level
+      
+      return TrueDmg
+      
     elseif Level <= 9 then
       local TrueDmg = 330+30*Level
+      
+      return TrueDmg
+      
     elseif Level <= 14 then
       local TrueDmg = 240+40*Level
+      
+      return TrueDmg
+      
     else
       local TrueDmg = 100+50*Level
+      
+      return TrueDmg
+      
     end
-    
-    return TrueDmg
     
   elseif spell == "STALKER" then
   
