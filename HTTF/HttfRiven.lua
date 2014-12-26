@@ -1,4 +1,4 @@
-Version = "3.103"
+Version = "3.104"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -273,7 +273,7 @@ function RivenMenu()
       
   Menu:addSubMenu("Full Combo Settings", "FCombo")
   
-    Menu.FCombo:addParam("On", "Full Combo (ER Flash W>AA>Item>RQ)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('T'))
+    Menu.FCombo:addParam("On", "Full Combo (ER F W>AA>Item>RQ)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('T'))
       Menu.FCombo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.FCombo:addParam("F", "Use Flash", SCRIPT_PARAM_ONOFF, true)
     
@@ -624,9 +624,9 @@ function _ENV.GetFCDmg(enemy)
   local TotalDmg = 0
   
   if not R.ready and not R.state then
-    TotalDmg = WTargetDmg+PADTargetDmg+QTargetDmg+FCRTargetDmg
+    TotalDmg = WTargetDmg+QTargetDmg+FCRTargetDmg
   else
-    TotalDmg = RWTargetDmg+RADTargetDmg+RQTargetDmg+RFCRTargetDmg
+    TotalDmg = RWTargetDmg+RQTargetDmg+RFCRTargetDmg
   end
   
   return TotalDmg
@@ -1649,15 +1649,45 @@ function RGetDmg(spell, enemy)
   local RFCRTargetLossHealth = 1-(RFCREnemyHealth/enemy.maxHealth)
   
   if spell == "QR" then
-    PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+QRTargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+  
+    if R.ready then
+      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+QRTargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+    else
+      PureDmg = 0
+    end
+    
   elseif spell == "WR" then
-    PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+WRTargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+  
+    if R.ready then
+      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+WRTargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+    else
+      PureDmg = 0
+    end
+    
   elseif spell == "QWR" then
-    PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+QWRTargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+  
+    if R.ready then
+      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+QWRTargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+    else
+      PureDmg = 0
+    end
+    
   elseif spell == "FCR" then
-    PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+FCRTargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+  
+    if R.ready then
+      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+FCRTargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+    else
+      PureDmg = 0
+    end
+    
   elseif spell == "RFCR" then
-    PureDmg = math.min((40*R.level+40+.6*RAddDmg)*(1+RFCRTargetLossHealth*(8/3)),120*R.level+120+1.8*RAddDmg)
+  
+    if R.ready then
+      PureDmg = math.min((40*R.level+40+.6*RAddDmg)*(1+RFCRTargetLossHealth*(8/3)),120*R.level+120+1.8*RAddDmg)
+    else
+      PureDmg = 0
+    end
+    
   end
   
   local TrueDmg = PureDmg*(1-ArmorPercent)
