@@ -1459,7 +1459,7 @@ function Orbwalk(State)
       OrbCastAA(Target)
       return
     elseif State == Farm then
-    print("Ally: "..AllyMinionCount(R.range).." Enemy: "..EnemyMinionCount(R.range))
+    
       if AllyMinionCount(R.range) == 0 then
       
         for i, minion in pairs(EnemyMinions.objects) do
