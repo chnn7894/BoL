@@ -1,4 +1,4 @@
-Version = "3.105"
+Version = "3.11"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -141,6 +141,8 @@ function Variables()
   {
   ["Tiamat"] = {id=3077, range = 150, maxrange = 300, slot = nil, ready},
   ["Hydra"] = {id=3074, range = 150, maxrange = 300, slot = nil, ready},
+  ["Youmuu"] = {id=3142, slot = nil, ready},
+  ["BRK"] = {id=3153, range = 450, slot = nil, ready},
   ["Stalker"] = {id=3706, range = 760, slot = nil, ready},
   ["StalkerW"] = {id=3707, slot = nil},
   ["StalkerM"] = {id=3708, slot = nil},
@@ -157,6 +159,7 @@ function Variables()
   TruejunglemobRange = TrueRange
   
   AutoEQWQ = {3, 1, 2, 1, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3}
+  AutoQEWQ = {1, 3, 2, 1, 1, 4, 1, 2, 1, 2, 4, 2, 2, 3, 3, 4, 3, 3}
   
   S5SR = false
   TT = false
@@ -239,6 +242,7 @@ function Variables()
   KSTS = TargetSelector(TARGET_LESS_CAST, R.range, DAMAGE_PHYSICAL, false)
   
   EnemyMinions = minionManager(MINION_ENEMY, Q.range+E.range+TrueRange, player, MINION_SORT_MAXHEALTH_DEC)
+  AllyMinions = minionManager(MINION_ALLY, Q.range+E.range+TrueRange, player, MINION_SORT_MAXHEALTH_DEC)
   JungleMobs = minionManager(MINION_JUNGLE, Q.range+E.range+TrueRange, player, MINION_SORT_MAXHEALTH_DEC)
   
 end
@@ -254,12 +258,13 @@ function RivenMenu()
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
+      Menu.Combo:addParam("QS", "Use Q to Stick to Target", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("E2", "Use E if Health Percent > x%", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-      Menu.Combo:addParam("EAA", "Don't use E if enemy is in AA range", SCRIPT_PARAM_ONOFF, true)
+      Menu.Combo:addParam("EAA", "Don't use E if enemy is in AA range", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("FR", "Use Active R (FR)", SCRIPT_PARAM_LIST, 3, { "None", "Killable", "Max Damage or Killable"})
@@ -269,7 +274,10 @@ function RivenMenu()
       Menu.Combo:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("AutoR", "Use Cast R by Min Count", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Rmin", "Cast R Min Count", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
-      Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
+      Menu.Combo:addParam("Blank6", "", SCRIPT_PARAM_INFO, "")
+    Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
+      Menu.Combo:addParam("BRK1", "Use BRK if Target HP < x%", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
+      Menu.Combo:addParam("BRK2", "Use BRK if my own HP < x%", SCRIPT_PARAM_SLICE, 15, 0, 100, 0)
       
   Menu:addSubMenu("Full Combo Settings", "FCombo")
   
@@ -358,6 +366,8 @@ function RivenMenu()
       Menu.KillSteal:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("S", "Use Stalker's Blade", SCRIPT_PARAM_ONOFF, true)
     end
+      Menu.KillSteal:addParam("Blank6", "", SCRIPT_PARAM_INFO, "")
+    Menu.KillSteal:addParam("BRK", "Use Blade of the Ruined King", SCRIPT_PARAM_ONOFF, true)
     
   Menu:addSubMenu("AutoCast Settings", "Auto")
   
@@ -383,7 +393,7 @@ function RivenMenu()
     Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, false)
     end
     Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, false)
-    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, {"R>Q>W>E (EQWQ)"})
+    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 2, {"R>Q>W>E (EQWQ)", "R>Q>W>E (QEWQ)"})
     
   Menu:addSubMenu("Draw Settings", "Draw")
   
@@ -397,15 +407,6 @@ function RivenMenu()
     Menu.Draw:addParam("S", "Draw Smite range", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("FCD", "Draw Full Combo damage", SCRIPT_PARAM_ONOFF, true)
     
-  Menu:addSubMenu("Advanced Settings", "Debug")
-  
-    Menu.Debug:addParam("ExtraAA", "ExtraAA", SCRIPT_PARAM_SLICE, 0, 0, 0.0125, 3)
-    Menu.Debug:addParam("ExtraQ", "ExtraQ (0.145)", SCRIPT_PARAM_SLICE, 0.145, 0.1, 0.15, 3)
-    Menu.Debug:addParam("ExtraW", "ExtraW", SCRIPT_PARAM_SLICE, 0, -0.01, 0.01, 3)
-    Menu.Debug:addParam("ExtraE", "ExtraE", SCRIPT_PARAM_SLICE, 0, -0.01, 0.01, 3)
-    Menu.Debug:addParam("ExtraCanTurn", "Extra CanTurn (0.125)", SCRIPT_PARAM_SLICE, 0.125, 0, 0.25, 3)
-    Menu.Debug:addParam("ExtraCanMove", "Extra CanMove (0.003)", SCRIPT_PARAM_SLICE, 0.003, 0, 0.0125, 3)
-    
   Menu:addTS(TS)
   
 end
@@ -414,7 +415,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function OnTick()
-
+  
   if myHero.dead then
     return
   end
@@ -474,36 +475,36 @@ end
 
 function Check()
 
-  if BeingAA and os.clock()-LastAA >= WindUpTime+Menu.Debug.ExtraAA then
+  if BeingAA and os.clock()-LastAA >= WindUpTime+0.003 then
     BeingAA = false
-    DelayAction(function() CanMove = true end, Menu.Debug.ExtraCanMove)
+    CanMove = true
     CanQ = true
     CanW = true
     CanE = true
     CanSR = true
   end
   
-  if BeingQ and os.clock()-LastQ >= 0.25+Menu.Debug.ExtraQ then
+  if BeingQ and os.clock()-LastQ >= 0.25+0.148 then
     BeingQ = false
     CanMove = true
     CanAA = true
   end
   
-  if BeingW and os.clock()-LastW >= 0.2667+Menu.Debug.ExtraW then
+  if BeingW and os.clock()-LastW >= 0.2667 then
     BeingW = false
     CanMove = true
   end
   
-  if BeingE and os.clock()-LastE >= 0.5+Menu.Debug.ExtraE then
+  if BeingE and os.clock()-LastE >= 0.5 then
     BeingE = false
     CanMove = true
   end
   
-  if not CanMove and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA >= WindUpTime+Menu.Debug.ExtraAA+Menu.Debug.ExtraCanMove then
+  if not CanMove and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA >= WindUpTime+0.003 then
     CanMove = true
   end
   
-  if not CanAA and not (BeingQ or BeingW or BeingE) and os.clock()-LastAA >= AnimationTime+Menu.Debug.ExtraAA then
+  if not CanAA and not (BeingQ or BeingW or BeingE) and os.clock()-LastAA >= AnimationTime+0.003 then
     CanAA = true
   end
   
@@ -549,9 +550,12 @@ function Check()
   
   Items["Tiamat"].ready = Items["Tiamat"].slot and myHero:CanUseSpell(Items["Tiamat"].slot) == READY
   Items["Hydra"].ready = Items["Hydra"].slot and myHero:CanUseSpell(Items["Hydra"].slot) == READY
+  Items["Youmuu"].ready = Items["Youmuu"].slot and myHero:CanUseSpell(Items["Youmuu"].slot) == READY
+  Items["BRK"].ready = Items["BRK"].slot and myHero:CanUseSpell(Items["BRK"].slot) == READY
   Items["Stalker"].ready = Smite ~= nil and (Items["Stalker"].slot or Items["StalkerW"].slot or Items["StalkerM"].slot or Items["StalkerJ"].slot or Items["StalkerD"].slot) and myHero:CanUseSpell(Smite) == READY
   
   EnemyMinions:update()
+  AllyMinions:update()
   JungleMobs:update()
   
   HealthPercent = (myHero.health/myHero.maxHealth)*100
@@ -570,6 +574,8 @@ function Check()
   
   if Target ~=nil then
   
+    TargetHealthPercent = (Target.health/Target.maxHealth)*100
+    
     local AddRange = GetDistance(Target.minBBox, Target)
     
     TrueTargetRange = TrueRange+AddRange
@@ -667,7 +673,10 @@ function Combo()
   end
   
   local ComboItem = Menu.Combo.Item
+  local ComboBRK1 = Menu.Combo.BRK1
+  local ComboBRK2 = Menu.Combo.BRK2
   local ComboQ = Menu.Combo.Q
+  local ComboQS = Menu.Combo.QS
   local ComboW = Menu.Combo.W
   local ComboE = Menu.Combo.E
   local ComboE2 = Menu.Combo.E2
@@ -686,10 +695,16 @@ function Combo()
   local WRTargetDmg = RGetDmg("WR", Target)
   local QWRTargetDmg = RGetDmg("QWR", Target)
   local RKSTargetDmg = GetDmg("R", KSTarget)
+  local RRKSTargetDmg = GetDmg("RR", KSTarget)
   local SBKSTargetDmg = GetDmg("STALKER", KSTarget)
+  local BRKKSTargetDmg = GetDmg("BRK", KSTarget)
   
   if Items["Stalker"].ready and ComboItem and SBKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, Items["Stalker"].range) then
     CastS(KSTarget)
+  end
+  
+  if Items["BRK"].ready and ComboItem and BRKKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, Items["BRK"].range) then
+    CastBRK(KSTarget)
   end
   
   if R.ready and R.state and ComboAutoR and ValidTarget(KSTarget, R.range) then
@@ -700,10 +715,10 @@ function Combo()
   
     if ValidTarget(KSTarget, R.range) then
     
-      if ComboFR == 2 and RKSTargetDmg >= KSTarget.health then
+      if ComboFR == 2 and RRKSTargetDmg >= KSTarget.health then
         CastFR()
         return
-      elseif ComboFR == 3 and (RKSTargetDmg >= KSTarget.health or 25 >= KSTargetHealthPercent) then
+      elseif ComboFR == 3 and (RRKSTargetDmg >= KSTarget.health or 25 >= KSTargetHealthPercent) then
         CastFR()
         return
       end
@@ -769,7 +784,7 @@ function Combo()
   end
   
   if CanTurn then
-    CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
+    CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
     MoveToPos(CancelPos)
     CanTurn = false
   end
@@ -778,6 +793,14 @@ function Combo()
     CastT()
   elseif Items["Hydra"].ready and ComboItem and not BeingAA and ValidTarget(Target, Items["Hydra"].range+TargetAddRange) then
     CastH()
+  end
+  
+  if Items["Youmuu"].ready and ComboItem and ValidTarget(Target, TrueTargetRange) then
+    CastY()
+  end
+  
+  if Items["BRK"].ready and ComboItem and (ComboBRK1 >= TargetHealthPercent or ComboBRK2 >= HealthPercent) and ValidTarget(Target, Items["BRK"].range) then
+    CastBRK()
   end
   
   if not (Q.ready or W.ready or E.ready) then
@@ -801,6 +824,8 @@ function Combo()
   elseif Q.ready and ComboQ and CanQ and os.clock()-LastE >= 0.25 and ValidTarget(Target, Q.radius) then
     CastQ(Target)
   elseif Q.ready and ComboQ and os.clock()-LastE >= 0.25 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, Q.radius) then
+    CastQ(Target)
+  elseif Q.ready and ComboQ and ComboQS and os.clock()-LastE >= 0.25 and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, (3-Q.state)*Q.range) then
     CastQ(Target)
   end
   
@@ -874,6 +899,10 @@ function FCombo()
       CastH()
     end
     
+    if Items["Youmuu"].ready and ValidTarget(Target, TrueTargetRange) then
+      CastY()
+    end
+    
     if StartFullCombo2 and R.state and CanSR then
       CastSR(Target)
     end
@@ -885,7 +914,7 @@ function FCombo()
   elseif AfterCombo then
   
     if CanTurn then
-      CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
+      CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
       MoveToPos(CancelPos)
       CanTurn = false
     end
@@ -894,6 +923,10 @@ function FCombo()
       CastT()
     elseif Items["Hydra"].ready and not BeingAA and ValidTarget(Target, Items["Hydra"].range+TargetAddRange) then
       CastH()
+    end
+    
+    if Items["Youmuu"].ready and ValidTarget(Target, TrueTargetRange) then
+      CastY()
     end
     
     if not (Q.ready or W.ready or E.ready) then
@@ -953,9 +986,9 @@ function Farm()
       CanTurn = false
     end
     
-    if Items["Tiamat"].ready and FarmTH and not BeingAA and os.clock()-LastE >= 0.5 and FarmTHmin <= MinionCount(Items["Tiamat"].maxrange+AddRange) then
+    if Items["Tiamat"].ready and FarmTH and not BeingAA and os.clock()-LastE >= 0.5 and FarmTHmin <= EnemyMinionCount(Items["Tiamat"].maxrange+AddRange) then
       CastT()
-    elseif Items["Hydra"].ready and FarmTH and not BeingAA and os.clock()-LastE >= 0.5 and FarmTHmin <= MinionCount(Items["Hydra"].maxrange+AddRange) then
+    elseif Items["Hydra"].ready and FarmTH and not BeingAA and os.clock()-LastE >= 0.5 and FarmTHmin <= EnemyMinionCount(Items["Hydra"].maxrange+AddRange) then
       CastH()
     end
     
@@ -985,7 +1018,7 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
-function MinionCount(range)
+function EnemyMinionCount(range)
 
   local count = 0
   
@@ -1146,17 +1179,19 @@ function Harass()
   local HarassE = Menu.Harass.E
   
   if CanTurn then
-    CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
+    CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
     MoveToPos(CancelPos)
     CanTurn = false
   end
   
   if Items["Tiamat"].ready and HarassItem and not BeingAA and ValidTarget(Target, Items["Tiamat"].range) then
     CastT()
+  elseif Items["Hydra"].ready and HarassItem and not BeingAA and ValidTarget(Target, Items["Hydra"].range) then
+    CastH()
   end
   
-  if Items["Hydra"].ready and HarassItem and not BeingAA and ValidTarget(Target, Items["Hydra"].range) then
-    CastH()
+  if Items["Youmuu"].ready and HarassItem and ValidTarget(Target, TrueTargetRange) then
+    CastY()
   end
   
   if not (Q.ready or W.ready or E.ready) then
@@ -1238,23 +1273,29 @@ function KillSteal()
   local KillStealR = Menu.KillSteal.R
   local KillStealI = Menu.KillSteal.I
   local KillStealS = Menu.KillSteal.S
+  local KillStealBRK = Menu.KillSteal.BRK
   
   local QTargetDmg = GetDmg("Q", Target)
   local WTargetDmg = GetDmg("W", Target)
-  local RTargetDmg = GetDmg("R", KSTarget)
-  local ITargetDmg = GetDmg("IGNITE", KSTarget)
-  local SBTargetDmg = GetDmg("STALKER", KSTarget)
+  local RKSTargetDmg = GetDmg("R", KSTarget)
+  local IKSTargetDmg = GetDmg("IGNITE", KSTarget)
+  local SBKSTargetDmg = GetDmg("STALKER", KSTarget)
+  local BRKKSTargetDmg = GetDmg("BRK", KSTarget)
   
-  if R.ready and KillStealR and R.state and ComboSR ~= 1 and RTargetDmg >= KSTarget.health and ValidTarget(KSTarget, R.range) then
+  if R.ready and KillStealR and R.state and RKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, R.range) then
     CastSR(KSTarget)
   end
   
-  if I.ready and KillStealI and ITargetDmg >= KSTarget.health and ValidTarget(KSTarget, I.range) then
+  if I.ready and KillStealI and IKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, I.range) then
     CastI(KSTarget)
   end
   
-  if Items["Stalker"].ready and KillStealS and SBTargetDmg >= KSTarget.health and ValidTarget(KSTarget, Items["Stalker"].range) then
+  if Items["Stalker"].ready and KillStealS and SBKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, Items["Stalker"].range) then
     CastS(KSTarget)
+  end
+  
+  if Items["BRK"].ready and KillStealBRK and BRKKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, Items["BRK"].range) then
+    CastBRK(KSTarget)
   end
   
   if not (Q.ready or W.ready) then
@@ -1379,6 +1420,27 @@ function AutoLevel()
       
     end
     
+  elseif Menu.Misc.ALOpt == 2 then
+  
+    if Q.level+W.level+E.level+R.level < player.level then
+    
+      local spell = {SPELL_1, SPELL_2, SPELL_3, SPELL_4}
+      local level = {0, 0, 0, 0}
+      
+      for i = 1, player.level, 1 do
+        level[AutoQEWQ[i]] = level[AutoQEWQ[i]]+1
+      end
+      
+      for i, v in ipairs({Q.level, W.level, E.level, R.level}) do
+      
+        if v < level[i] then
+          LevelSpell(spell[i])
+        end
+        
+      end
+      
+    end
+    
   end
   
 end
@@ -1397,57 +1459,63 @@ function Orbwalk(State)
       OrbCastAA(Target)
       return
     elseif State == Farm then
-    
-      for i, minion in pairs(EnemyMinions.objects) do
+    print("Ally: "..AllyMinionCount(R.range).." Enemy: "..EnemyMinionCount(R.range))
+      if AllyMinionCount(R.range) == 0 then
       
-        if minion == nil then
-          return
+        for i, minion in pairs(EnemyMinions.objects) do
+        
+          if minion == nil then
+            return
+          end
+          
+          local AddRange = GetDistance(minion.minBBox, minion)
+          local TrueminionRange = TrueRange+AddRange
+          
+          local AAMinionDmg = GetDmg("AD", minion)
+          
+          if ValidTarget(minion, TrueminionRange) then
+            OrbCastAA(minion)
+            return
+          end
+          
         end
         
-        local AddRange = GetDistance(minion.minBBox, minion)
-        local TrueminionRange = TrueRange+AddRange
+      elseif AllyMinionCount(R.range) >= 1 then
         
-        local AAMinionDmg = GetDmg("AD", minion)
+        for i, minion in pairs(EnemyMinions.objects) do
         
-        if AAMinionDmg >= minion.health and ValidTarget(minion, TrueminionRange) then
-          OrbCastAA(minion)
-          return
+          if minion == nil then
+            return
+          end
+          
+          local AddRange = GetDistance(minion.minBBox, minion)
+          local TrueminionRange = TrueRange+AddRange
+          
+          local AAMinionDmg = GetDmg("AD", minion)
+          
+          if AAMinionDmg >= minion.health and ValidTarget(minion, TrueminionRange) then
+            OrbCastAA(minion)
+            return
+          end
+          
         end
         
-      end
-      
-      for i, minion in pairs(EnemyMinions.objects) do
-      
-        if minion == nil then
-          return
-        end
+        for i, minion in pairs(EnemyMinions.objects) do
         
-        local AddRange = GetDistance(minion.minBBox, minion)
-        local TrueminionRange = TrueRange+AddRange
-        
-        local AAMinionDmg = GetDmg("AD", minion)
-        
-        if minion.health >= 2*AAMinionDmg and ValidTarget(minion, TrueminionRange) then
-          OrbCastAA(minion)
-          return
-        end
-        
-      end
-      
-      for i, minion in pairs(EnemyMinions.objects) do
-      
-        if minion == nil then
-          return
-        end
-        
-        local AddRange = GetDistance(minion.minBBox, minion)
-        local TrueminionRange = TrueRange+AddRange
-        
-        local AAMinionDmg = GetDmg("AD", minion)
-        
-        if ValidTarget(minion, TrueminionRange) then
-          OrbCastAA(minion)
-          return
+          if minion == nil then
+            return
+          end
+          
+          local AddRange = GetDistance(minion.minBBox, minion)
+          local TrueminionRange = TrueRange+AddRange
+          
+          local AAMinionDmg = GetDmg("AD", minion)
+          
+          if minion.health >= AAMinionDmg+50*AllyMinionCount(R.range)--[[2*AAMinionDmg]] and ValidTarget(minion, TrueminionRange) then
+            OrbCastAA(minion)
+            return
+          end
+          
         end
         
       end
@@ -1504,6 +1572,24 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
+function AllyMinionCount(range)
+
+  local count = 0
+  
+  for i, allyminion in pairs(AllyMinions.objects) do
+  
+    if allyminion ~= nil and GetDistance(allyminion) <= range then
+      count = count + 1
+    end
+    
+  end
+  
+  return count
+  
+end
+
+----------------------------------------------------------------------------------------------------
+
 function OrbCastAA(enemy)
   CanMove = false
   CastAA(enemy)
@@ -1532,7 +1618,7 @@ function GetDmg(spell, enemy)
   
   local Armor = math.max(0, enemy.armor*ArmorPenPercent-ArmorPen)
   local ArmorPercent = Armor/(100+Armor)
-  local TargetLossHealth = 1-(enemy.health/enemy.maxHealth)
+  local EnemyLossHealth = 1-(enemy.health/enemy.maxHealth)
   
   if spell == "IGNITE" then
   
@@ -1544,24 +1630,16 @@ function GetDmg(spell, enemy)
   
     if Level <= 4 then
       local TrueDmg = 370+20*Level
-      
       return TrueDmg
-      
     elseif Level <= 9 then
       local TrueDmg = 330+30*Level
-      
       return TrueDmg
-      
     elseif Level <= 14 then
       local TrueDmg = 240+40*Level
-      
       return TrueDmg
-      
     else
       local TrueDmg = 100+50*Level
-      
       return TrueDmg
-      
     end
     
   elseif spell == "STALKER" then
@@ -1569,7 +1647,9 @@ function GetDmg(spell, enemy)
     local TrueDmg = 20+8*Level
     
     return TrueDmg
-    
+  
+  elseif spell == "BRK" then
+    PureDmg = math.max(100, 0.1*enemy.maxHealth)
   elseif spell == "AD" then
     PureDmg = TotalDmg
   elseif spell == "PAD" then
@@ -1611,7 +1691,15 @@ function GetDmg(spell, enemy)
   elseif spell == "R" then
   
     if R.ready then
-      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+TargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+EnemyLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+    else
+      PureDmg = 0
+    end
+    
+  elseif spell == "RR" then
+  
+    if R.ready then
+      PureDmg = math.min((40*R.level+40+.6*RAddDmg)*(1+EnemyLossHealth*(8/3)),120*R.level+120+1.8*RAddDmg)
     else
       PureDmg = 0
     end
@@ -1652,16 +1740,16 @@ function RGetDmg(spell, enemy)
   local FCREnemyHealth = enemy.health-WTargetDmg-PADTargetDmg-QTargetDmg
   local RFCREnemyHealth = enemy.health-RWTargetDmg-RADTargetDmg-RQTargetDmg
   
-  local QRTargetLossHealth = 1-(QREnemyHealth/enemy.maxHealth)
-  local WRTargetLossHealth = 1-(WREnemyHealth/enemy.maxHealth)
-  local QWRTargetLossHealth = 1-(QWREnemyHealth/enemy.maxHealth)
-  local FCRTargetLossHealth = 1-(FCREnemyHealth/enemy.maxHealth)
-  local RFCRTargetLossHealth = 1-(RFCREnemyHealth/enemy.maxHealth)
+  local QREnemyLossHealth = 1-(QREnemyHealth/enemy.maxHealth)
+  local WREnemyLossHealth = 1-(WREnemyHealth/enemy.maxHealth)
+  local QWREnemyLossHealth = 1-(QWREnemyHealth/enemy.maxHealth)
+  local FCREnemyLossHealth = 1-(FCREnemyHealth/enemy.maxHealth)
+  local RFCREnemyLossHealth = 1-(RFCREnemyHealth/enemy.maxHealth)
   
   if spell == "QR" then
   
     if R.ready then
-      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+QRTargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+QREnemyLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
     else
       PureDmg = 0
     end
@@ -1669,7 +1757,7 @@ function RGetDmg(spell, enemy)
   elseif spell == "WR" then
   
     if R.ready then
-      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+WRTargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+WREnemyLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
     else
       PureDmg = 0
     end
@@ -1677,7 +1765,7 @@ function RGetDmg(spell, enemy)
   elseif spell == "QWR" then
   
     if R.ready then
-      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+QWRTargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+QWREnemyLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
     else
       PureDmg = 0
     end
@@ -1685,7 +1773,7 @@ function RGetDmg(spell, enemy)
   elseif spell == "FCR" then
   
     if R.ready then
-      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+FCRTargetLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
+      PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+FCREnemyLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
     else
       PureDmg = 0
     end
@@ -1693,7 +1781,7 @@ function RGetDmg(spell, enemy)
   elseif spell == "RFCR" then
   
     if R.ready then
-      PureDmg = math.min((40*R.level+40+.6*RAddDmg)*(1+RFCRTargetLossHealth*(8/3)),120*R.level+120+1.8*RAddDmg)
+      PureDmg = math.min((40*R.level+40+.6*RAddDmg)*(1+RFCREnemyLossHealth*(8/3)),120*R.level+120+1.8*RAddDmg)
     else
       PureDmg = 0
     end
@@ -1813,7 +1901,7 @@ end
 function CastQ(enemy)
 
   if not Menu.Flee.On then
-    DelayAction(function() CanTurn = true end, Menu.Debug.ExtraCanTurn)
+    DelayAction(function() CanTurn = true end, 0.1)
   end
   
   if VIP_USER and Menu.Misc.UsePacket then
@@ -1962,6 +2050,30 @@ function CastH()
     Packet("S_CAST", {spellId = Items["Hydra"].slot}):send()
   else
     CastSpell(Items["Hydra"].slot)
+  end
+  
+end
+
+----------------------------------------------------------------------------------------------------
+
+function CastY()
+
+  if VIP_USER and Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = Items["Youmuu"].slot}):send()
+  else
+    CastSpell(Items["Youmuu"].slot)
+  end
+  
+end
+
+----------------------------------------------------------------------------------------------------
+
+function CastBRK(enemy)
+
+  if VIP_USER and Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = Items["BRK"].slot, targetNetworkId = enemy.networkID}):send()
+  else
+    CastSpell(Items["BRK"].slot, enemy)
   end
   
 end
