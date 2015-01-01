@@ -1,4 +1,4 @@
-Version = "3.12"
+Version = "3.121"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -142,6 +142,7 @@ function Variables()
   ["Tiamat"] = {id=3077, range = 150, maxrange = 300, slot = nil, ready},
   ["Hydra"] = {id=3074, range = 150, maxrange = 300, slot = nil, ready},
   ["Youmuu"] = {id=3142, slot = nil, ready},
+  ["BC"] = {id=3144, range = 450, slot = nil, ready},
   ["BRK"] = {id=3153, range = 450, slot = nil, ready},
   ["Stalker"] = {id=3706, range = 760, slot = nil, ready},
   ["StalkerW"] = {id=3707, slot = nil},
@@ -551,6 +552,7 @@ function Check()
   Items["Tiamat"].ready = Items["Tiamat"].slot and myHero:CanUseSpell(Items["Tiamat"].slot) == READY
   Items["Hydra"].ready = Items["Hydra"].slot and myHero:CanUseSpell(Items["Hydra"].slot) == READY
   Items["Youmuu"].ready = Items["Youmuu"].slot and myHero:CanUseSpell(Items["Youmuu"].slot) == READY
+  Items["BC"].ready = Items["BC"].slot and myHero:CanUseSpell(Items["BC"].slot) == READY
   Items["BRK"].ready = Items["BRK"].slot and myHero:CanUseSpell(Items["BRK"].slot) == READY
   Items["Stalker"].ready = Smite ~= nil and (Items["Stalker"].slot or Items["StalkerW"].slot or Items["StalkerM"].slot or Items["StalkerJ"].slot or Items["StalkerD"].slot) and myHero:CanUseSpell(Smite) == READY
   
@@ -697,13 +699,16 @@ function Combo()
   local RKSTargetDmg = GetDmg("R", KSTarget)
   local RRKSTargetDmg = GetDmg("RR", KSTarget)
   local SBKSTargetDmg = GetDmg("STALKER", KSTarget)
+  local BCKSTargetDmg = GetDmg("BC", KSTarget)
   local BRKKSTargetDmg = GetDmg("BRK", KSTarget)
   
   if Items["Stalker"].ready and ComboItem and SBKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, Items["Stalker"].range) then
     CastS(KSTarget)
   end
   
-  if Items["BRK"].ready and ComboItem and BRKKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, Items["BRK"].range) then
+  if Items["BC"].ready and ComboItem and BCKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, Items["BC"].range) then
+    CastBC(KSTarget)
+  elseif Items["BRK"].ready and ComboItem and BRKKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, Items["BRK"].range) then
     CastBRK(KSTarget)
   end
   
@@ -799,7 +804,9 @@ function Combo()
     CastY()
   end
   
-  if Items["BRK"].ready and ComboItem and (ComboBRK1 >= TargetHealthPercent or ComboBRK2 >= HealthPercent) and ValidTarget(Target, Items["BRK"].range) then
+  if Items["BC"].ready and ComboItem and (ComboBRK1 >= TargetHealthPercent or ComboBRK2 >= HealthPercent) and ValidTarget(Target, Items["BC"].range) then
+    CastBC(Target)
+  elseif Items["BRK"].ready and ComboItem and (ComboBRK1 >= TargetHealthPercent or ComboBRK2 >= HealthPercent) and ValidTarget(Target, Items["BRK"].range) then
     CastBRK(Target)
   end
   
@@ -902,7 +909,9 @@ function FCombo()
       CastY()
     end
     
-    if Items["BRK"].ready and ValidTarget(Target, Items["BRK"].range) then
+    if Items["BC"].ready and ValidTarget(Target, Items["BC"].range) then
+      CastBC(Target)
+  elseif Items["BRK"].ready and ValidTarget(Target, Items["BRK"].range) then
       CastBRK(Target)
     end
     
@@ -1283,9 +1292,10 @@ function KillSteal()
   local RKSTargetDmg = GetDmg("R", KSTarget)
   local IKSTargetDmg = GetDmg("IGNITE", KSTarget)
   local SBKSTargetDmg = GetDmg("STALKER", KSTarget)
+  local BCKSTargetDmg = GetDmg("BC", KSTarget)
   local BRKKSTargetDmg = GetDmg("BRK", KSTarget)
   
-  if KillStealR and R.state and RKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, R.range) then
+  if R.state and KillStealR and RKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, R.range) then
     CastSR(KSTarget)
   end
   
@@ -1297,7 +1307,9 @@ function KillSteal()
     CastS(KSTarget)
   end
   
-  if Items["BRK"].ready and KillStealBRK and BRKKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, Items["BRK"].range) then
+  if Items["BC"].ready and KillStealBRK and BCKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, Items["BC"].range) then
+    CastBC(KSTarget)
+  elseif Items["BRK"].ready and KillStealBRK and BRKKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, Items["BRK"].range) then
     CastBRK(KSTarget)
   end
   
@@ -1618,13 +1630,16 @@ function GetDmg(spell, enemy)
   local RAddDmg = AddDmg+0.2*TotalDmg
   local ArmorPen = myHero.armorPen
   local ArmorPenPercent = myHero.armorPenPercent
+  local MagicPen = myHero.magicPen
+  local MagicPenPercent = myHero.magicPenPercent
   
   local Armor = math.max(0, enemy.armor*ArmorPenPercent-ArmorPen)
   local ArmorPercent = Armor/(100+Armor)
+  local MagicArmor = math.max(0, enemy.magicArmor*MagicPenPercent-MagicPen)
+  local MagicArmorPercent = MagicArmor/(100+MagicArmor)
   local EnemyLossHealth = 1-(enemy.health/enemy.maxHealth)
   
   if spell == "IGNITE" then
-  
     local TrueDmg = 50+20*Level
     
     return TrueDmg
@@ -1633,24 +1648,36 @@ function GetDmg(spell, enemy)
   
     if Level <= 4 then
       local TrueDmg = 370+20*Level
+      
       return TrueDmg
+      
     elseif Level <= 9 then
       local TrueDmg = 330+30*Level
+      
       return TrueDmg
+      
     elseif Level <= 14 then
       local TrueDmg = 240+40*Level
+      
       return TrueDmg
+      
     else
       local TrueDmg = 100+50*Level
+      
       return TrueDmg
+      
     end
     
   elseif spell == "STALKER" then
-  
     local TrueDmg = 20+8*Level
     
     return TrueDmg
   
+  elseif spell == "BC" then
+    local TrueDmg = 100*(1-MagicArmorPercent)
+    
+    return TrueDmg
+    
   elseif spell == "BRK" then
     PureDmg = math.max(100, 0.1*enemy.maxHealth)
   elseif spell == "AD" then
@@ -1942,10 +1969,6 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function CastFR()
-
-  if R.state then
-    return
-  end
   
   if VIP_USER and Menu.Misc.UsePacket then
     Packet('S_CAST', {spellId = _R}):send()
@@ -1956,10 +1979,6 @@ function CastFR()
 end
 
 function CastSR(enemy)
-
-  if enemy == nil or not R.state then
-    return
-  end
   
   if VIP_USER and Menu.Misc.UsePacket then
     Packet('S_CAST', {spellId = _R, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z}):send()
@@ -2065,6 +2084,18 @@ function CastY()
     Packet("S_CAST", {spellId = Items["Youmuu"].slot}):send()
   else
     CastSpell(Items["Youmuu"].slot)
+  end
+  
+end
+
+----------------------------------------------------------------------------------------------------
+
+function CastBC(enemy)
+
+  if VIP_USER and Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = Items["BC"].slot, targetNetworkId = enemy.networkID}):send()
+  else
+    CastSpell(Items["BC"].slot, enemy)
   end
   
 end
