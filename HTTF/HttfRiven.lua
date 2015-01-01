@@ -1,4 +1,4 @@
-Version = "3.11"
+Version = "3.111"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -258,13 +258,13 @@ function RivenMenu()
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("QS", "Use Q to Stick to Target", SCRIPT_PARAM_ONOFF, true)
+      Menu.Combo:addParam("QS", "Use Q to Stick to Target", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("E2", "Use E if Health Percent > x%", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-      Menu.Combo:addParam("EAA", "Don't use E if enemy is in AA range", SCRIPT_PARAM_ONOFF, false)
+      Menu.Combo:addParam("EAA", "Don't use E if enemy is in AA range", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("FR", "Use Active R (FR)", SCRIPT_PARAM_LIST, 3, { "None", "Killable", "Max Damage or Killable"})
