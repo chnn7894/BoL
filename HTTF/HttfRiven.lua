@@ -1,4 +1,4 @@
-Version = "3.111"
+Version = "3.12"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -630,9 +630,9 @@ function _ENV.GetFCDmg(enemy)
   local TotalDmg = 0
   
   if not R.ready and not R.state then
-    TotalDmg = WTargetDmg+QTargetDmg+FCRTargetDmg
+    TotalDmg = WTargetDmg+QTargetDmg*(3-Q.state)+FCRTargetDmg
   else
-    TotalDmg = RWTargetDmg+RQTargetDmg+RFCRTargetDmg
+    TotalDmg = RWTargetDmg+RQTargetDmg*(3-Q.state)+RFCRTargetDmg
   end
   
   return TotalDmg
@@ -707,7 +707,7 @@ function Combo()
     CastBRK(KSTarget)
   end
   
-  if R.ready and R.state and ComboAutoR and ValidTarget(KSTarget, R.range) then
+  if R.state and ComboAutoR and ValidTarget(KSTarget, R.range) then
     CastR2(KSTarget, Combo)
   end
   
@@ -725,7 +725,7 @@ function Combo()
       
     end
     
-  elseif R.ready and R.state and ComboR and ComboSR ~= 1 then
+  elseif R.state and ComboR and ComboSR ~= 1 then
   
     if ValidTarget(KSTarget, R.range) then
     
@@ -800,7 +800,7 @@ function Combo()
   end
   
   if Items["BRK"].ready and ComboItem and (ComboBRK1 >= TargetHealthPercent or ComboBRK2 >= HealthPercent) and ValidTarget(Target, Items["BRK"].range) then
-    CastBRK()
+    CastBRK(Target)
   end
   
   if not (Q.ready or W.ready or E.ready) then
@@ -845,7 +845,6 @@ function FCombo()
   local QTargetDmg = GetDmg("Q", Target)
   local WTargetDmg = GetDmg("W", Target)
   local FCRTargetDmg = RGetDmg("FCR", Target)
-  
   local RADTargetDmg = GetDmg("RAD", Target)
   local RQTargetDmg = GetDmg("RQ", Target)
   local RWTargetDmg = GetDmg("RW", Target)
@@ -889,7 +888,7 @@ function FCombo()
   
   if not AfterCombo then
     
-    if StartFullCombo and ValidTarget(Target, W.radius) then
+    if StartFullCombo then
       CastW()
     end
     
@@ -901,6 +900,10 @@ function FCombo()
     
     if Items["Youmuu"].ready and ValidTarget(Target, TrueTargetRange) then
       CastY()
+    end
+    
+    if Items["BRK"].ready and ValidTarget(Target, Items["BRK"].range) then
+      CastBRK(Target)
     end
     
     if StartFullCombo2 and R.state and CanSR then
@@ -1282,7 +1285,7 @@ function KillSteal()
   local SBKSTargetDmg = GetDmg("STALKER", KSTarget)
   local BRKKSTargetDmg = GetDmg("BRK", KSTarget)
   
-  if R.ready and KillStealR and R.state and RKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, R.range) then
+  if KillStealR and R.state and RKSTargetDmg >= KSTarget.health and ValidTarget(KSTarget, R.range) then
     CastSR(KSTarget)
   end
   
@@ -1351,7 +1354,7 @@ function Auto()
     return
   end
   
-  if R.ready and R.state and AutoAutoR and ValidTarget(KSTarget, R.range) then
+  if R.state and AutoAutoR and ValidTarget(KSTarget, R.range) then
     CastR2(KSTarget, Auto)
   end
   
@@ -1511,7 +1514,7 @@ function Orbwalk(State)
           
           local AAMinionDmg = GetDmg("AD", minion)
           
-          if minion.health >= AAMinionDmg+50*AllyMinionCount(R.range)--[[2*AAMinionDmg]] and ValidTarget(minion, TrueminionRange) then
+          if minion.health >= AAMinionDmg+40*AllyMinionCount(R.range)--[[2*AAMinionDmg]] and ValidTarget(minion, TrueminionRange) then
             OrbCastAA(minion)
             return
           end
@@ -1668,7 +1671,7 @@ function GetDmg(spell, enemy)
   
     if Q.ready then
       PureDmg = 20*Q.level-10+(.05*Q.level+.35)*RTotalDmg
-    else
+    elseif not Q.ready then
       PureDmg = 0
     end
     
@@ -1676,7 +1679,7 @@ function GetDmg(spell, enemy)
   
     if W.ready then
       PureDmg = 30*W.level+20+AddDmg
-    else
+    elseif not W.ready then
       PureDmg = 0
     end
     
@@ -1684,7 +1687,7 @@ function GetDmg(spell, enemy)
   
     if W.ready then
       PureDmg = 30*W.level+20+RAddDmg
-    else
+    elseif not W.ready then
       PureDmg = 0
     end
     
@@ -1692,7 +1695,7 @@ function GetDmg(spell, enemy)
   
     if R.ready then
       PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+EnemyLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
-    else
+    elseif not R.ready then
       PureDmg = 0
     end
     
@@ -1700,7 +1703,7 @@ function GetDmg(spell, enemy)
   
     if R.ready then
       PureDmg = math.min((40*R.level+40+.6*RAddDmg)*(1+EnemyLossHealth*(8/3)),120*R.level+120+1.8*RAddDmg)
-    else
+    elseif not R.ready then
       PureDmg = 0
     end
     
@@ -1750,7 +1753,7 @@ function RGetDmg(spell, enemy)
   
     if R.ready then
       PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+QREnemyLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
-    else
+    elseif not R.ready then
       PureDmg = 0
     end
     
@@ -1758,7 +1761,7 @@ function RGetDmg(spell, enemy)
   
     if R.ready then
       PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+WREnemyLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
-    else
+    elseif not R.ready then
       PureDmg = 0
     end
     
@@ -1766,7 +1769,7 @@ function RGetDmg(spell, enemy)
   
     if R.ready then
       PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+QWREnemyLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
-    else
+    elseif not R.ready then
       PureDmg = 0
     end
     
@@ -1774,7 +1777,7 @@ function RGetDmg(spell, enemy)
   
     if R.ready then
       PureDmg = math.min((40*R.level+40+.6*AddDmg)*(1+FCREnemyLossHealth*(8/3)),120*R.level+120+1.8*AddDmg)
-    else
+    elseif not R.ready then
       PureDmg = 0
     end
     
@@ -1782,7 +1785,7 @@ function RGetDmg(spell, enemy)
   
     if R.ready then
       PureDmg = math.min((40*R.level+40+.6*RAddDmg)*(1+RFCREnemyLossHealth*(8/3)),120*R.level+120+1.8*RAddDmg)
-    else
+    elseif not R.ready then
       PureDmg = 0
     end
     
@@ -1954,7 +1957,7 @@ end
 
 function CastSR(enemy)
 
-  if not R.state then
+  if enemy == nil or not R.state then
     return
   end
   
