@@ -888,7 +888,7 @@ function FCombo()
   
   if not AfterCombo then
     
-    if StartFullCombo then
+    if StartFullCombo and ValidTarget(Target, W.radius) then
       CastW()
     end
     
