@@ -1,4 +1,4 @@
-Version = "3.121"
+Version = "3.13"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -101,7 +101,7 @@ function Variables()
     Flash = SUMMONER_2
   end
   
-  AnimationTime = 1.6
+  DelayAction(function() AnimationTime = 1/(0.625*myHero.attackSpeed) end, 20)
   WindUpTime = 0
   BeingAA = false
   BeingQ = false
@@ -122,6 +122,7 @@ function Variables()
   LastAA = 0
   LastP = 0
   LastQ = 0
+  LastQ2 = 0
   LastW = 0
   LastE = 0
   LastFR = 0
@@ -374,10 +375,12 @@ function RivenMenu()
   
     Menu.Auto:addParam("On", "AutoCast", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Auto:addParam("AutoW", "Use W by Min Count", SCRIPT_PARAM_ONOFF, true)
-      Menu.Auto:addParam("Wmin", "W Min Count", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
+    Menu.Auto:addParam("StackQ", "Auto Stack Q ", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
-    Menu.Auto:addParam("AutoR", "Use Cast R by Min Count", SCRIPT_PARAM_ONOFF, true)
+    Menu.Auto:addParam("AutoW", "Auto W by Min Count", SCRIPT_PARAM_ONOFF, true)
+      Menu.Auto:addParam("Wmin", "W Min Count", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
+      Menu.Auto:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
+    Menu.Auto:addParam("AutoR", "Auto Cast R by Min Count", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Rmin", "Cast R Min Count", SCRIPT_PARAM_SLICE, 5, 1, 5, 0)
     if Smite ~= nil then
       Menu.Auto:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
@@ -816,11 +819,17 @@ function Combo()
   
   if E.ready and ComboE and ComboE2 <= HealthPercent and CanE then
   
-    if not ComboEAA and not ValidTarget(Target, E.range-TrueTargetRange+50) and ValidTarget(Target, E.range+TrueTargetRange-50) then
+    --[[if not ComboEAA and not ValidTarget(Target, E.range-TrueTargetRange+50) and ValidTarget(Target, E.range+TrueTargetRange-50) then
       CastE(Target)
     elseif ComboEAA and not ValidTarget(Target, TrueTargetRange) and ValidTarget(Target, E.range+TrueTargetRange-50) then
       CastE(Target)
     elseif Q.ready and ComboQ and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
+      CastE(Target)]]
+    if not ComboEAA and not ValidTarget(Target, E.range-TrueRange+20) and ValidTarget(Target, E.range+TrueRange-20) then
+      CastE(Target)
+    elseif ComboEAA and not ValidTarget(Target, TrueRange) and ValidTarget(Target, E.range+TrueRange-20) then
+      CastE(Target)
+    elseif Q.ready and ComboQ and not ValidTarget(Target, E.range+TrueTargetRange-20) and ValidTarget(Target, Q.radius+E.range-20) then
       CastE(Target)
     end
     
@@ -871,21 +880,21 @@ function FCombo()
     
     if not R.state then
     
-      if FComboF and F.ready and not ValidTarget(Target, E.range+W.radius-50) and ValidTarget(Target, E.range+F.range+W.radius-50) then
+      if FComboF and F.ready and not ValidTarget(Target, E.range+W.radius-20) and ValidTarget(Target, E.range+F.range+W.radius-20) then
         CastE(Target)
         DelayAction(function() CastFR() end, 0.2)
         DelayAction(function() CastF(Target) end, 0.25)
-      elseif not (FComboF and F.ready) and ValidTarget(Target, E.range+W.radius-50) then
+      elseif not (FComboF and F.ready) and ValidTarget(Target, E.range+W.radius-20) then
         CastE(Target)
         DelayAction(function() CastFR() end, 0.25)
       end
       
     elseif R.state then
     
-      if FComboF and F.ready and not ValidTarget(Target, E.range+W.radius-50) and ValidTarget(Target, E.range+F.range+W.radius-50) then
+      if FComboF and F.ready and not ValidTarget(Target, E.range+W.radius-20) and ValidTarget(Target, E.range+F.range+W.radius-20) then
         CastE(Target)
         DelayAction(function() CastF(Target) end, 0.25)
-      elseif not (FComboF and F.ready) and ValidTarget(Target, E.range+W.radius-50) then
+      elseif not (FComboF and F.ready) and ValidTarget(Target, E.range+W.radius-20) then
         CastE(Target)
       end
       
@@ -947,9 +956,15 @@ function FCombo()
     
     if E.ready and CanE then
     
-      if not ValidTarget(Target, E.range-TrueTargetRange+50)--[[GetDistance(Target, myHero) >= E.range-TrueTargetRange+50]] and ValidTarget(Target, E.range+TrueTargetRange-50) then
+      --[[if not ValidTarget(Target, E.range-TrueTargetRange+20) and ValidTarget(Target, E.range+TrueTargetRange-20) then
         CastE(Target)
-      elseif Q.ready and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
+      elseif Q.ready and not ValidTarget(Target, E.range+TrueTargetRange-20) and ValidTarget(Target, Q.radius+E.range-20) then
+        CastE(Target)
+      end]]
+    
+      if not ValidTarget(Target, E.range-TrueRange+20) and ValidTarget(Target, E.range+TrueRange-20) then
+        CastE(Target)
+      elseif Q.ready and not ValidTarget(Target, E.range+TrueRange-20) and ValidTarget(Target, Q.radius+E.range-20) then
         CastE(Target)
       end
       
@@ -1010,9 +1025,15 @@ function Farm()
     
     if E.ready and FarmE and CanE then
     
-      if Q.ready and FarmQ and ValidTarget(minion, Q.radius+E.range+AddRange-50) then
+      --[[if Q.ready and FarmQ and ValidTarget(minion, Q.radius+E.range+AddRange-20) then
         CastE(minion)
-      elseif ValidTarget(minion, E.range+TrueminionRange-50) then
+      elseif ValidTarget(minion, E.range+TrueminionRange-20) then
+        CastE(minion)
+      end]]
+    
+      if Q.ready and FarmQ and ValidTarget(minion, Q.radius+E.range+AddRange-20) then
+        CastE(minion)
+      elseif ValidTarget(minion, E.range+TrueRange-20) then
         CastE(minion)
       end
       
@@ -1087,9 +1108,15 @@ function JFarm()
     
     if E.ready and JFarmE and CanE then
     
-      if Q.ready and JFarmQ and ValidTarget(junglemob, Q.radius+E.range+AddRange-50) then
+      --[[if Q.ready and JFarmQ and ValidTarget(junglemob, Q.radius+E.range+AddRange-20) then
         CastE(junglemob)
-      elseif ValidTarget(junglemob, E.range+TruejunglemobRange-50) then
+      elseif ValidTarget(junglemob, E.range+TruejunglemobRange-20) then
+        CastE(junglemob)
+      end]]
+      
+      if Q.ready and JFarmQ and ValidTarget(junglemob, Q.radius+E.range+AddRange-20) then
+        CastE(junglemob)
+      elseif ValidTarget(junglemob, E.range+TrueRange-20) then
         CastE(junglemob)
       end
       
@@ -1196,9 +1223,9 @@ function Harass()
     CanTurn = false
   end
   
-  if Items["Tiamat"].ready and HarassItem and not BeingAA and ValidTarget(Target, Items["Tiamat"].range) then
+  if Items["Tiamat"].ready and HarassItem and not BeingAA and ValidTarget(Target, Items["Tiamat"].range+TargetAddRange) then
     CastT()
-  elseif Items["Hydra"].ready and HarassItem and not BeingAA and ValidTarget(Target, Items["Hydra"].range) then
+  elseif Items["Hydra"].ready and HarassItem and not BeingAA and ValidTarget(Target, Items["Hydra"].range+TargetAddRange) then
     CastH()
   end
   
@@ -1212,9 +1239,15 @@ function Harass()
   
   if E.ready and HarassE and CanE then
   
-    if GetDistance(Target, myHero) >= E.range-TrueTargetRange+50 and ValidTarget(Target, E.range+TrueTargetRange-50) then
+    --[[if GetDistance(Target, myHero) >= E.range-TrueTargetRange+20 and ValidTarget(Target, E.range+TrueTargetRange-20) then
       CastE(Target)
-    elseif Q.ready and HarassQ and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, Q.radius+E.range-50) then
+    elseif Q.ready and HarassQ and not ValidTarget(Target, E.range+TrueTargetRange-20) and ValidTarget(Target, Q.radius+E.range-20) then
+      CastE(Target)
+    end]]
+  
+    if not ValidTarget(Target, E.range-TrueRange+20) and ValidTarget(Target, E.range+TrueRange-20) then
+      CastE(Target)
+    elseif Q.ready and HarassQ and not ValidTarget(Target, E.range+TrueRange-20) and ValidTarget(Target, Q.radius+E.range-20) then
       CastE(Target)
     end
     
@@ -1349,6 +1382,14 @@ function Auto()
     
   end
   
+  local AutoStackQ = Menu.Auto.StackQ
+  
+  local FleeOn = Menu.Flee.On
+  
+  if Q.ready and Q.state >= 1 and AutoStackQ and not FleeOn and os.clock()-LastQ2 > 3.75 then
+    CastQ(mousePos)
+  end
+  
   if KSTarget == nil or not (W.ready or R.ready) then
     return
   end
@@ -1370,7 +1411,7 @@ function Auto()
     CastR2(KSTarget, Auto)
   end
   
-  if W.ready and AutoAutoW and not (ComboOn or HarassOn or JStealOn) and AutoWmin <= AutoEnemyCount(W.radius) then
+  if W.ready and AutoAutoW and not (ComboOn or HarassOn) and AutoWmin <= AutoEnemyCount(W.radius) then
     CastW()
   end
   
@@ -1400,12 +1441,10 @@ function Flee()
   
   if E.ready and os.clock()-LastQ >= 0.25 then
     CastE(mousePos)
-    LastE = os.clock()
   end
   
   if Q.ready and os.clock()-LastE >= 0.25 then
     CastQ(mousePos)
-    LastQ = os.clock()
   end
   
 end
@@ -1940,6 +1979,8 @@ function CastQ(enemy)
     CastSpell(_Q, enemy.x, enemy.z)
   end
   
+  LastQ = os.clock()
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1964,6 +2005,8 @@ function CastE(Pos)
     CastSpell(_E, Pos.x, Pos.z)
   end
   
+  LastE = os.clock()
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1979,6 +2022,14 @@ function CastFR()
 end
 
 function CastSR(enemy)
+
+  if enemy == nil then
+    return
+  end
+  
+  CanQ = false
+  CanW = false
+  CanE = false
   
   if VIP_USER and Menu.Misc.UsePacket then
     Packet('S_CAST', {spellId = _R, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z}):send()
@@ -2168,6 +2219,7 @@ function OnProcessSpell(object, spell)
       end
       
       if Q.state <= 1 then
+        LastQ2 = os.clock()
         Q.state = Q.state + 1
       elseif Q.state == 2 then
         Q.state = 0
