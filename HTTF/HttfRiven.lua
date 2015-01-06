@@ -1,4 +1,4 @@
-Version = "3.13"
+Version = "3.131"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -119,6 +119,7 @@ function Variables()
   CanE = true
   CanSR = true
   FCDamage = {}
+  LastRC = 0
   LastAA = 0
   LastP = 0
   LastQ = 0
@@ -540,6 +541,10 @@ function Check()
     R.state = false
   end
   
+  if Recall and os.clock()-LastRC >= 8.5 then
+    Recall = false
+  end
+  
   Q.ready = myHero:CanUseSpell(_Q) == READY
   W.ready = myHero:CanUseSpell(_W) == READY
   E.ready = myHero:CanUseSpell(_E) == READY
@@ -575,13 +580,13 @@ function Check()
     W.radius = 250
   end
   
-  TrueRange = myHero.range+GetDistance(myHero.minBBox, myHero)
+  TrueRange = myHero.range+GetDistance(myHero.minBBox)/2
   
   if Target ~=nil then
   
     TargetHealthPercent = (Target.health/Target.maxHealth)*100
     
-    local AddRange = GetDistance(Target.minBBox, Target)
+    local AddRange = GetDistance(Target.minBBox, Target)/2
     
     TrueTargetRange = TrueRange+AddRange
     TargetAddRange = AddRange
@@ -590,7 +595,7 @@ function Check()
   
   if KSTarget ~= nil then
     KSTargetHealthPercent = (KSTarget.health/KSTarget.maxHealth)*100
-    KSTargetAddRange = GetDistance(KSTarget.minBBox, KSTarget)
+    KSTargetAddRange = GetDistance(KSTarget.minBBox, KSTarget)/2
   end
   
   Q.level = player:GetSpellData(_Q).level
@@ -880,21 +885,21 @@ function FCombo()
     
     if not R.state then
     
-      if FComboF and F.ready and not ValidTarget(Target, E.range+W.radius-20) and ValidTarget(Target, E.range+F.range+W.radius-20) then
+      if FComboF and F.ready and not ValidTarget(Target, E.range+TrueRange-20) and ValidTarget(Target, E.range+F.range+W.radius-20) then
         CastE(Target)
         DelayAction(function() CastFR() end, 0.2)
         DelayAction(function() CastF(Target) end, 0.25)
-      elseif not (FComboF and F.ready) and ValidTarget(Target, E.range+W.radius-20) then
+      elseif not (FComboF and F.ready) and ValidTarget(Target, E.range+TrueRange-20) then
         CastE(Target)
         DelayAction(function() CastFR() end, 0.25)
       end
       
     elseif R.state then
     
-      if FComboF and F.ready and not ValidTarget(Target, E.range+W.radius-20) and ValidTarget(Target, E.range+F.range+W.radius-20) then
+      if FComboF and F.ready and not ValidTarget(Target, E.range+TrueRange-20) and ValidTarget(Target, E.range+F.range+W.radius-20) then
         CastE(Target)
         DelayAction(function() CastF(Target) end, 0.25)
-      elseif not (FComboF and F.ready) and ValidTarget(Target, E.range+W.radius-20) then
+      elseif not (FComboF and F.ready) and ValidTarget(Target, E.range+TrueRange-20) then
         CastE(Target)
       end
       
@@ -994,7 +999,7 @@ function Farm()
       return
     end
     
-    local AddRange = GetDistance(minion.minBBox, minion)
+    local AddRange = GetDistance(minion.minBBox, minion)/2
     local TrueminionRange = TrueRange+AddRange
     
     local FarmQ = Menu.Clear.Farm.Q
@@ -1079,7 +1084,7 @@ function JFarm()
       return
     end
     
-    local AddRange = GetDistance(junglemob.minBBox, junglemob)
+    local AddRange = GetDistance(junglemob.minBBox, junglemob)/2
     local TruejunglemobRange = TrueRange+AddRange
     
     local JFarmQ = Menu.Clear.JFarm.Q
@@ -1386,7 +1391,7 @@ function Auto()
   
   local FleeOn = Menu.Flee.On
   
-  if Q.ready and Q.state >= 1 and AutoStackQ and not FleeOn and os.clock()-LastQ2 > 3.75 then
+  if Q.ready and Q.state >= 1 and AutoStackQ and not FleeOn and os.clock()-LastQ2 > 3.7 then
     CastQ(mousePos)
   end
   
@@ -1522,7 +1527,7 @@ function Orbwalk(State)
             return
           end
           
-          local AddRange = GetDistance(minion.minBBox, minion)
+          local AddRange = GetDistance(minion.minBBox, minion)/2
           local TrueminionRange = TrueRange+AddRange
           
           local AAMinionDmg = GetDmg("AD", minion)
@@ -1542,7 +1547,7 @@ function Orbwalk(State)
             return
           end
           
-          local AddRange = GetDistance(minion.minBBox, minion)
+          local AddRange = GetDistance(minion.minBBox, minion)/2
           local TrueminionRange = TrueRange+AddRange
           
           local AAMinionDmg = GetDmg("AD", minion)
@@ -1560,7 +1565,7 @@ function Orbwalk(State)
             return
           end
           
-          local AddRange = GetDistance(minion.minBBox, minion)
+          local AddRange = GetDistance(minion.minBBox, minion)/2
           local TrueminionRange = TrueRange+AddRange
           
           local AAMinionDmg = GetDmg("AD", minion)
@@ -1584,7 +1589,7 @@ function Orbwalk(State)
         
         --if GetDistance(
         
-        local AddRange = GetDistance(junglemob.minBBox, junglemob)
+        local AddRange = GetDistance(junglemob.minBBox, junglemob)/2
         local TruejunglemobRange = TrueRange+AddRange
         
         if ValidTarget(junglemob, TruejunglemobRange) then
@@ -1602,7 +1607,7 @@ function Orbwalk(State)
           return
         end
         
-        local AddRange = GetDistance(minion.minBBox, minion)
+        local AddRange = GetDistance(minion.minBBox, minion)/2
         local TrueminionRange = TrueRange+AddRange
         
         local AAminionDmg = GetDmg("AD", minion)
@@ -2196,6 +2201,11 @@ function OnProcessSpell(object, spell)
 
   if object.isMe then
   
+    if spell.name:find("recall") then
+      LastRC = os.clock()
+      Recall = true
+    end
+    
     if not BeingQ and spell.name:find("RivenBasicAttack" or "RivenBasicAttack2" or "RivenBasicAttack3") then
       LastAA = os.clock()
       LastP = os.clock()
