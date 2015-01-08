@@ -1,4 +1,4 @@
-Version = "1.22"
+Version = "1.221"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -255,7 +255,7 @@ function VladimirMenu()
   
   Menu:addSubMenu("Predict Settings", "Predict")
   
-    Menu.Predict:addParam("PdOpt", "Predict Settings (Require reload)", SCRIPT_PARAM_LIST, 2, { "Prodiction (Only Donator)", "VPrediction"})
+    Menu.Predict:addParam("PdOpt", "Predict Settings (Reload Required)", SCRIPT_PARAM_LIST, 2, { "Prodiction (Only Donator)", "VPrediction"})
     
   Menu:addSubMenu("Combo Settings", "Combo")
   
