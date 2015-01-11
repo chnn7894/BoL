@@ -1,4 +1,4 @@
-Version = "3.142"
+Version = "3.143"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -1340,7 +1340,7 @@ function Auto()
   
   local FleeOn = Menu.Flee.On
   
-  if Q.ready and Q.state >= 1 and AutoStackQ and not FleeOn and os.clock()-LastQ2 > 3.75-0.01 then
+  if Q.ready and Q.state >= 1 and AutoStackQ and not FleeOn and os.clock()-LastQ2 > 3.7 then
     CastQ(mousePos)
   end
   
