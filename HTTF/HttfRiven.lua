@@ -1,4 +1,4 @@
-Version = "3.14"
+Version = "3.141"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -392,6 +392,7 @@ function RivenMenu()
   Menu:addSubMenu("Draw Settings", "Draw")
     Menu.Draw:addParam("On", "Draw", SCRIPT_PARAM_ONOFF, true)
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Draw:addParam("Target", "Draw Target", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("Q", "Draw Q range", SCRIPT_PARAM_ONOFF, false)
     Menu.Draw:addParam("W", "Draw W range", SCRIPT_PARAM_ONOFF, true)
@@ -414,8 +415,7 @@ function OnTick()
   end
   
   Checks()
-  Target = NormalTarget()
-  KSTarget = KsTarget()
+  Targets()
   
   if Menu.KillSteal.On then
     KillSteal()
@@ -560,22 +560,26 @@ function Checks()
     W.radius = 250
   end
   
-  TrueRange = myHero.range+GetDistance(myHero.minBBox)/2
+  MyminBBox = GetDistance(myHero.minBBox)/2
+  TrueRange = myHero.range+MyminBBox
+  TargetHealthPercent = 100
+  KSTargetHealthPercent = 100
   
   if Target ~=nil then
   
-    TargetHealthPercent = (Target.health/Target.maxHealth)*100
-    
     local AddRange = GetDistance(Target.minBBox, Target)/2
     
-    TrueTargetRange = TrueRange+AddRange
     TargetAddRange = AddRange
-    
+    TrueTargetRange = TrueRange+AddRange
+    TargetHealthPercent = (Target.health/Target.maxHealth)*100
   end
   
   if KSTarget ~= nil then
+  
+    local AddRange = GetDistance(KSTarget.minBBox, KSTarget)/2
+    
+    KSTargetAddRange = AddRange
     KSTargetHealthPercent = (KSTarget.health/KSTarget.maxHealth)*100
-    KSTargetAddRange = GetDistance(KSTarget.minBBox, KSTarget)/2
   end
   
   Q.level = myHero:GetSpellData(_Q).level
@@ -631,23 +635,12 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
-function NormalTarget()
+function Targets()
 
   TS:update()
-  
-  if TS.target then
-    return TS.target
-  end
-  
-end
-
-function KsTarget()
-
   KSTS:update()
-  
-  if KSTS.target then
-    return KSTS.target
-  end
+  Target = TS.target
+  KSTarget = KSTS.target
   
 end
 
@@ -1833,28 +1826,36 @@ function OnDraw()
     return
   end
   
+  if Menu.Draw.Target and Target ~= nil then
+  
+    for i = 0, 1 do
+      DrawCircle(Target.x, Target.y, Target.z, TargetAddRange+i, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+    end
+    
+  end
+  
   if Menu.Draw.AA then
-    DrawCircle(myHero.x, myHero.y, myHero.z, TrueRange, ARGB(0xFF,0,0xFF,0))
+    DrawCircle(myHero.x, myHero.y, myHero.z, TrueRange, ARGB(0xFF, 0, 0xFF, 0))
   end
   
   if Menu.Draw.Q then
-    DrawCircle(myHero.x, myHero.y, myHero.z, Q.range, ARGB(0xFF,0xFF,0xFF,0xFF))
+    DrawCircle(myHero.x, myHero.y, myHero.z, Q.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
   if Menu.Draw.W and W.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, W.radius, ARGB(0xFF,0xFF,0xFF,0xFF))
+    DrawCircle(myHero.x, myHero.y, myHero.z, W.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
   if Menu.Draw.E and E.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, E.range, ARGB(0xFF,0xFF,0xFF,0xFF))
+    DrawCircle(myHero.x, myHero.y, myHero.z, E.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
   if Menu.Draw.R and R.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, R.range, ARGB(0xFF,0xFF,0,0))
+    DrawCircle(myHero.x, myHero.y, myHero.z, R.range, ARGB(0xFF, 0xFF, 0, 0))
   end
   
   if Menu.Draw.S and S.ready and ((Menu.Auto.On and Menu.Auto.AutoS) or (Menu.JSteal.On and Menu.JSteal.S)) then
-    DrawCircle(myHero.x, myHero.y, myHero.z, S.range, ARGB(0xFF,0xFF,0x14,0x93))
+    DrawCircle(myHero.x, myHero.y, myHero.z, S.range, ARGB(0xFF, 0xFF, 0x14, 0x93))
   end
   
   if _ENV.Menu.Draw.FCD then
