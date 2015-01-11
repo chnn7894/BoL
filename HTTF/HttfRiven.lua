@@ -1,4 +1,4 @@
-Version = "3.16"
+Version = "3.161"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -609,7 +609,7 @@ function _ENV.DrawKillable()
   
 end
 
-function _ENV.GetFCDmg(enemy)
+function _ENV.GetFCDmg(enemy, full)
   
   local PADTargetDmg = GetDmg("PAD", enemy)
   local QTargetDmg = GetDmg("Q", enemy)
@@ -625,8 +625,18 @@ function _ENV.GetFCDmg(enemy)
   
   if not (R.ready or R.state) then
     TotalDmg = WTargetDmg+PADTargetDmg+QTargetDmg*(3-Q.state)+FCRTargetDmg
+    
+    if full then
+      TotalDmg = TotalDmg+2*PADTargetDmg
+    end
+    
   else
     TotalDmg = RWTargetDmg+RADTargetDmg+RQTargetDmg*(3-Q.state)+RFCRTargetDmg
+    
+    if full then
+      TotalDmg = TotalDmg+2*RADTargetDmg
+    end
+    
   end
   
   return TotalDmg
