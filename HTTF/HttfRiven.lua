@@ -1,4 +1,4 @@
-Version = "3.143"
+Version = "3.15"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -769,7 +769,7 @@ function Combo()
     return
   end
   
-  if CanTurn then
+  if CanTurn and ValidTarget(Target, TrueTargetRange) then
     CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
     MoveToPos(CancelPos)
     CanTurn = false
@@ -908,7 +908,7 @@ function FCombo()
     
   elseif AfterCombo then
   
-    if CanTurn then
+    if CanTurn and ValidTarget(Target, TrueTargetRange) then
       CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
       MoveToPos(CancelPos)
       CanTurn = false
@@ -977,7 +977,7 @@ function Farm()
     local QMinionDmg = GetDmg("Q", minion)
     local WMinionDmg = GetDmg("W", minion)
 
-    if CanTurn then
+    if CanTurn and ValidTarget(minion, TrueMinionRange) then
       CancelPos = myHero+(Vector(minion)-myHero):normalized()*-300
       MoveToPos(CancelPos)
       CanTurn = false
@@ -1054,7 +1054,7 @@ function JFarm()
     local JFarmTH = Menu.Clear.JFarm.TH
     local JFarmTHmin = Menu.Clear.JFarm.THmin
     
-    if CanTurn then
+    if CanTurn and ValidTarget(junglemob, TrueJunglemobRange) then
       CancelPos = myHero+(Vector(junglemob)-myHero):normalized()*-300
       MoveToPos(CancelPos)
       CanTurn = false
@@ -1181,7 +1181,7 @@ function Harass()
   local HarassW = Menu.Harass.W
   local HarassE = Menu.Harass.E
   
-  if CanTurn then
+  if CanTurn and ValidTarget(Target, TrueTargetRange) then
     CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
     MoveToPos(CancelPos)
     CanTurn = false
