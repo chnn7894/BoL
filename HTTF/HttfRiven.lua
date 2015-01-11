@@ -1,4 +1,4 @@
-Version = "3.15"
+Version = "3.16"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -268,7 +268,7 @@ function RivenMenu()
       Menu.Combo:addParam("EAA", "Don't use E if enemy is in AA range", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("FR", "Use Active R (FR)", SCRIPT_PARAM_LIST, 3, { "None", "Killable", "Max Damage or Killable"})
+      Menu.Combo:addParam("FR", "Use Active R (FR)", SCRIPT_PARAM_LIST, 4, { "None", "Killable", "Max Damage or Killable", "Full Combo"})
       Menu.Combo:addParam("SR", "Use Cast R (SR)", SCRIPT_PARAM_LIST, 2, { "None", "Killable", "Max Damage or Killable"})
       Menu.Combo:addParam("Rearly", "Use Second R early", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("DontR", "Don't use SR if Killable with Q or W", SCRIPT_PARAM_ONOFF, false)
@@ -624,9 +624,9 @@ function _ENV.GetFCDmg(enemy)
   local TotalDmg = 0
   
   if not (R.ready or R.state) then
-    TotalDmg = WTargetDmg+QTargetDmg*(3-Q.state)+FCRTargetDmg
+    TotalDmg = WTargetDmg+PADTargetDmg+QTargetDmg*(3-Q.state)+FCRTargetDmg
   else
-    TotalDmg = RWTargetDmg+RQTargetDmg*(3-Q.state)+RFCRTargetDmg
+    TotalDmg = RWTargetDmg+RADTargetDmg+RQTargetDmg*(3-Q.state)+RFCRTargetDmg
   end
   
   return TotalDmg
@@ -703,10 +703,18 @@ function Combo()
     
       if ComboFR == 2 and RRKSTargetDmg >= KSTarget.health then
         CastFR()
-        return
       elseif ComboFR == 3 and (RRKSTargetDmg >= KSTarget.health or 25 >= KSTargetHealthPercent) then
         CastFR()
-        return
+      elseif ComboFR == 4 and GetFCDmg(KSTarget) >= KSTarget.health then
+      
+        if ValidTarget(KSTarget, TrueTargetRange) then
+          CastFR()
+        elseif not (Q.ready and ComboQ) and E.ready and ComboE and ValidTarget(KSTarget, E.range+TrueTargetRange-50) then
+          CastFR()
+        elseif Q.ready and ComboQ and E.ready and ComboE and ValidTarget(KSTarget, Q.radius+E.range-50) then
+          CastFR()
+        end
+        
       end
       
     end
@@ -717,10 +725,8 @@ function Combo()
     
       if ComboSR == 2 and RKSTargetDmg >= KSTarget.health then
         CastSR(KSTarget)
-        return
       elseif ComboSR == 3 and (RKSTargetDmg >= KSTarget.health or 25 >= KSTargetHealthPercent) then
         CastSR(KSTarget)
-        return
       end
       
     end
@@ -731,7 +737,6 @@ function Combo()
         CastSR(Target)
         DelayAction(function() CastQ(Target) end, 0.25)
         DelayAction(function() CastW() end, 0.5)
-        return
       end
       
       if not ComboDontR then
