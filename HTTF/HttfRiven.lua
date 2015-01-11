@@ -1,4 +1,4 @@
-Version = "3.141"
+Version = "3.142"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -477,7 +477,7 @@ function Checks()
     CanSR = true
   end
   
-  if BeingQ and os.clock()-LastQ >= 0.25+0.148 then
+  if BeingQ and os.clock()-LastQ >= 0.25+0.149 then
     BeingQ = false
     CanMove = true
     CanAA = true
@@ -770,7 +770,7 @@ function Combo()
   end
   
   if CanTurn then
-    CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
+    CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
     MoveToPos(CancelPos)
     CanTurn = false
   end
@@ -909,7 +909,7 @@ function FCombo()
   elseif AfterCombo then
   
     if CanTurn then
-      CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
+      CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
       MoveToPos(CancelPos)
       CanTurn = false
     end
@@ -1182,7 +1182,7 @@ function Harass()
   local HarassE = Menu.Harass.E
   
   if CanTurn then
-    CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
+    CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
     MoveToPos(CancelPos)
     CanTurn = false
   end
