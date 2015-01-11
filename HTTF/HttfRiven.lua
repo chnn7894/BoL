@@ -80,7 +80,6 @@ end
 function Variables()
 
   Target = nil
-  Player = GetMyHero()
   EnemyHeroes = GetEnemyHeroes()
   
   if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
@@ -155,12 +154,14 @@ function Variables()
   }
   
   MyFirstminBBox = 39.44
-  TrueRange = myHero.range+MyFirstminBBox --Use default myHero.range
-  TrueTargetRange = TrueRange
+  TrueRange = 125.5+MyFirstminBBox
+  TrueTargetRange = TrueRange+100
+  
   TargetAddRange = 0
   KSTargetAddRange = 0
-  TrueminionRange = TrueRange
-  TruejunglemobRange = TrueRange
+  
+  TrueMinionRange = TrueRange+100
+  TrueJunglemobRange = TrueRange+100
   
   S5SR = false
   TT = false
@@ -242,9 +243,9 @@ function Variables()
   TS = TargetSelector(TARGET_NEAR_MOUSE, R.range, DAMAGE_PHYSICAL, false)
   KSTS = TargetSelector(TARGET_LESS_CAST, R.range, DAMAGE_PHYSICAL, false)
   
-  AllyMinions = minionManager(MINION_ALLY, Q.range+E.range+TrueRange, player, MINION_SORT_MAXHEALTH_DEC)
-  EnemyMinions = minionManager(MINION_ENEMY, Q.range+E.range+TrueRange, player, MINION_SORT_MAXHEALTH_DEC)
-  JungleMobs = minionManager(MINION_JUNGLE, Q.range+E.range+TrueRange, player, MINION_SORT_MAXHEALTH_DEC)
+  AllyMinions = minionManager(MINION_ALLY, Q.range+E.range+TrueTargetRange, myHero, MINION_SORT_MAXHEALTH_DEC)
+  EnemyMinions = minionManager(MINION_ENEMY, Q.range+E.range+TrueMinionRange, myHero, MINION_SORT_MAXHEALTH_DEC)
+  JungleMobs = minionManager(MINION_JUNGLE, Q.range+E.range+TrueJunglemobRange, myHero, MINION_SORT_MAXHEALTH_DEC)
   
 end
 
@@ -577,10 +578,10 @@ function Checks()
     KSTargetAddRange = GetDistance(KSTarget.minBBox, KSTarget)/2
   end
   
-  Q.level = player:GetSpellData(_Q).level
-  W.level = player:GetSpellData(_W).level
-  E.level = player:GetSpellData(_E).level
-  R.level = player:GetSpellData(_R).level
+  Q.level = myHero:GetSpellData(_Q).level
+  W.level = myHero:GetSpellData(_W).level
+  E.level = myHero:GetSpellData(_E).level
+  R.level = myHero:GetSpellData(_R).level
   
   _ENV.DrawKillable()
   
@@ -971,7 +972,7 @@ function Farm()
     end
     
     local AddRange = GetDistance(minion.minBBox, minion)/2
-    local TrueminionRange = TrueRange+AddRange
+    local TrueMinionRange = TrueRange+AddRange
     
     local FarmQ = Menu.Clear.Farm.Q
     local FarmW = Menu.Clear.Farm.W
@@ -1003,7 +1004,7 @@ function Farm()
     
       if Q.ready and FarmQ and ValidTarget(minion, Q.radius+E.range+AddRange-50) then
         CastE(minion)
-      elseif ValidTarget(minion, E.range+TrueminionRange-50) then
+      elseif ValidTarget(minion, E.range+TrueMinionRange-50) then
         CastE(minion)
       end
       
@@ -1052,7 +1053,7 @@ function JFarm()
     end
     
     local AddRange = GetDistance(junglemob.minBBox, junglemob)/2
-    local TruejunglemobRange = TrueRange+AddRange
+    local TrueJunglemobRange = TrueRange+AddRange
     
     local JFarmQ = Menu.Clear.JFarm.Q
     local JFarmW = Menu.Clear.JFarm.W
@@ -1082,7 +1083,7 @@ function JFarm()
     
       if Q.ready and JFarmQ and ValidTarget(junglemob, Q.radius+E.range+AddRange-50) then
         CastE(junglemob)
-      elseif ValidTarget(junglemob, E.range+TruejunglemobRange-50) then
+      elseif ValidTarget(junglemob, E.range+TrueJunglemobRange-50) then
         CastE(junglemob)
       end
       
@@ -1415,12 +1416,12 @@ function AutoLevel()
 
   if Menu.Misc.ALOpt == 1 then
   
-    if Q.level+W.level+E.level+R.level < player.level then
+    if Q.level+W.level+E.level+R.level < myHero.level then
     
       local spell = {SPELL_1, SPELL_2, SPELL_3, SPELL_4}
       local level = {0, 0, 0, 0}
       
-      for i = 1, player.level, 1 do
+      for i = 1, myHero.level, 1 do
         level[AutoEQWQ[i]] = level[AutoEQWQ[i]]+1
       end
       
@@ -1436,12 +1437,12 @@ function AutoLevel()
     
   elseif Menu.Misc.ALOpt == 2 then
   
-    if Q.level+W.level+E.level+R.level < player.level then
+    if Q.level+W.level+E.level+R.level < myHero.level then
     
       local spell = {SPELL_1, SPELL_2, SPELL_3, SPELL_4}
       local level = {0, 0, 0, 0}
       
-      for i = 1, player.level, 1 do
+      for i = 1, myHero.level, 1 do
         level[AutoQEWQ[i]] = level[AutoQEWQ[i]]+1
       end
       
@@ -1483,11 +1484,11 @@ function Orbwalk(State)
           end
           
           local AddRange = GetDistance(minion.minBBox, minion)/2
-          local TrueminionRange = TrueRange+AddRange
+          local TrueMinionRange = TrueRange+AddRange
           
           local AAMinionDmg = GetDmg("AD", minion)
           
-          if ValidTarget(minion, TrueminionRange) then
+          if ValidTarget(minion, TrueMinionRange) then
             OrbCastAA(minion)
             return
           end
@@ -1503,11 +1504,11 @@ function Orbwalk(State)
           end
           
           local AddRange = GetDistance(minion.minBBox, minion)/2
-          local TrueminionRange = TrueRange+AddRange
+          local TrueMinionRange = TrueRange+AddRange
           
           local AAMinionDmg = GetDmg("AD", minion)
           
-          if AAMinionDmg >= minion.health and ValidTarget(minion, TrueminionRange) then
+          if AAMinionDmg >= minion.health and ValidTarget(minion, TrueMinionRange) then
             OrbCastAA(minion)
             return
           end
@@ -1521,11 +1522,11 @@ function Orbwalk(State)
           end
           
           local AddRange = GetDistance(minion.minBBox, minion)/2
-          local TrueminionRange = TrueRange+AddRange
+          local TrueMinionRange = TrueRange+AddRange
           
           local AAMinionDmg = GetDmg("AD", minion)
           
-          if minion.health >= AAMinionDmg+40*AllyMinionCount(R.range)--[[2*AAMinionDmg]] and ValidTarget(minion, TrueminionRange) then
+          if minion.health >= AAMinionDmg+40*AllyMinionCount(R.range)--[[2*AAMinionDmg]] and ValidTarget(minion, TrueMinionRange) then
             OrbCastAA(minion)
             return
           end
@@ -1545,9 +1546,9 @@ function Orbwalk(State)
         --if GetDistance(
         
         local AddRange = GetDistance(junglemob.minBBox, junglemob)/2
-        local TruejunglemobRange = TrueRange+AddRange
+        local TrueJunglemobRange = TrueRange+AddRange
         
-        if ValidTarget(junglemob, TruejunglemobRange) then
+        if ValidTarget(junglemob, TrueJunglemobRange) then
           OrbCastAA(junglemob)
           return
         end
@@ -1563,11 +1564,11 @@ function Orbwalk(State)
         end
         
         local AddRange = GetDistance(minion.minBBox, minion)/2
-        local TrueminionRange = TrueRange+AddRange
+        local TrueMinionRange = TrueRange+AddRange
         
         local AAminionDmg = GetDmg("AD", minion)
         
-        if AAminionDmg >= minion.health and ValidTarget(minion, TrueminionRange) then
+        if AAminionDmg >= minion.health and ValidTarget(minion, TrueMinionRange) then
           OrbCastAA(minion)
           return
         end
@@ -1833,27 +1834,27 @@ function OnDraw()
   end
   
   if Menu.Draw.AA then
-    DrawCircle(Player.x, Player.y, Player.z, TrueRange, ARGB(0xFF,0,0xFF,0))
+    DrawCircle(myHero.x, myHero.y, myHero.z, TrueRange, ARGB(0xFF,0,0xFF,0))
   end
   
   if Menu.Draw.Q then
-    DrawCircle(Player.x, Player.y, Player.z, Q.range, ARGB(0xFF,0xFF,0xFF,0xFF))
+    DrawCircle(myHero.x, myHero.y, myHero.z, Q.range, ARGB(0xFF,0xFF,0xFF,0xFF))
   end
   
   if Menu.Draw.W and W.ready then
-    DrawCircle(Player.x, Player.y, Player.z, W.radius, ARGB(0xFF,0xFF,0xFF,0xFF))
+    DrawCircle(myHero.x, myHero.y, myHero.z, W.radius, ARGB(0xFF,0xFF,0xFF,0xFF))
   end
   
   if Menu.Draw.E and E.ready then
-    DrawCircle(Player.x, Player.y, Player.z, E.range, ARGB(0xFF,0xFF,0xFF,0xFF))
+    DrawCircle(myHero.x, myHero.y, myHero.z, E.range, ARGB(0xFF,0xFF,0xFF,0xFF))
   end
   
   if Menu.Draw.R and R.ready then
-    DrawCircle(Player.x, Player.y, Player.z, R.range, ARGB(0xFF,0xFF,0,0))
+    DrawCircle(myHero.x, myHero.y, myHero.z, R.range, ARGB(0xFF,0xFF,0,0))
   end
   
   if Menu.Draw.S and S.ready and ((Menu.Auto.On and Menu.Auto.AutoS) or (Menu.JSteal.On and Menu.JSteal.S)) then
-    DrawCircle(Player.x, Player.y, Player.z, S.range, ARGB(0xFF,0xFF,0x14,0x93))
+    DrawCircle(myHero.x, myHero.y, myHero.z, S.range, ARGB(0xFF,0xFF,0x14,0x93))
   end
   
   if _ENV.Menu.Draw.FCD then
