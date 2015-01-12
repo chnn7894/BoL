@@ -1,4 +1,4 @@
-Version = "3.161"
+Version = "3.162"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -118,12 +118,14 @@ function Variables()
   CanE = true
   CanSR = true
   FCDamage = {}
+  LastRC = 0
   LastAA = 0
   LastP = 0
   LastQ = 0
   LastQ2 = 0
   LastW = 0
   LastE = 0
+  LastFR = 0
   LastDraw = 0
   Recall = false
   
@@ -468,7 +470,7 @@ end
 
 function Checks()
 
-  if BeingAA and os.clock()-LastAA >= WindUpTime+0.003 then
+  if BeingAA and os.clock()-LastAA >= WindUpTime+0.002 then
     BeingAA = false
     CanMove = true
     CanQ = true
@@ -477,7 +479,7 @@ function Checks()
     CanSR = true
   end
   
-  if BeingQ and os.clock()-LastQ >= 0.25+0.149 then
+  if BeingQ and os.clock()-LastQ >= 0.25+0.15 then
     BeingQ = false
     CanMove = true
     CanAA = true
@@ -493,11 +495,11 @@ function Checks()
     CanMove = true
   end
   
-  if not CanMove and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA >= WindUpTime+0.003 then
+  if not CanMove and not (BeingAA or BeingQ or BeingW or BeingE) and os.clock()-LastAA >= WindUpTime+0.002 then
     CanMove = true
   end
   
-  if not CanAA and not (BeingQ or BeingW or BeingE) and os.clock()-LastAA >= AnimationTime+0.003 then
+  if not CanAA and not (BeingQ or BeingW or BeingE) and os.clock()-LastAA >= AnimationTime+0.002 then
     CanAA = true
   end
   
@@ -523,6 +525,14 @@ function Checks()
   
   if Q.state ~= 0 and os.clock()-LastQ >= 4 then
     Q.state = 0
+  end
+  
+  if R.state and os.clock()-LastFR >= 15 then
+    R.state = false
+  end
+  
+  if Recall and os.clock()-LastRC >= 8.5 then
+    Recall = false
   end
   
   Q.ready = myHero:CanUseSpell(_Q) == READY
@@ -713,16 +723,21 @@ function Combo()
     
       if ComboFR == 2 and RRKSTargetDmg >= KSTarget.health then
         CastFR()
+        return
       elseif ComboFR == 3 and (RRKSTargetDmg >= KSTarget.health or 25 >= KSTargetHealthPercent) then
         CastFR()
-      elseif ComboFR == 4 and GetFCDmg(KSTarget) >= KSTarget.health then
+        return
+      elseif ComboFR == 4 and GetFCDmg(KSTarget, true) >= KSTarget.health then
       
         if ValidTarget(KSTarget, TrueTargetRange) then
           CastFR()
+          return
         elseif not (Q.ready and ComboQ) and E.ready and ComboE and ValidTarget(KSTarget, E.range+TrueTargetRange-50) then
           CastFR()
+          return
         elseif Q.ready and ComboQ and E.ready and ComboE and ValidTarget(KSTarget, Q.radius+E.range-50) then
           CastFR()
+          return
         end
         
       end
@@ -735,8 +750,10 @@ function Combo()
     
       if ComboSR == 2 and RKSTargetDmg >= KSTarget.health then
         CastSR(KSTarget)
+        return
       elseif ComboSR == 3 and (RKSTargetDmg >= KSTarget.health or 25 >= KSTargetHealthPercent) then
         CastSR(KSTarget)
+        return
       end
       
     end
@@ -747,6 +764,7 @@ function Combo()
         CastSR(Target)
         DelayAction(function() CastQ(Target) end, 0.25)
         DelayAction(function() CastW() end, 0.5)
+        return
       end
       
       if not ComboDontR then
@@ -786,6 +804,10 @@ function Combo()
   
   if CanTurn and ValidTarget(Target, TrueTargetRange) then
     CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
+    MoveToPos(CancelPos)
+    CanTurn = false
+  elseif CanTurn and not ValidTarget(Target, TrueTargetRange) then
+    CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
     MoveToPos(CancelPos)
     CanTurn = false
   end
@@ -869,7 +891,7 @@ function FCombo()
     
     if not R.state then
     
-      if FComboF and F.ready and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, E.range+F.range+W.radius-50) then
+      if FComboF and F.ready and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, E.range+F.range+TargetAddRange-50) then
         CastE(Target)
         DelayAction(function() CastFR() end, 0.2)
         DelayAction(function() CastF(Target) end, 0.25)
@@ -880,7 +902,7 @@ function FCombo()
       
     elseif R.state then
     
-      if FComboF and F.ready and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, E.range+F.range+W.radius-50) then
+      if FComboF and F.ready and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, E.range+F.range+TargetAddRange-50) then
         CastE(Target)
         DelayAction(function() CastF(Target) end, 0.25)
       elseif not (FComboF and F.ready) and ValidTarget(Target, E.range+TrueTargetRange-50) then
@@ -925,6 +947,10 @@ function FCombo()
   
     if CanTurn and ValidTarget(Target, TrueTargetRange) then
       CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
+      MoveToPos(CancelPos)
+      CanTurn = false
+    elseif CanTurn and not ValidTarget(Target, TrueTargetRange) then
+      CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
       MoveToPos(CancelPos)
       CanTurn = false
     end
@@ -994,6 +1020,10 @@ function Farm()
 
     if CanTurn and ValidTarget(minion, TrueMinionRange) then
       CancelPos = myHero+(Vector(minion)-myHero):normalized()*-300
+      MoveToPos(CancelPos)
+      CanTurn = false
+    elseif CanTurn and not ValidTarget(minion, TrueMinionRange) then
+      CancelPos = myHero+(Vector(minion)-myHero):normalized()*300
       MoveToPos(CancelPos)
       CanTurn = false
     end
@@ -1071,6 +1101,10 @@ function JFarm()
     
     if CanTurn and ValidTarget(junglemob, TrueJunglemobRange) then
       CancelPos = myHero+(Vector(junglemob)-myHero):normalized()*-300
+      MoveToPos(CancelPos)
+      CanTurn = false
+    elseif CanTurn and not ValidTarget(junglemob, TrueJunglemobRange) then
+      CancelPos = myHero+(Vector(junglemob)-myHero):normalized()*300
       MoveToPos(CancelPos)
       CanTurn = false
     end
@@ -1198,6 +1232,10 @@ function Harass()
   
   if CanTurn and ValidTarget(Target, TrueTargetRange) then
     CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
+    MoveToPos(CancelPos)
+    CanTurn = false
+  elseif CanTurn and not ValidTarget(Target, TrueTargetRange) then
+    CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
     MoveToPos(CancelPos)
     CanTurn = false
   end
@@ -2164,9 +2202,9 @@ function MoveToMouse()
 end
 
 ----------------------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------- Doesn't work for free user, Now
 
-function OnGainBuff(unit, buff)
+--[[function OnGainBuff(unit, buff)
 
   if unit.isMe then
   
@@ -2290,6 +2328,110 @@ function OnProcessSpell(object, spell)
       
       BeingE = true
       CanE = false
+    end
+    
+  end
+  
+end]]
+
+----------------------------------------------------------------------------------------------------
+
+function OnProcessSpell(object, spell)
+
+  if object.isMe then
+  
+    if spell.name:find("recall") then
+      LastRC = os.clock()
+      Recall = true
+    end
+    
+    if not BeingQ and spell.name:find("RivenBasicAttack") then
+      LastAA = os.clock()
+      LastP = os.clock()
+      
+      if P.stack >= 1 then
+        P.stack = P.stack - 1
+      end
+      
+      AnimationTime = spell.animationTime
+      WindUpTime = spell.windUpTime
+      BeingAA = true
+      CanAA = false
+    end
+    
+    if spell.name:find("RivenTriCleave") then
+      LastQ = os.clock()
+      LastP = os.clock()
+      
+      if P.stack <= 2 then
+        P.stack = P.stack + 1
+      end
+      
+      if Q.state <= 1 then
+        LastQ2 = os.clock()
+        Q.state = Q.state + 1
+      elseif Q.state == 2 then
+        Q.state = 0
+      end
+      
+      BeingQ = true
+      CanMove = false
+      CanQ = false
+      StartFullCombo = false
+      StartFullCombo2 = false
+      StartFullCombo3 = false
+      AfterCombo = true
+    end
+    
+    if spell.name:find("RivenMartyr") then
+      LastW = os.clock()
+      LastP = os.clock()
+      
+      if P.stack <= 2 then
+        P.stack = P.stack + 1
+      end
+      
+      BeingW = true
+      CanW = false
+      StartFullCombo = false
+      StartFullCombo2 = true
+    end
+    
+    if spell.name:find("RivenFeint") then
+      LastE = os.clock()
+      LastP = os.clock()
+      
+      if P.stack <= 2 then
+        P.stack = P.stack + 1
+      end
+      
+      BeingE = true
+      CanE = false
+    end
+    
+    if spell.name:find("RivenFengShuiEngine") then
+      LastFR = os.clock()
+      LastP = os.clock()
+      
+      if P.stack <= 2 then
+        P.stack = P.stack + 1
+      end
+      
+      R.state = true
+      StartFullCombo = true
+    end
+    
+    if spell.name:find("rivenizunablade") then
+      LastP = os.clock()
+      
+      if P.stack <= 2 then
+        P.stack = P.stack + 1
+      end
+      
+      R.state = false
+      CanSR = false
+      StartFullCombo2 = false
+      StartFullCombo3 = true
     end
     
   end
