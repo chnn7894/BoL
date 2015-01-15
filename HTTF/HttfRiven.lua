@@ -1,4 +1,4 @@
-Version = "3.21"
+Version = "3.211"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -1168,20 +1168,19 @@ function JFarm()
       end
       
       return
-      
     else
       break
     end
     
   end
+	
+	if not (Q.ready or W.ready or E.ready) then
+    return
+  end
   
   for i, junglemob in pairs(JungleMobs.objects) do
   
     if junglemob == nil then
-      return
-    end
-    
-    if not (Q.ready or W.ready or E.ready) then
       return
     end
     
