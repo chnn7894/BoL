@@ -1,4 +1,4 @@
-Version = "3.164"
+Version = "3.165"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -296,7 +296,7 @@ function RivenMenu()
         Menu.Clear.Farm:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.Farm:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+      Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, false)
         Menu.Clear.Farm:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("TH", "Use Tiamat or Ravenous Hydra", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.Farm:addParam("THmin", "Use Item Min Count", SCRIPT_PARAM_SLICE, 3, 1, 6, 0)
@@ -2120,23 +2120,25 @@ end
 
 function CastT()
 
-  if VIP_USER and Menu.Misc.UsePacket then
+  --[[if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["Hydra"].slot}):send()
   else
     CastSpell(Items["Tiamat"].slot)
-  end
-  
+  end]]
+  CastSpell(Items["Tiamat"].slot)
+	
 end
 
 ----------------------------------------------------------------------------------------------------
 
 function CastH()
 
-  if VIP_USER and Menu.Misc.UsePacket then
+  --[[if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["Hydra"].slot}):send()
   else
     CastSpell(Items["Hydra"].slot)
-  end
+  end]]
+	CastSpell(Items["Hydra"].slot)
   
 end
 
@@ -2144,11 +2146,12 @@ end
 
 function CastY()
 
-  if VIP_USER and Menu.Misc.UsePacket then
+  --[[if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["Youmuu"].slot}):send()
   else
     CastSpell(Items["Youmuu"].slot)
-  end
+  end]]
+	CastSpell(Items["Youmuu"].slot)
   
 end
 
@@ -2156,11 +2159,12 @@ end
 
 function CastBC(enemy)
 
-  if VIP_USER and Menu.Misc.UsePacket then
+  --[[if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["BC"].slot, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Items["BC"].slot, enemy)
-  end
+  end]]
+	CastSpell(Items["BC"].slot, enemy)
   
 end
 
@@ -2168,11 +2172,12 @@ end
 
 function CastBRK(enemy)
 
-  if VIP_USER and Menu.Misc.UsePacket then
+  --[[if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["BRK"].slot, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Items["BRK"].slot, enemy)
-  end
+  end]]
+	CastSpell(Items["BRK"].slot, enemy)
   
 end
 
