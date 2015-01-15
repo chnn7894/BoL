@@ -1,4 +1,4 @@
-Version = "3.2"
+Version = "3.20"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -81,7 +81,7 @@ function Variables()
 
   Target = nil
   EnemyHeroes = GetEnemyHeroes()
-	Towers = GetTurrets()
+  Towers = GetTurrets()
   
   if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
     Ignite = SUMMONER_1
@@ -376,7 +376,7 @@ function RivenMenu()
       Menu.Auto:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoW", "Auto W by Min Count", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Wmin", "W Min Count", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
-			Menu.Auto:addParam("DontW", "Don't use W if Enemy is under their Tower", SCRIPT_PARAM_ONOFF, true)
+      Menu.Auto:addParam("DontW", "Don't use W if Enemy is under their Tower", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoR", "Auto Cast R by Min Count", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Rmin", "Cast R Min Count", SCRIPT_PARAM_SLICE, 5, 1, 5, 0)
@@ -676,7 +676,7 @@ end
 function Combo()
 
   Orbwalk(Combo)
-	
+  
   if KSTarget == nil then
     return
   end
@@ -739,17 +739,17 @@ function Combo()
           CastFR()
           return
         elseif not (Q.ready and ComboQ) and E.ready and ComboE and ValidTarget(KSTarget, E.range+TrueTargetRange-50) then
-					CastE(KSTarget)
+          CastE(KSTarget)
           CastFR()
           return
         elseif Q.ready and ComboQ and not (E.ready and ComboE) and ValidTarget(KSTarget, Q.radius) then
           CastFR()
-					CastQ(KSTarget)
+          CastQ(KSTarget)
           return
         elseif Q.ready and ComboQ and E.ready and ComboE and ValidTarget(KSTarget, Q.radius+E.range-50) then
-					CastE(KSTarget)
+          CastE(KSTarget)
           CastFR()
-					DelayAction(function() CastQ(KSTarget) end, 0.25)
+          DelayAction(function() CastQ(KSTarget) end, 0.25)
           return
         end
         
@@ -1466,10 +1466,10 @@ function Auto()
   if Q.ready and Q.state >= 1 and AutoStackQ and not FleeOn and os.clock()-LastQ2 > 3.7 then
     CastQ(mousePos)
   end
-	
+  
   local AutoAutoW = Menu.Auto.AutoW
   local AutoWmin = Menu.Auto.Wmin
-	local AutoDontW = Menu.Auto.DontW
+  local AutoDontW = Menu.Auto.DontW
   
   local ComboOn = Menu.Combo.On
   local FComboOn = Menu.FCombo.On
@@ -1480,13 +1480,13 @@ function Auto()
   end
   
   if W.ready and AutoAutoW and not (ComboOn or HarassOn) and AutoWmin <= AutoEnemyCount(W.radius) then
-	
-		if AutoDontW and not EnemyUnderTheirTower(W.radius) then
-			CastW()
-		elseif not AutoDontW then
-			CastW()
-		end
-		
+  
+    if AutoDontW and not EnemyUnderTheirTower(W.radius) then
+      CastW()
+    elseif not AutoDontW then
+      CastW()
+    end
+    
   end
   
   if KSTarget == nil or not R.ready then
@@ -1506,7 +1506,7 @@ function AutoEnemyCount(range)
   local enemies = {}
   
   for i, enemy in ipairs(EnemyHeroes) do
-	
+  
     if ValidTarget(enemy, range) then
       table.insert(enemies, enemy)
     end
@@ -1520,20 +1520,20 @@ function EnemyUnderTheirTower(range)
 
   for i, enemy in ipairs(EnemyHeroes) do
   
-	  if ValidTarget(enemy, range) then
-		print(range+AddRange)
-			for j, tower in pairs(Towers) do
-			
-				if tower.object and tower.object.team == enemy.team and GetDistance(tower.object) <= 920 and GetDistance(enemy, tower.object) <= 920 then
-					return true
-				end
-				
-			end
-			
-	  end
-		
-	end
-	
+    if ValidTarget(enemy, range) then
+    
+      for j, tower in pairs(Towers) do
+      
+        if tower.object and tower.object.team == enemy.team and GetDistance(tower.object) <= 920 and GetDistance(enemy, tower.object) <= 920 then
+          return true
+        end
+        
+      end
+      
+    end
+    
+  end
+  
   return false
 end
 
@@ -1723,13 +1723,13 @@ function Orbwalk(state)
   end
   
   if CanMove then
-	
-		if Menu.Misc.STT and Target ~= nil and (state == Combo or state == FCombo or state == Harass) and not ValidTarget(Target, 100) and ValidTarget(Target, TrueTargetRange) then
-			MoveToPos(Target)
-		else
-			MoveToMouse()
-		end
-		
+  
+    if Menu.Misc.STT and Target ~= nil and (state == Combo or state == FCombo or state == Harass) and not ValidTarget(Target, 100) and ValidTarget(Target, TrueTargetRange) then
+      MoveToPos(Target)
+    else
+      MoveToMouse()
+    end
+    
   end
   
 end
@@ -1757,7 +1757,7 @@ end
 function OrbCastAA(enemy)
   CanMove = false
   CastAA(enemy)
-	CanAA = false
+  CanAA = false
   CanQ = false
   CanW = false
   CanE = false
@@ -2458,13 +2458,13 @@ function OnAnimation(unit, animation)
 
   if unit.isMe then
   
-		if animation == "Idle1" then
-		  BeingAA = false
-		  CanAA = true
-		end
-		
+    if animation == "Idle1" then
+      BeingAA = false
+      CanAA = true
+    end
+    
   end
-	
+  
 end
 
 ---------------------------------------------------------------------------------
