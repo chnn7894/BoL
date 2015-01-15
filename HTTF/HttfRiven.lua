@@ -1,4 +1,4 @@
-Version = "3.163"
+Version = "3.164"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -1969,11 +1969,12 @@ end
 
 function CastAA(enemy)
   
-  if VIP_USER and Menu.Misc.UsePacket then
+  --[[if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_MOVE", {sourceNetworkId = myHero.networkID, type = 7, x = enemy.x, y = enemy.z}):send()
   else
     myHero:Attack(enemy)
-  end
+  end]]
+  myHero:Attack(enemy)
   
 end
 
@@ -2180,11 +2181,12 @@ end
 
 function MoveToPos(MovePos)
 
-  if VIP_USER and Menu.Misc.UsePacket then
+  --[[if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_MOVE", {MovePos.x, MovePos.z}):send()
   else
     myHero:MoveTo(MovePos.x, MovePos.z)
-  end
+  end]]
+  myHero:MoveTo(MovePos.x, MovePos.z)
   
 end
 
@@ -2194,11 +2196,12 @@ function MoveToMouse()
     MousePos = myHero+(Vector(mousePos)-myHero):normalized()*300
   end
   
-  if VIP_USER and Menu.Misc.UsePacket then
+  --[[if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_MOVE", {MousePos.x, MousePos.z}):send()
   else
     myHero:MoveTo(MousePos.x, MousePos.z)
-  end
+  end]]
+  myHero:MoveTo(MousePos.x, MousePos.z)
   
 end
 
