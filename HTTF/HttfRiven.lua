@@ -1,4 +1,4 @@
-Version = "3.162"
+Version = "3.163"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -558,8 +558,6 @@ function Checks()
   EnemyMinions:update()
   JungleMobs:update()
   
-  HealthPercent = (myHero.health/myHero.maxHealth)*100
-  
   if R.state then
     Q.radius = 400
     Q.range = 325
@@ -570,8 +568,11 @@ function Checks()
     W.radius = 250
   end
   
+  HealthPercent = (myHero.health/myHero.maxHealth)*100
   MyminBBox = GetDistance(myHero.minBBox)/2
+  
   TrueRange = myHero.range+MyminBBox
+  
   TargetHealthPercent = 100
   KSTargetHealthPercent = 100
   
@@ -802,11 +803,11 @@ function Combo()
     return
   end
   
-  if CanTurn and ValidTarget(Target, TrueTargetRange) then
+  if CanTurn and ValidTarget(Target, TrueTargetRange-50) then
     CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
     MoveToPos(CancelPos)
     CanTurn = false
-  elseif CanTurn and not ValidTarget(Target, TrueTargetRange) then
+  elseif CanTurn and not ValidTarget(Target, TrueTargetRange-50) then
     CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
     MoveToPos(CancelPos)
     CanTurn = false
@@ -891,7 +892,7 @@ function FCombo()
     
     if not R.state then
     
-      if FComboF and F.ready and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, E.range+F.range+TargetAddRange-50) then
+      if FComboF and F.ready and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, E.range+F.range+MyminBBox+TargetAddRange-50) then
         CastE(Target)
         DelayAction(function() CastFR() end, 0.2)
         DelayAction(function() CastF(Target) end, 0.25)
@@ -902,7 +903,7 @@ function FCombo()
       
     elseif R.state then
     
-      if FComboF and F.ready and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, E.range+F.range+TargetAddRange-50) then
+      if FComboF and F.ready and not ValidTarget(Target, E.range+TrueTargetRange-50) and ValidTarget(Target, E.range+F.range+MyminBBox+TargetAddRange-50) then
         CastE(Target)
         DelayAction(function() CastF(Target) end, 0.25)
       elseif not (FComboF and F.ready) and ValidTarget(Target, E.range+TrueTargetRange-50) then
@@ -945,11 +946,11 @@ function FCombo()
     
   elseif AfterCombo then
   
-    if CanTurn and ValidTarget(Target, TrueTargetRange) then
+    if CanTurn and ValidTarget(Target, TrueTargetRange-50) then
       CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
       MoveToPos(CancelPos)
       CanTurn = false
-    elseif CanTurn and not ValidTarget(Target, TrueTargetRange) then
+    elseif CanTurn and not ValidTarget(Target, TrueTargetRange-50) then
       CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
       MoveToPos(CancelPos)
       CanTurn = false
@@ -1018,11 +1019,11 @@ function Farm()
     local QMinionDmg = GetDmg("Q", minion)
     local WMinionDmg = GetDmg("W", minion)
 
-    if CanTurn and ValidTarget(minion, TrueMinionRange) then
+    if CanTurn and ValidTarget(minion, TrueMinionRange-50) then
       CancelPos = myHero+(Vector(minion)-myHero):normalized()*-300
       MoveToPos(CancelPos)
       CanTurn = false
-    elseif CanTurn and not ValidTarget(minion, TrueMinionRange) then
+    elseif CanTurn and not ValidTarget(minion, TrueMinionRange-50) then
       CancelPos = myHero+(Vector(minion)-myHero):normalized()*300
       MoveToPos(CancelPos)
       CanTurn = false
@@ -1099,11 +1100,11 @@ function JFarm()
     local JFarmTH = Menu.Clear.JFarm.TH
     local JFarmTHmin = Menu.Clear.JFarm.THmin
     
-    if CanTurn and ValidTarget(junglemob, TrueJunglemobRange) then
+    if CanTurn and ValidTarget(junglemob, TrueJunglemobRange-50) then
       CancelPos = myHero+(Vector(junglemob)-myHero):normalized()*-300
       MoveToPos(CancelPos)
       CanTurn = false
-    elseif CanTurn and not ValidTarget(junglemob, TrueJunglemobRange) then
+    elseif CanTurn and not ValidTarget(junglemob, TrueJunglemobRange-50) then
       CancelPos = myHero+(Vector(junglemob)-myHero):normalized()*300
       MoveToPos(CancelPos)
       CanTurn = false
@@ -1230,11 +1231,11 @@ function Harass()
   local HarassW = Menu.Harass.W
   local HarassE = Menu.Harass.E
   
-  if CanTurn and ValidTarget(Target, TrueTargetRange) then
+  if CanTurn and ValidTarget(Target, TrueTargetRange-50) then
     CancelPos = myHero+(Vector(Target)-myHero):normalized()*-300
     MoveToPos(CancelPos)
     CanTurn = false
-  elseif CanTurn and not ValidTarget(Target, TrueTargetRange) then
+  elseif CanTurn and not ValidTarget(Target, TrueTargetRange-50) then
     CancelPos = myHero+(Vector(Target)-myHero):normalized()*300
     MoveToPos(CancelPos)
     CanTurn = false
@@ -1467,7 +1468,7 @@ function AutoLevel()
       local spell = {SPELL_1, SPELL_2, SPELL_3, SPELL_4}
       local level = {0, 0, 0, 0}
       
-      for i = 1, myHero.level, 1 do
+      for i = 1, myHero.level do
         level[AutoEQWQ[i]] = level[AutoEQWQ[i]]+1
       end
       
@@ -1488,7 +1489,7 @@ function AutoLevel()
       local spell = {SPELL_1, SPELL_2, SPELL_3, SPELL_4}
       local level = {0, 0, 0, 0}
       
-      for i = 1, myHero.level, 1 do
+      for i = 1, myHero.level do
         level[AutoQEWQ[i]] = level[AutoQEWQ[i]]+1
       end
       
