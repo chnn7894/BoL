@@ -1,4 +1,4 @@
-Version = "3.165"
+Version = "3.2"
 AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
@@ -81,6 +81,7 @@ function Variables()
 
   Target = nil
   EnemyHeroes = GetEnemyHeroes()
+	Towers = GetTurrets()
   
   if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
     Ignite = SUMMONER_1
@@ -100,7 +101,7 @@ function Variables()
     Flash = SUMMONER_2
   end
   
-  DelayAction(function() AnimationTime = 1/(0.625*myHero.attackSpeed) end, 20)
+  AnimationTime = 1/(0.625*myHero.attackSpeed)
   WindUpTime = 0
   BeingAA = false
   BeingQ = false
@@ -133,7 +134,7 @@ function Variables()
   Q = {radius = 300, range = 225, level = 0, ready, state = 0}
   W = {radius = 250, level = 0, ready}
   E = {range = 250, level = 0, ready}
-  R = {delay = 0, angle = 45, range = 900, speed = 1200, level = 0, ready, state = false}
+  R = {delay = 0.5, angle = 45, range = 900, speed = 2200--[[1200]], level = 0, ready, state = false}
   I = {range = 600, ready}
   S = {range = 760, ready}
   F = {range = 400, ready}
@@ -177,43 +178,45 @@ function Variables()
   if S5SR then
     FocusJungleNames =
     {
-    ["Dragon6.1.1"] = true,
-    ["Worm12.1.1"] = true,
-    ["GiantWolf8.1.1"] = true,
-    ["AncientGolem7.1.1"] = true,
-    ["Wraith9.1.1"] = true,
-    ["LizardElder10.1.1"] = true,
-    ["Golem11.1.2"] = true,
-    ["GiantWolf2.1.1"] = true,
-    ["AncientGolem1.1.1"] = true,
-    ["Wraith3.1.1"] = true,
-    ["LizardElder4.1.1"] = true,
-    ["Golem5.1.2"] = true,
-    ["GreatWraith13.1.1"] = true,
-    ["GreatWraith14.1.1"] = true
+    "SRU_Baron12.1.1",
+    "SRU_Blue1.1.1",
+    "SRU_Blue7.1.1",
+    "Sru_Crab15.1.1",
+    "Sru_Crab16.1.1",
+    "SRU_Dragon6.1.1",
+    "SRU_Gromp13.1.1",
+    "SRU_Gromp14.1.1",
+    "SRU_Krug5.1.2",
+    "SRU_Krug11.1.2",
+    "SRU_Murkwolf2.1.1",
+    "SRU_Murkwolf8.1.1",
+    "SRU_Razorbeak3.1.1",
+    "SRU_Razorbeak9.1.1",
+    "SRU_Red4.1.1",
+    "SRU_Red10.1.1"
     }
   JungleMobNames =
     {
-    ["Wolf8.1.2"] = true,
-    ["Wolf8.1.3"] = true,
-    ["YoungLizard7.1.2"] = true,
-    ["YoungLizard7.1.3"] = true,
-    ["LesserWraith9.1.3"] = true,
-    ["LesserWraith9.1.2"] = true,
-    ["LesserWraith9.1.4"] = true,
-    ["YoungLizard10.1.2"] = true,
-    ["YoungLizard10.1.3"] = true,
-    ["SmallGolem11.1.1"] = true,
-    ["Wolf2.1.2"] = true,
-    ["Wolf2.1.3"] = true,
-    ["YoungLizard1.1.2"] = true,
-    ["YoungLizard1.1.3"] = true,
-    ["LesserWraith3.1.3"] = true,
-    ["LesserWraith3.1.2"] = true,
-    ["LesserWraith3.1.4"] = true,
-    ["YoungLizard4.1.2"] = true,
-    ["YoungLizard4.1.3"] = true,
-    ["SmallGolem5.1.1"] = true
+    "SRU_BlueMini1.1.2",
+    "SRU_BlueMini7.1.2",
+    "SRU_BlueMini21.1.3",
+    "SRU_BlueMini27.1.3",
+    "SRU_KrugMini5.1.1",
+    "SRU_KrugMini11.1.1",
+    "SRU_MurkwolfMini2.1.2",
+    "SRU_MurkwolfMini2.1.3",
+    "SRU_MurkwolfMini8.1.2",
+    "SRU_MurkwolfMini8.1.3",
+    "SRU_RazorbeakMini3.1.2",
+    "SRU_RazorbeakMini3.1.3",
+    "SRU_RazorbeakMini3.1.4",
+    "SRU_RazorbeakMini9.1.2",
+    "SRU_RazorbeakMini9.1.3",
+    "SRU_RazorbeakMini9.1.4",
+    "SRU_RedMini4.1.2",
+    "SRU_RedMini4.1.3",
+    "SRU_RedMini10.1.2",
+    "SRU_RedMini10.1.3"
     }
   elseif TT then
     FocusJungleNames =
@@ -267,7 +270,7 @@ function RivenMenu()
       Menu.Combo:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("E2", "Use E if Health Percent > x%", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-      Menu.Combo:addParam("EAA", "Don't use E if enemy is in AA range", SCRIPT_PARAM_ONOFF, true)
+      Menu.Combo:addParam("EAA", "Don't use E if enemy is in AA range", SCRIPT_PARAM_ONOFF, false)
       Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("FR", "Use Active R (FR)", SCRIPT_PARAM_LIST, 4, { "None", "Killable", "Max Damage or Killable", "Full Combo"})
@@ -296,7 +299,7 @@ function RivenMenu()
         Menu.Clear.Farm:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.Farm:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, false)
+      Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.Farm:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("TH", "Use Tiamat or Ravenous Hydra", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.Farm:addParam("THmin", "Use Item Min Count", SCRIPT_PARAM_SLICE, 3, 1, 6, 0)
@@ -373,6 +376,7 @@ function RivenMenu()
       Menu.Auto:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoW", "Auto W by Min Count", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Wmin", "W Min Count", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
+			Menu.Auto:addParam("DontW", "Don't use W if Enemy is under their Tower", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoR", "Auto Cast R by Min Count", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Rmin", "Cast R Min Count", SCRIPT_PARAM_SLICE, 5, 1, 5, 0)
@@ -386,10 +390,11 @@ function RivenMenu()
     
   Menu:addSubMenu("Misc Settings", "Misc")
     if VIP_USER then
-    Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, false)
+    Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, true)
     end
     Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, false)
     Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 2, {"R>Q>W>E (EQWQ)", "R>Q>W>E (QEWQ)"})
+    Menu.Misc:addParam("STT", "Stick to Target", SCRIPT_PARAM_ONOFF, true)
     
   Menu:addSubMenu("Draw Settings", "Draw")
     Menu.Draw:addParam("On", "Draw", SCRIPT_PARAM_ONOFF, true)
@@ -622,12 +627,12 @@ end
 
 function _ENV.GetFCDmg(enemy, full)
   
-  local PADTargetDmg = GetDmg("PAD", enemy)
+  local PAATargetDmg = GetDmg("PAA", enemy)
   local QTargetDmg = GetDmg("Q", enemy)
   local WTargetDmg = GetDmg("W", enemy)
   local FCRTargetDmg = RGetDmg("FCR", enemy)
   
-  local RADTargetDmg = GetDmg("RAD", enemy)
+  local RAATargetDmg = GetDmg("RAA", enemy)
   local RQTargetDmg = GetDmg("RQ", enemy)
   local RWTargetDmg = GetDmg("RW", enemy)
   local RFCRTargetDmg = RGetDmg("RFCR", enemy)
@@ -635,17 +640,17 @@ function _ENV.GetFCDmg(enemy, full)
   local TotalDmg = 0
   
   if not (R.ready or R.state) then
-    TotalDmg = WTargetDmg+PADTargetDmg+QTargetDmg*(3-Q.state)+FCRTargetDmg
+    TotalDmg = WTargetDmg+PAATargetDmg+QTargetDmg*(3-Q.state)+FCRTargetDmg
     
     if full then
-      TotalDmg = TotalDmg+2*PADTargetDmg
+      TotalDmg = TotalDmg+2*PAATargetDmg
     end
     
   else
-    TotalDmg = RWTargetDmg+RADTargetDmg+RQTargetDmg*(3-Q.state)+RFCRTargetDmg
+    TotalDmg = RWTargetDmg+RAATargetDmg+RQTargetDmg*(3-Q.state)+RFCRTargetDmg
     
     if full then
-      TotalDmg = TotalDmg+2*RADTargetDmg
+      TotalDmg = TotalDmg+2*RAATargetDmg
     end
     
   end
@@ -671,7 +676,7 @@ end
 function Combo()
 
   Orbwalk(Combo)
-  
+	
   if KSTarget == nil then
     return
   end
@@ -714,13 +719,13 @@ function Combo()
     CastBRK(KSTarget)
   end
   
-  if R.state and ComboAutoR and ValidTarget(KSTarget, R.range) then
+  if ComboAutoR and ValidTarget(KSTarget, R.range) then
     CastR2(KSTarget, Combo)
   end
   
   if R.ready and not R.state and ComboR and ComboFR ~= 1 then
   
-    if ValidTarget(KSTarget, R.range) then
+    if ValidTarget(KSTarget, R.range-R.delay*KSTarget.ms) then
     
       if ComboFR == 2 and RRKSTargetDmg >= KSTarget.health then
         CastFR()
@@ -730,14 +735,21 @@ function Combo()
         return
       elseif ComboFR == 4 and GetFCDmg(KSTarget, true) >= KSTarget.health then
       
-        if ValidTarget(KSTarget, TrueTargetRange) then
+        if ValidTarget(KSTarget, TrueTargetRange-50) then
           CastFR()
           return
         elseif not (Q.ready and ComboQ) and E.ready and ComboE and ValidTarget(KSTarget, E.range+TrueTargetRange-50) then
+					CastE(KSTarget)
           CastFR()
           return
-        elseif Q.ready and ComboQ and E.ready and ComboE and ValidTarget(KSTarget, Q.radius+E.range-50) then
+        elseif Q.ready and ComboQ and not (E.ready and ComboE) and ValidTarget(KSTarget, Q.radius) then
           CastFR()
+					CastQ(KSTarget)
+          return
+        elseif Q.ready and ComboQ and E.ready and ComboE and ValidTarget(KSTarget, Q.radius+E.range-50) then
+					CastE(KSTarget)
+          CastFR()
+					DelayAction(function() CastQ(KSTarget) end, 0.25)
           return
         end
         
@@ -747,7 +759,7 @@ function Combo()
     
   elseif R.state and ComboR and ComboSR ~= 1 then
   
-    if ValidTarget(KSTarget, R.range) then
+    if ValidTarget(KSTarget, R.range-(GetDistance(KSTarget)/R.speed)*KSTarget.ms) then
     
       if ComboSR == 2 and RKSTargetDmg >= KSTarget.health then
         CastSR(KSTarget)
@@ -869,11 +881,11 @@ function FCombo()
     return
   end
     
-  local PADTargetDmg = GetDmg("PAD", Target)
+  local PAATargetDmg = GetDmg("PAA", Target)
   local QTargetDmg = GetDmg("Q", Target)
   local WTargetDmg = GetDmg("W", Target)
   local FCRTargetDmg = RGetDmg("FCR", Target)
-  local RADTargetDmg = GetDmg("RAD", Target)
+  local RAATargetDmg = GetDmg("RAA", Target)
   local RQTargetDmg = GetDmg("RQ", Target)
   local RWTargetDmg = GetDmg("RW", Target)
   local RFCRTargetDmg = RGetDmg("RFCR", Target)
@@ -1015,7 +1027,7 @@ function Farm()
     local FarmTH = Menu.Clear.Farm.TH
     local FarmTHmin = Menu.Clear.Farm.THmin
     
-    local AAMinionDmg = GetDmg("AD", minion)
+    local AAMinionDmg = GetDmg("AA", minion)
     local QMinionDmg = GetDmg("Q", minion)
     local WMinionDmg = GetDmg("W", minion)
 
@@ -1082,7 +1094,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function JFarm()
-  
+
   Orbwalk(JFarm)
   
   for i, junglemob in pairs(JungleMobs.objects) do
@@ -1094,9 +1106,6 @@ function JFarm()
     local AddRange = GetDistance(junglemob.minBBox, junglemob)/2
     local TrueJunglemobRange = TrueRange+AddRange
     
-    local JFarmQ = Menu.Clear.JFarm.Q
-    local JFarmW = Menu.Clear.JFarm.W
-    local JFarmE = Menu.Clear.JFarm.E
     local JFarmTH = Menu.Clear.JFarm.TH
     local JFarmTHmin = Menu.Clear.JFarm.THmin
     
@@ -1121,6 +1130,66 @@ function JFarm()
     if not (Q.ready or W.ready or E.ready) then
       return
     end
+    
+    local JFarmQ = Menu.Clear.JFarm.Q
+    local JFarmW = Menu.Clear.JFarm.W
+    local JFarmE = Menu.Clear.JFarm.E
+    
+    local LargeJunglemob = false
+    
+    for j = 1, #FocusJungleNames do
+    
+      if junglemob.name == FocusJungleNames[j] then
+        LargeJunglemob = true
+        break
+      end
+      
+    end
+    
+    if LargeJunglemob then
+    
+      if E.ready and JFarmE and CanE then
+      
+        if Q.ready and JFarmQ and ValidTarget(junglemob, Q.radius+E.range+AddRange-50) then
+          CastE(junglemob)
+        elseif ValidTarget(junglemob, E.range+TrueJunglemobRange-50) then
+          CastE(junglemob)
+        end
+        
+      end
+      
+      if W.ready and JFarmW and CanW and os.clock()-LastE >= 0.5 and ValidTarget(junglemob, W.radius) then
+        CastW()
+      end
+      
+      if Q.ready and JFarmQ and CanQ and ValidTarget(junglemob, Q.radius) then
+        CastQ(junglemob)
+      end
+      
+      return
+      
+    else
+      break
+    end
+    
+  end
+  
+  for i, junglemob in pairs(JungleMobs.objects) do
+  
+    if junglemob == nil then
+      return
+    end
+    
+    if not (Q.ready or W.ready or E.ready) then
+      return
+    end
+    
+    local AddRange = GetDistance(junglemob.minBBox, junglemob)/2
+    local TrueJunglemobRange = TrueRange+AddRange
+    
+    local JFarmQ = Menu.Clear.JFarm.Q
+    local JFarmW = Menu.Clear.JFarm.W
+    local JFarmE = Menu.Clear.JFarm.E
     
     if E.ready and JFarmE and CanE then
     
@@ -1397,30 +1466,37 @@ function Auto()
   if Q.ready and Q.state >= 1 and AutoStackQ and not FleeOn and os.clock()-LastQ2 > 3.7 then
     CastQ(mousePos)
   end
-  
-  if KSTarget == nil or not (W.ready or R.ready) then
-    return
-  end
-  
+	
   local AutoAutoW = Menu.Auto.AutoW
   local AutoWmin = Menu.Auto.Wmin
-  local AutoAutoR = Menu.Auto.AutoR
+	local AutoDontW = Menu.Auto.DontW
   
   local ComboOn = Menu.Combo.On
   local FComboOn = Menu.FCombo.On
   local HarassOn = Menu.Harass.On
-  local JStealOn = Menu.JSteal.On
   
   if FComboOn then
     return
   end
   
-  if R.state and AutoAutoR and ValidTarget(KSTarget, R.range) then
-    CastR2(KSTarget, Auto)
+  if W.ready and AutoAutoW and not (ComboOn or HarassOn) and AutoWmin <= AutoEnemyCount(W.radius) then
+	
+		if AutoDontW and not EnemyUnderTheirTower(W.radius) then
+			CastW()
+		elseif not AutoDontW then
+			CastW()
+		end
+		
   end
   
-  if W.ready and AutoAutoW and not (ComboOn or HarassOn) and AutoWmin <= AutoEnemyCount(W.radius) then
-    CastW()
+  if KSTarget == nil or not R.ready then
+    return
+  end
+  
+  local AutoAutoR = Menu.Auto.AutoR
+  
+  if R.state and AutoAutoR and ValidTarget(KSTarget, R.range) then
+    CastR2(KSTarget, Auto)
   end
   
 end
@@ -1429,8 +1505,8 @@ function AutoEnemyCount(range)
 
   local enemies = {}
   
-  for _, enemy in ipairs(EnemyHeroes) do
-  
+  for i, enemy in ipairs(EnemyHeroes) do
+	
     if ValidTarget(enemy, range) then
       table.insert(enemies, enemy)
     end
@@ -1438,7 +1514,27 @@ function AutoEnemyCount(range)
   end
   
   return #enemies, enemies
+end
+
+function EnemyUnderTheirTower(range)
+
+  for i, enemy in ipairs(EnemyHeroes) do
   
+	  if ValidTarget(enemy, range) then
+		print(range+AddRange)
+			for j, tower in pairs(Towers) do
+			
+				if tower.object and tower.object.team == enemy.team and GetDistance(tower.object) <= 920 and GetDistance(enemy, tower.object) <= 920 then
+					return true
+				end
+				
+			end
+			
+	  end
+		
+	end
+	
+  return false
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1509,7 +1605,7 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
-function Orbwalk(State)
+function Orbwalk(state)
 
   if Menu.Flee.On then
     return
@@ -1517,10 +1613,10 @@ function Orbwalk(State)
   
   if CanAA and CanMove then
   
-    if Target ~= nil and (State == Combo or State == FCombo or State == Harass) and ValidTarget(Target, TrueTargetRange) then
+    if Target ~= nil and (state == Combo or state == FCombo or state == Harass) and ValidTarget(Target, TrueTargetRange) then
       OrbCastAA(Target)
       return
-    elseif State == Farm then
+    elseif state == Farm then
     
       if AllyMinionCount(R.range) == 0 then
       
@@ -1533,7 +1629,7 @@ function Orbwalk(State)
           local AddRange = GetDistance(minion.minBBox, minion)/2
           local TrueMinionRange = TrueRange+AddRange
           
-          local AAMinionDmg = GetDmg("AD", minion)
+          local AAMinionDmg = GetDmg("AA", minion)
           
           if ValidTarget(minion, TrueMinionRange) then
             OrbCastAA(minion)
@@ -1553,7 +1649,7 @@ function Orbwalk(State)
           local AddRange = GetDistance(minion.minBBox, minion)/2
           local TrueMinionRange = TrueRange+AddRange
           
-          local AAMinionDmg = GetDmg("AD", minion)
+          local AAMinionDmg = GetDmg("AA", minion)
           
           if AAMinionDmg >= minion.health and ValidTarget(minion, TrueMinionRange) then
             OrbCastAA(minion)
@@ -1571,7 +1667,7 @@ function Orbwalk(State)
           local AddRange = GetDistance(minion.minBBox, minion)/2
           local TrueMinionRange = TrueRange+AddRange
           
-          local AAMinionDmg = GetDmg("AD", minion)
+          local AAMinionDmg = GetDmg("AA", minion)
           
           if minion.health >= AAMinionDmg+40*AllyMinionCount(R.range)--[[2*AAMinionDmg]] and ValidTarget(minion, TrueMinionRange) then
             OrbCastAA(minion)
@@ -1582,7 +1678,7 @@ function Orbwalk(State)
         
       end
       
-    elseif State == JFarm then
+    elseif state == JFarm then
     
       for i, junglemob in pairs(JungleMobs.objects) do
       
@@ -1602,7 +1698,7 @@ function Orbwalk(State)
         
       end
     
-    elseif State == LastHit then
+    elseif state == LastHit then
     
       for i, minion in pairs(EnemyMinions.objects) do
       
@@ -1613,7 +1709,7 @@ function Orbwalk(State)
         local AddRange = GetDistance(minion.minBBox, minion)/2
         local TrueMinionRange = TrueRange+AddRange
         
-        local AAminionDmg = GetDmg("AD", minion)
+        local AAminionDmg = GetDmg("AA", minion)
         
         if AAminionDmg >= minion.health and ValidTarget(minion, TrueMinionRange) then
           OrbCastAA(minion)
@@ -1627,7 +1723,13 @@ function Orbwalk(State)
   end
   
   if CanMove then
-    MoveToMouse()
+	
+		if Menu.Misc.STT and Target ~= nil and (state == Combo or state == FCombo or state == Harass) and not ValidTarget(Target, 100) and ValidTarget(Target, TrueTargetRange) then
+			MoveToPos(Target)
+		else
+			MoveToMouse()
+		end
+		
   end
   
 end
@@ -1655,6 +1757,7 @@ end
 function OrbCastAA(enemy)
   CanMove = false
   CastAA(enemy)
+	CanAA = false
   CanQ = false
   CanW = false
   CanE = false
@@ -1727,11 +1830,17 @@ function GetDmg(spell, enemy)
     
   elseif spell == "BRK" then
     PureDmg = math.max(100, 0.1*enemy.maxHealth)
-  elseif spell == "AD" then
-    PureDmg = TotalDmg
-  elseif spell == "PAD" then
+  elseif spell == "AA" then
+  
+    if P.stack >= 1 then
+      PureDmg = TotalDmg+(20+math.floor(Level/3)*5)*TotalDmg/100
+    else
+      PureDmg = TotalDmg
+    end
+    
+  elseif spell == "PAA" then
     PureDmg = TotalDmg+(20+math.floor(Level/3)*5)*TotalDmg/100
-  elseif spell == "RAD" then
+  elseif spell == "RAA" then
     PureDmg = TotalDmg+(20+math.floor(Level/3)*5)*RTotalDmg/100
   elseif spell == "Q" then
   
@@ -1804,18 +1913,18 @@ function RGetDmg(spell, enemy)
   local Armor = math.max(0, enemy.armor*ArmorPenPercent-ArmorPen)
   local ArmorPercent = Armor/(100+Armor)
   
-  local PADTargetDmg = GetDmg("PAD", enemy)
+  local PAATargetDmg = GetDmg("PAA", enemy)
   local QTargetDmg = GetDmg("Q", enemy)
   local WTargetDmg = GetDmg("W", enemy)
-  local RADTargetDmg = GetDmg("RAD", enemy)
+  local RAATargetDmg = GetDmg("RAA", enemy)
   local RQTargetDmg = GetDmg("RQ", enemy)
   local RWTargetDmg = GetDmg("RW", enemy)
   
   local QREnemyHealth = enemy.health-QTargetDmg
   local WREnemyHealth = enemy.health-WTargetDmg
   local QWREnemyHealth = enemy.health-QTargetDmg-WTargetDmg
-  local FCREnemyHealth = enemy.health-WTargetDmg-PADTargetDmg-QTargetDmg
-  local RFCREnemyHealth = enemy.health-RWTargetDmg-RADTargetDmg-RQTargetDmg
+  local FCREnemyHealth = enemy.health-WTargetDmg-PAATargetDmg-QTargetDmg
+  local RFCREnemyHealth = enemy.health-RWTargetDmg-RAATargetDmg-RQTargetDmg
   
   local QREnemyLossHealth = 1-(QREnemyHealth/enemy.maxHealth)
   local WREnemyLossHealth = 1-(WREnemyHealth/enemy.maxHealth)
@@ -2052,11 +2161,11 @@ function CastSR(enemy)
   
 end
 
-function CastR2(enemy, State)
+function CastR2(enemy, state)
   
   local AoECastPosition, MainTargetHitChance, NT = VP:GetConeAOECastPosition(enemy, R.delay, R.angle, R.range, R.speed, myHero, false)
   
-  if State == Combo then
+  if state == Combo then
   
     if NT >= Menu.Combo.Rmin then
     
@@ -2066,7 +2175,7 @@ function CastR2(enemy, State)
       
     end
     
-  elseif State == Auto then
+  elseif state == Auto then
   
     if NT >= Menu.Auto.Rmin then
     
@@ -2126,7 +2235,7 @@ function CastT()
     CastSpell(Items["Tiamat"].slot)
   end]]
   CastSpell(Items["Tiamat"].slot)
-	
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -2138,7 +2247,7 @@ function CastH()
   else
     CastSpell(Items["Hydra"].slot)
   end]]
-	CastSpell(Items["Hydra"].slot)
+  CastSpell(Items["Hydra"].slot)
   
 end
 
@@ -2151,7 +2260,7 @@ function CastY()
   else
     CastSpell(Items["Youmuu"].slot)
   end]]
-	CastSpell(Items["Youmuu"].slot)
+  CastSpell(Items["Youmuu"].slot)
   
 end
 
@@ -2164,7 +2273,7 @@ function CastBC(enemy)
   else
     CastSpell(Items["BC"].slot, enemy)
   end]]
-	CastSpell(Items["BC"].slot, enemy)
+  CastSpell(Items["BC"].slot, enemy)
   
 end
 
@@ -2177,7 +2286,7 @@ function CastBRK(enemy)
   else
     CastSpell(Items["BRK"].slot, enemy)
   end]]
-	CastSpell(Items["BRK"].slot, enemy)
+  CastSpell(Items["BRK"].slot, enemy)
   
 end
 
@@ -2343,7 +2452,22 @@ function OnProcessSpell(object, spell)
   
 end]]
 
-----------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+function OnAnimation(unit, animation)
+
+  if unit.isMe then
+  
+		if animation == "Idle1" then
+		  BeingAA = false
+		  CanAA = true
+		end
+		
+  end
+	
+end
+
+---------------------------------------------------------------------------------
 
 function OnProcessSpell(object, spell)
 
