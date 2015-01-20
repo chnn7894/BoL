@@ -1,4 +1,4 @@
-Version = "1.221"
+Version = "1.222"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -104,6 +104,12 @@ function Variables()
     Ignite = SUMMONER_2
   end
   
+  if myHero:GetSpellData(SUMMONER_1).name:find("smite") then
+    Smite = SUMMONER_1
+  elseif myHero:GetSpellData(SUMMONER_2).name:find("smite") then
+    Smite = SUMMONER_2
+  end
+  
   BlockComboR = false
   DebugClock = os.clock()
   LastE = os.clock()
@@ -115,7 +121,17 @@ function Variables()
   E = {delay = 0, radius = 0, range = 610, speed = 1100, ready, Off = 0, stack = 0}
   R = {delay = 0, radius = 375, range = 625, speed = math.huge, ready, Off = 0}
   I = {range = 600, ready}
+  S = {range = 760, ready}
   Z = {range = 1000, ready}
+  
+  Items =
+  {
+  ["Stalker"] = {id=3706, slot = nil, ready},
+  ["StalkerW"] = {id=3707, slot = nil},
+  ["StalkerM"] = {id=3708, slot = nil},
+  ["StalkerJ"] = {id=3709, slot = nil},
+  ["StalkerD"] = {id=3710, slot = nil}
+  }
   
   MyminBBox = 56.92
   TrueRange = myHero.range + MyminBBox
@@ -312,7 +328,7 @@ function VladimirMenu()
         Menu.Clear.JFarm:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
         Menu.Clear.JFarm:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
-        Menu.Clear.JFarm:addParam("E2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
+        Menu.Clear.JFarm:addParam("E2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
         Menu.Clear.JFarm:addParam("Emin", "Use E Min Count", SCRIPT_PARAM_SLICE, 1, 1, 4, 0)
         
   Menu:addSubMenu("Harass Settings", "Harass")
@@ -400,9 +416,13 @@ function VladimirMenu()
       Menu.Auto:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoZ", "Auto Zhonya", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Info", "Auto Zhonya if Current Health < Max health * x%", SCRIPT_PARAM_INFO, "")
-      Menu.Auto:addParam("Z", "Default value = 15", SCRIPT_PARAM_SLICE, 15, 0, 100, 0)
+      Menu.Auto:addParam("Z", "Default value = 20", SCRIPT_PARAM_SLICE, 20	, 0, 100, 0)
       Menu.Auto:addParam("Zmin", "Auto Zhonya Min Enemy Count", SCRIPT_PARAM_SLICE, 0, 0, 5, 0)
-    
+      if Smite ~= nil then
+        Menu.Auto:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
+      Menu.Auto:addParam("AutoS", "Auto Smite", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
+      end
+      
   Menu:addSubMenu("Flee Settings", "Flee")
   
     Menu.Flee:addParam("On", "Flee (Only Use KillSteal & Auto R)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
@@ -414,9 +434,9 @@ function VladimirMenu()
     if VIP_USER then
     Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, true)
       Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Misc:addParam("Skin", "Use Skin hack", SCRIPT_PARAM_ONOFF, false)
+    --[[Menu.Misc:addParam("Skin", "Use Skin hack", SCRIPT_PARAM_ONOFF, false)
     Menu.Misc:addParam("SkinOpt", "Skin list : ", SCRIPT_PARAM_LIST, 7, { "Count Vladimir", "Marquis Vladimir", "Nosferatu Vladimir", "Vandal Vladimir", "Blood Lord Vladimir", "Soulstealer Vladmir", "Classic"})  
-      Menu.Misc:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
+      Menu.Misc:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")]]
     end
     Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, true)
     Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W (QEWQ)", "R>Q>E>W (QWEQ)"})
@@ -434,6 +454,7 @@ function VladimirMenu()
     Menu.Draw:addParam("W", "Draw W range", SCRIPT_PARAM_ONOFF, false)
     Menu.Draw:addParam("E", "Draw E range", SCRIPT_PARAM_ONOFF, false)
     Menu.Draw:addParam("R", "Draw R range", SCRIPT_PARAM_ONOFF, false)
+    Menu.Draw:addParam("S", "Draw Smite range", SCRIPT_PARAM_ONOFF, true)
       Menu.Draw:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("On2", "Use PermaShow (Require reload)", SCRIPT_PARAM_ONOFF, false)
     
@@ -516,6 +537,10 @@ function OnTick()
     JSteal()
   end
   
+  if Menu.Auto.On then
+    Auto()
+  end
+  
   if Menu.LastHit.On or Menu.LastHit.On2 then
     LastHit()
   end
@@ -532,9 +557,9 @@ function OnTick()
     MoveToMouse()
   end
   
-  if VIP_USER and Menu.Misc.Skin then
+  --[[if VIP_USER and Menu.Misc.Skin then
     Skin()
-  end
+  end]]
   
   if Menu.Misc.AutoLevel then
     AutoLevel()
@@ -546,10 +571,6 @@ function OnTick()
   
   if Menu.KillSteal.On then
     KillSteal()
-  end
-  
-  if Menu.Auto.On then
-    Auto()
   end
   
   if Menu.Combo.On then
@@ -567,14 +588,21 @@ end
 
 function Check()
 
-  Q.ready = (myHero:CanUseSpell(_Q) == READY)
-  W.ready = (myHero:CanUseSpell(_W) == READY)
-  E.ready = (myHero:CanUseSpell(_E) == READY)
-  R.ready = (myHero:CanUseSpell(_R) == READY)
-  I.ready = (Ignite ~= nil and myHero:CanUseSpell(Ignite) == READY)
+  Q.ready = myHero:CanUseSpell(_Q) == READY
+  W.ready = myHero:CanUseSpell(_W) == READY
+  E.ready = myHero:CanUseSpell(_E) == READY
+  R.ready = myHero:CanUseSpell(_R) == READY
+  I.ready = Ignite ~= nil and myHero:CanUseSpell(Ignite) == READY
+  S.ready = Smite ~= nil and myHero:CanUseSpell(Smite) == READY
   
   ZSlot = GetInventorySlotItem(3157)
-  Z.ready = (ZSlot ~= nil and myHero:CanUseSpell(ZSlot) == READY)
+  Z.ready = ZSlot ~= nil and myHero:CanUseSpell(ZSlot) == READY
+  
+  for _, item in pairs(Items) do
+    item.slot = GetInventorySlotItem(item.id)
+  end
+  
+  Items["Stalker"].ready = Smite ~= nil and (Items["Stalker"].slot or Items["StalkerW"].slot or Items["StalkerM"].slot or Items["StalkerJ"].slot or Items["StalkerD"].slot) and myHero:CanUseSpell(Smite) == READY
   
   EnemyMinions:update()
   JungleMobs:update()
@@ -980,18 +1008,41 @@ function Auto()
   local AutoAutoR = Menu.Auto.AutoR
   local AutoZ = Menu.Auto.Z
   local AutoZmin = Menu.Auto.Zmin
-  
+  local AutoAutoS = Menu.Auto.AutoS
+	
   local FleeOn = Menu.Flee.On
   
   if Z.ready and AutoAutoZ and AutoZ > HealthPercent and AutoZmin <= EnemyCount(Z.range) then
     CastZ()
   end
+	
+	if Recall then
+		return
+	end
   
-  if E.ready and AutoAutoE and not FleeOn and Recall == false and AutoE2 <= HealthPercent and ValidTarget(Target, E.range) then
+  for i, junglemob in pairs(JungleMobs.objects) do
+  
+    if junglemob == nil or not S.ready then
+      return
+    end
+    
+    local SjunglemobDmg = GetDmg("SMITE", junglemob)
+    
+    if S.ready and AutoAutoS and SjunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
+      CastS(junglemob)
+    end
+    
+  end
+	
+	if Target == nil then
+	  return
+	end
+  
+  if E.ready and AutoAutoE and not FleeOn and AutoE2 <= HealthPercent and ValidTarget(Target, E.range) then
     CastE2(Target, Auto)
   end
   
-  if R.ready and AutoAutoR and Recall == false then
+  if R.ready and AutoAutoR then
     CastR2(Target, Auto)
   end
   
@@ -1150,6 +1201,44 @@ function AutoLevel()
 end
 
 ----------------------------------------------------------------------------------------------------
+
+function GetDmg(spell, enemy)
+
+  if enemy == nil then
+    return
+  end
+  
+  local Level = myHero.level
+  
+  if spell == "SMITE" then
+  
+    if Level <= 4 then
+      local TrueDmg = 370+20*Level
+      
+      return TrueDmg
+      
+    elseif Level <= 9 then
+      local TrueDmg = 330+30*Level
+      
+      return TrueDmg
+      
+    elseif Level <= 14 then
+      local TrueDmg = 240+40*Level
+      
+      return TrueDmg
+      
+    else
+      local TrueDmg = 100+50*Level
+      
+      return TrueDmg
+      
+    end
+    
+  end
+  
+end
+
+----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 
 function OnDraw()
@@ -1160,7 +1249,7 @@ function OnDraw()
       DrawCircle(Player.x, Player.y, Player.z, TrueRange, ARGB(0xFF,0,0xFF,0))
     end
     
-    if Menu.Draw.Q then
+    if Menu.Draw.Q and Q.ready then
       DrawCircle(Player.x, Player.y, Player.z, Q.range, ARGB(0xFF,0xFF,0xFF,0xFF))
     end
     
@@ -1168,12 +1257,16 @@ function OnDraw()
       DrawCircle(Player.x, Player.y, Player.z, W.radius, ARGB(0xFF,0xFF,0xFF,0xFF))
     end
     
-    if Menu.Draw.E then
+    if Menu.Draw.E and E.ready then
       DrawCircle(Player.x, Player.y, Player.z, E.range, ARGB(0xFF,0xFF,0xFF,0xFF))
     end
     
-    if Menu.Draw.R then
+    if Menu.Draw.R and R.ready then
       DrawCircle(Player.x, Player.y, Player.z, R.range, ARGB(0xFF,0xFF,0,0))
+    end
+  
+    if Menu.Draw.S and S.ready and Menu.Auto.On and Menu.Auto.AutoS then
+      DrawCircle(myHero.x, myHero.y, myHero.z, S.range, ARGB(0xFF, 0xFF, 0x14, 0x93))
     end
     
   end
@@ -1402,6 +1495,22 @@ function CastI(enemy)
 end
 
 ----------------------------------------------------------------------------------------------------
+
+function CastS(enemy)
+
+	if Smite == nil then
+	  return
+	end
+  
+  if VIP_USER and Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = Smite, targetNetworkId = enemy.networkID}):send()
+  else
+    CastSpell(Smite, enemy)
+  end
+  
+end
+
+----------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------
 
 function MoveToPos(x, z)
@@ -1430,19 +1539,20 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
-function OnProcessSpell(unit,spell)
+function OnAnimation(unit, animation)
 
-  if unit.isMe and spell.name == "VladimirTidesofBlood" then
+  if unit.isMe then
   
-    LastE = os.clock()
-    
-    if E.stack < 4 then
-      E.stack = E.stack + 1
+    if animation == "Idle1" then
+      BeingAA = false
+      CanAA = true
     end
     
   end
   
 end
+
+---------------------------------------------------------------------------------
 
 function OnGainBuff(unit, buff)
 
@@ -1460,7 +1570,9 @@ function OnGainBuff(unit, buff)
   end
   
 end
- 
+
+---------------------------------------------------------------------------------
+
 function OnLoseBuff(unit, buff)
 
   if unit.isMe then
@@ -1471,6 +1583,22 @@ function OnLoseBuff(unit, buff)
     
     if buff.name == "vladimirsanguinepool" then
       Pool = false
+    end
+    
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
+function OnProcessSpell(unit,spell)
+
+  if unit.isMe and spell.name == "VladimirTidesofBlood" then
+  
+    LastE = os.clock()
+    
+    if E.stack < 4 then
+      E.stack = E.stack + 1
     end
     
   end
